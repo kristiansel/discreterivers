@@ -27,6 +27,11 @@ namespace gfx
         {
             return indices[index];
         }
+
+        inline bool operator==(const Triangle &other) const
+        {
+            return indices[0]==other.indices[0] && indices[1]==other.indices[1] && indices[2]==other.indices[2];
+        }
     };
 
     struct Line

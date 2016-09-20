@@ -4,6 +4,7 @@
 #include <queue>
 #include <assert.h>
 #include <functional>
+#include "optional.h"
 
 namespace graphtools
 {
@@ -28,7 +29,7 @@ public:
             index(_index), heuristic(_heuristic), nodes(_nodes), adjacency(_adjacency),
             open_points_queue(compare_functor<heuristic_type>(_heuristic))
         {
-            already_visited = std::vector<bool>(_nodes.size(), false);
+            search_parents = std::vector<optional<index_type>>(_nodes.size());
 
             // start;
             visit(_index);
@@ -56,13 +57,13 @@ public:
             // actual increment takes place here
 //            if (!open_points_queue.empty())
 //            {
-
+                parent_index = make_optional(index);
                 index = open_points_queue.top();
                 open_points_queue.pop();
 
                 for (auto const &i_adj : adjacency[int(index)])
                 {
-                    if (already_visited[int(i_adj)]==false)
+                    if (!search_parents[int(i_adj)].exists())
                     {
                         visit(i_adj);
                     }
@@ -78,7 +79,9 @@ public:
         const node_type* operator->() const { return &nodes[int(index)]; }
 
         const index_type get_index() const { return index; }
-        const index_type get_parent_index() const { return parent_index; }
+        const optional<index_type> get_parent_index() const{ return parent_index; }
+        //const optional<index_type> get_parent_index() const{ return search_parents[index]; }
+        //TODO: distinguish between search parent-hierarchy and search order!!!
 
     private:
         std::priority_queue<index_type, std::vector<index_type>, compare_functor<heuristic_type>> open_points_queue;
@@ -90,15 +93,15 @@ public:
         const std::vector<node_type> &nodes;
         const std::vector<std::vector<index_type>> &adjacency; // maps to nodes
 
-        std::vector<bool> already_visited; // maps to nodes
+        std::vector<optional<index_type>> search_parents; // maps to nodes
 
         // next up
-        index_type parent_index;
+        optional<index_type> parent_index;
         //size_t distance;
 
         void visit(index_type _index)
         {
-            already_visited[int(_index)] = true;
+            search_parents[int(_index)] = make_optional(index);
             open_points_queue.push(_index);
         }
     };

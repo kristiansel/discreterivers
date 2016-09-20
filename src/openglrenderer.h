@@ -28,14 +28,18 @@ struct Vertices
     explicit Vertices(const std::vector<vmath::Vector4> &position_data,
                       const std::vector<vmath::Vector4> &normal_data);
 
+    inline GLuint getVertexArrayObject() const       {return mVertexArrayObject;}
     inline GLuint getPositionArrayBuffer() const     {return mPositionArrayBuffer;}
     inline GLuint getNormalArrayBuffer() const       {return mNormalArrayBuffer;}
+
 
 private:
     Vertices();
 
+    GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
     GLuint mNormalArrayBuffer;
+
 
 };
 
@@ -142,6 +146,8 @@ struct SceneNode;
 
 struct SceneNodeHandle;
 
+void checkOpenGLErrors(const std::string &error_check_label);
+
 class OpenGLRenderer
 {
 public:
@@ -151,7 +157,7 @@ public:
     SceneNodeHandle addSceneNode();
     SceneNode * getSceneNodePtr(scenenode_id id);
 
-
+    void toggleWireframe() { mGlobalWireframe = mGlobalWireframe ? false : true; }
 
     void draw() const;
 
@@ -167,6 +173,11 @@ private:
         } mUniforms;
 //    } mShaderProgram;
 
+    static bool checkShaderCompiled(GLuint shader);
+    static bool checkProgramLinked(GLuint program);
+
+    bool mGlobalWireframe;
+
     struct Camera
     {
         vmath::Matrix4 mProjectionMatrix;
@@ -176,7 +187,7 @@ private:
     std::vector<SceneNode> mSceneNodesVector;
     mutable std::vector<DrawObject> mDrawObjectsVector;
 
-    inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms);
+    inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe = false);
 };
 
 

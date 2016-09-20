@@ -5,7 +5,7 @@
 namespace gfx
 {
 
-OpenGLRenderer::OpenGLRenderer(int width, int height)
+OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
 {
     // GLEW
     GLenum err = glewInit();
@@ -20,12 +20,12 @@ OpenGLRenderer::OpenGLRenderer(int width, int height)
     glEnable(GL_DEPTH_TEST); // Is this necessary?
     glDepthFunc(GL_LESS); // Is this necessary?
 
-    glLineWidth(1.2f);
-    glPointSize(2.6f);
+    glLineWidth(2.2f*1.2f);
+    glPointSize(2.2f*2.6f);
 
     // set up shaders
-    const char * vertex_shader =
-    "#version 400\n"
+    const char * vertex_shader_src =
+    "#version 430\n"
 
     "layout(location = 0) in vec4 vertex_position;"
     "layout(location = 1) in vec4 vertex_normal;"
@@ -42,8 +42,8 @@ OpenGLRenderer::OpenGLRenderer(int width, int height)
     "  gl_Position = position;"
     "}";
 
-    const char * fragment_shader =
-    "#version 400\n"
+    const char * fragment_shader_src =
+    "#version 430\n"
 
     "in vec4 position;"
     "in vec4 normal;"
@@ -59,24 +59,33 @@ OpenGLRenderer::OpenGLRenderer(int width, int height)
     "  frag_color = vec4(color.rgb * max(nDotL, 0), 1.0);"
     "}";
 
-    GLuint vs = glCreateShader (GL_VERTEX_SHADER);
-    glShaderSource (vs, 1, &vertex_shader, NULL);
-    glCompileShader (vs);
+    std::cout << "compiling shaders" << std::endl;
 
-    // should check compilation error
+    // compile vertex shader
+    GLuint vertex_shader = glCreateShader (GL_VERTEX_SHADER);
+    glShaderSource (vertex_shader, 1, &vertex_shader_src, NULL);
+    glCompileShader (vertex_shader);
 
-    GLuint fs = glCreateShader (GL_FRAGMENT_SHADER);
-    glShaderSource (fs, 1, &fragment_shader, NULL);
-    glCompileShader (fs);
+    checkShaderCompiled(vertex_shader);
 
-    // should check compilation error
+    // compile fragment shader
+    GLuint fragment_shader = glCreateShader (GL_FRAGMENT_SHADER);
+    glShaderSource (fragment_shader, 1, &fragment_shader_src, NULL);
+    glCompileShader (fragment_shader);
+
+    checkShaderCompiled(fragment_shader);
+
+    std::cout << "linking shaders" << std::endl;
 
     mShaderProgramID = glCreateProgram ();
-    glAttachShader (mShaderProgramID, fs);
-    glAttachShader (mShaderProgramID, vs);
+    glAttachShader (mShaderProgramID, fragment_shader);
+    glAttachShader (mShaderProgramID, vertex_shader);
     glLinkProgram (mShaderProgramID);
 
     // should check linker error
+    checkProgramLinked(mShaderProgramID);
+
+    //glUseProgram(mShaderProgramID);r
 
     mUniforms.mvp = glGetUniformLocation(mShaderProgramID, "mvp") ;
     mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
@@ -94,6 +103,68 @@ OpenGLRenderer::OpenGLRenderer(int width, int height)
     vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 5.0f));
     mCamera.mCamMatrixInverse = vmath::inverse(camera_matrix);
 
+    // Check for errors:
+    checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
+
+}
+
+
+bool OpenGLRenderer::checkShaderCompiled(GLuint shader)
+{
+    GLint shader_compiled = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
+    if(shader_compiled == GL_FALSE)
+    {
+        GLint max_length = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
+
+        // The maxLength includes the NULL character
+        std::vector<GLchar> info_log(max_length);
+        glGetShaderInfoLog(shader, max_length, &max_length, &info_log[0]);
+
+        for (auto err_char : info_log) std::cout << err_char;
+
+        // Provide the infolog in whatever manor you deem best.
+        // Exit with failure.
+        // glDeleteShader(shader); // Don't leak the shader.
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+void checkOpenGLErrors(const std::string &error_check_label)
+{
+    GLenum gl_err = GL_NO_ERROR;
+    while((gl_err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cerr << "OpenGL Error (" << error_check_label << "): " << gl_err << std::endl;
+    }
+}
+
+bool OpenGLRenderer::checkProgramLinked(GLuint program)
+{
+    GLint is_linked = 0;
+    glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
+    if(is_linked == GL_FALSE)
+    {
+        GLint max_length = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
+
+        //The maxLength includes the NULL character
+        std::vector<GLchar> info_log(max_length);
+        glGetProgramInfoLog(program, max_length, &max_length, &info_log[0]);
+
+        for (auto info_char : info_log) std::cout << info_char;
+
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 SceneNodeHandle OpenGLRenderer::addSceneNode()
@@ -127,6 +198,16 @@ SceneObject * SceneNode::getSceneObjectPtr(sceneobject_id id)
 Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
                    const std::vector<vmath::Vector4> &normal_data)
 {
+    // potentially more optimizations:
+    /*
+     * http://stackoverflow.com/questions/27027602/glvertexattribpointer-gl-invalid-operation-invalid-vao-vbo-pointer-usage
+     */
+
+    // Vertex Array Object
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
+
+    // Prepare buffer data
     GLsizeiptr num_vertices = position_data.size();
 
     const GLfloat *points = (GLfloat *)&position_data[0];
@@ -139,6 +220,7 @@ Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
     glBindBuffer (GL_ARRAY_BUFFER, mPositionArrayBuffer);
     glBufferData (GL_ARRAY_BUFFER, point_buffer_size, points, GL_STATIC_DRAW);
     glEnableVertexAttribArray (0);
+    glVertexAttribPointer (0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
     // create normal buffer
     mNormalArrayBuffer = 0;
@@ -146,12 +228,18 @@ Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
     glBindBuffer (GL_ARRAY_BUFFER, mNormalArrayBuffer);
     glBufferData (GL_ARRAY_BUFFER, normal_data.size()*sizeof(vmath::Vector4), &normal_data[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray (1);
+    glVertexAttribPointer (1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glBindVertexArray(0);
+
+
+    checkOpenGLErrors("Vertices::Vertices");
 }
 
 Geometry::Geometry(const Vertices &vertices, const Primitives &primitives) :
     mVertices(vertices), mPrimitives(primitives) {}
 
-inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms)
+inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe)
 {
     // deconstruct scene_object
     // wouldn't it be nice to write for ({transform, {vertices, primitives}, material} : mSceneObjectsVector)... std::tie?
@@ -180,17 +268,17 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
     glUniform4fv(uniforms.color, 1, (const GLfloat*)&material.getColor());
 
     //glBindVertexArray (vertices.vao);
-    glBindBuffer (GL_ARRAY_BUFFER, vertices.getPositionArrayBuffer());
-    glVertexAttribPointer (0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    // glBindBuffer (GL_ARRAY_BUFFER, vertices.getPositionArrayBuffer());
+    // glBindBuffer (GL_ARRAY_BUFFER, vertices.getNormalArrayBuffer());
 
-    glBindBuffer (GL_ARRAY_BUFFER, vertices.getNormalArrayBuffer());
-    glVertexAttribPointer (1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    // Bind vertex array
+    glBindVertexArray(vertices.getVertexArrayObject());
 
-    // pretty sure the indices also need to be bound
+    // Bind element array
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitives.getElementArrayBuffer());
 
     // wireframe !
-    if (material.getWireframe()==true) // woops branching in tight loop, should fix...
+    if (material.getWireframe()==true || global_wireframe) // woops branching in tight loop, should fix...
     {
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     }
@@ -199,8 +287,12 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     }
 
+
+
     //                                                  | num indices | type of index | wtf is this for?
     glDrawElements(PRIMITIVE_GL_CODE(primitives.getPrimitiveType()), primitives.getNumIndices(), GL_UNSIGNED_INT, (void*)0 );
+
+
 }
 
 void OpenGLRenderer::draw() const
@@ -223,7 +315,7 @@ void OpenGLRenderer::draw() const
 
     for (const auto &draw_object : mDrawObjectsVector)
     {
-        drawDrawObject(draw_object, mCamera, mUniforms);
+        drawDrawObject(draw_object, mCamera, mUniforms, mGlobalWireframe);
     }
 
 

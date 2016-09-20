@@ -17,11 +17,15 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
+    // some bugs:
+    // 1 seems like river lines sometimes get added through the planet
+    // 2 middle/minimum lake triangle position not added properly
+
     // Generate planet
     Planet planet(
         3.15f,   // radius
         6,       // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        236234   // seed, 832576 has beautiful ocean
+        6   // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake
     );
 
     // think a bit about the usage
@@ -43,13 +47,17 @@ int main(int argc, char *argv[])
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
-    int width = 1920;
-    int height = 1024;
+    int width = 3000;
+    int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
                                   SDL_WINDOWPOS_UNDEFINED, // windowpos x
                                   SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                   width, height, flags);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
@@ -119,7 +127,7 @@ int main(int argc, char *argv[])
         transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
         transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
 
-        lambda_flowdown_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+        //lambda_flowdown_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
 
@@ -250,13 +258,36 @@ int main(int argc, char *argv[])
         ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
+    gfx::SceneObjectHandle lakes_sceneobject;
+    {
+        const std::vector<vmath::Vector4> &lakes_position_data = *(planet.getLakeVerticesPtr());
+        const std::vector<gfx::Triangle> &lakes_primitives_data = *(planet.getLakeTrianglesPtr());
+
+        std::vector<vmath::Vector4> lakes_normal_data;
+        gfx::generateNormals(&lakes_normal_data, lakes_position_data, lakes_primitives_data);
+
+        gfx::Vertices lakes_vertices = gfx::Vertices(lakes_position_data, lakes_normal_data /*, texcoords*/);
+        gfx::Primitives primitives = gfx::Primitives( lakes_primitives_data );
+
+        gfx::Geometry geometry = gfx::Geometry( lakes_vertices, primitives );
+
+        vmath::Vector4 color(0.3f, 0.65f, 1.0f, 1.0f);
+        gfx::Material material = gfx::Material(color);
+
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
+
+        lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+    }
+
     // SDL event loop
     SDL_Event event;
     bool done = false;
 
     const auto dt_fixed = std::chrono::milliseconds(16);
     float planet_rotation = 0.0f;
-    float planet_rotation_speed = 1.0f*M_PI/64.0f; // radians/sec
+    float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
 
     while(!done)
@@ -266,9 +297,20 @@ int main(int argc, char *argv[])
             switch(event.type)
             {
                 case SDL_KEYDOWN:
-                    // Quit when user presses a key.
-                    done = true;
-                    break;
+                    switch(event.key.keysym.sym)
+                    {
+                        case(SDLK_f):
+                            opengl_renderer.toggleWireframe();
+                            break;
+
+                        case(SDLK_q):
+                            done = true;
+                            break;
+                        case(SDLK_ESCAPE):
+                            done = true;
+                            break;
+                    }
+                    break; // without this, it quits...
 
                 case SDL_QUIT:
                     done = true;
@@ -281,10 +323,11 @@ int main(int argc, char *argv[])
 
         // animate rotation
         planet_rotation += std::chrono::duration<float>(dt_fixed).count()*planet_rotation_speed;
-        vmath::Vector3 rotation_axis = vmath::normalize(vmath::Vector3(1.0f, -1.0f, 0.0f));
+        vmath::Vector3 rotation_axis1 = vmath::normalize(vmath::Vector3(1.0f, -1.0f, 0.0f));
+        vmath::Vector3 rotation_axis2 = vmath::normalize(vmath::Vector3(-1.0f, -1.0f, 0.0f));
 
-        planet_scene_node->transform.rotation =
-            vmath::Quat::rotation(planet_rotation, rotation_axis);
+        planet_scene_node->transform.rotation = vmath::Quat::rotation(planet_rotation, rotation_axis1)
+                                               *vmath::Quat::rotation(planet_rotation/3.0f, rotation_axis2);
 
 //        // animate color
 //        planet_sceneobject->mMaterial.color =

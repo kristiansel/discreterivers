@@ -55,6 +55,9 @@ public:
     const std::vector<Vectormath::Aos::Vector4> * const getOceanVerticesPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getOceanTrianglesPtr() const {return &mOceanTriangles;}
 
+    const std::vector<Vectormath::Aos::Vector4> * const getLakeVerticesPtr(); // non-const because of lazy setting w=1 for all points
+    const std::vector<gfx::Triangle> * const getLakeTrianglesPtr() const {return &mLakeTriangles;}
+
     const std::vector<Vectormath::Aos::Vector4> * const getRidgePointsPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Line> * const getRidgeLinesPtr() const {return &mRidgeLines;}
 
