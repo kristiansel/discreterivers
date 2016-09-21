@@ -1282,9 +1282,12 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
 
         auto it = flow_graph.search(start_point, heuristic);
 
-        // assume that optional parents are initialized none, and children vectors empty
+        // Save search sequence and resulting graph
+        std::vector<optional<point_index>> search_prev_index(points.size());
+        std::vector<std::vector<point_index>> search_next_index(points.size());
         std::vector<optional<point_index>> search_parents(points.size());
         std::vector<std::vector<point_index>> search_children(points.size());
+
 
         std::vector<point_index> drainage_system_points;
         drainage_system_points.push_back(it.get_index());
@@ -1296,19 +1299,21 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
 
             drainage_system_points.push_back(it.get_index());
 
-            optional<point_index> op_parent_index = it.get_parent_index(); // definitly was a bug in the parent_index
-            if (op_parent_index.exists())
+            optional<point_index> op_prev_index = it.get_prev_index();
+            if (op_prev_index.exists())
             {
-                point_index parent_index = op_parent_index.get();
+                point_index prev_index = op_prev_index.get();
                 point_index this_index = it.get_index();
 
-                search_parents[this_index] = make_optional(parent_index);
-                search_children[parent_index].push_back(this_index);
+                search_prev_index[this_index] = make_optional(prev_index);
+                search_next_index[prev_index].push_back(this_index);
+                search_parents[this_index] = it.get_parent_index();
+                if (it.get_parent_index().exists()) search_children[it.get_parent_index().get()].push_back(this_index);
 
-                if (parent_index != this_index)
+                if (prev_index != this_index)
                 {
                     // if the search was on its way down, then it is a river
-                    if (vmath::length(points[parent_index]) > vmath::length(points[this_index]))
+                    if (vmath::length(points[prev_index]) > vmath::length(points[this_index]))
                     {
                         //river_lines->push_back(gfx::Line{parent_index, this_index});
                     }
@@ -1343,13 +1348,13 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                 water_height[rev_search_index] = make_optional(highest_water_level);
 
                 // update search
-                rev_search_index = search_parents[rev_search_index].get();
+                rev_search_index = search_prev_index[rev_search_index].get();
                 if (vmath::length(points[rev_search_index]) > highest_water_level)
                 {
                     highest_water_level = vmath::length(points[rev_search_index]);
                 }
             }
-            while (search_parents[rev_search_index].exists());
+            while (search_prev_index[rev_search_index].exists());
         }
 
 
@@ -1391,12 +1396,12 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                     // if the parent exists...
                     if (search_parents[i_p].exists())
                     {
-                        point_index par = search_parents[i_p].get();
+                        point_index prev = search_parents[i_p].get();
                         // ...and is a river point...
-                        if (!(water_height[par].get() > vmath::length(points[par])))
+                        if (!(water_height[prev].get() > vmath::length(points[prev])))
                         {
                             // ...add a river line as well!
-                            river_lines->push_back(gfx::Line{par, i_p});
+                            river_lines->push_back(gfx::Line{prev, i_p});
                         }
                     }
                 }
@@ -1464,9 +1469,9 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
         for (const auto &i_p : drainage_system_points)
         {
             std::cout << "i_p: " << i_p << " p: ";
-            if (search_parents[i_p].exists()) std::cout << search_parents[i_p].get();
+            if (search_prev_index[i_p].exists()) std::cout << search_prev_index[i_p].get();
             std::cout << " ch: ";
-            for (const auto &c: search_children[i_p]) std::cout << c << ",";
+            for (const auto &c: search_next_index[i_p]) std::cout << c << ",";
             std::cout << "\b " << "tl: " << vmath::length(points[i_p]) << " wl: ";
             if (water_height[i_p].exists())
             {

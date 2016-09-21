@@ -57,7 +57,7 @@ public:
             // actual increment takes place here
 //            if (!open_points_queue.empty())
 //            {
-                parent_index = make_optional(index);
+                prev_sequence_index = make_optional(index);
                 index = open_points_queue.top();
                 open_points_queue.pop();
 
@@ -79,8 +79,8 @@ public:
         const node_type* operator->() const { return &nodes[int(index)]; }
 
         const index_type get_index() const { return index; }
-        const optional<index_type> get_parent_index() const{ return parent_index; }
-        //const optional<index_type> get_parent_index() const{ return search_parents[index]; }
+        const optional<index_type> get_prev_index() const{ return prev_sequence_index; }
+        const optional<index_type> get_parent_index() const{ return search_parents[index]; }
         //TODO: distinguish between search parent-hierarchy and search order!!!
 
     private:
@@ -96,7 +96,7 @@ public:
         std::vector<optional<index_type>> search_parents; // maps to nodes
 
         // next up
-        optional<index_type> parent_index;
+        optional<index_type> prev_sequence_index;
         //size_t distance;
 
         void visit(index_type _index)

@@ -10,8 +10,8 @@ public:
 
     static optional none() {return optional();}
 
-    bool exists() {return mExists;}
-    type get() {assert(mExists); return mVal;}
+    bool exists() const {return mExists;}
+    type get() const {assert(mExists); return mVal;}
 private:
     bool mExists;
 
