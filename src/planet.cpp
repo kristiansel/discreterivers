@@ -85,6 +85,15 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
                          const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
                          float sealevel_radius);
 
+void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
+                         std::vector<gfx::Triangle> * const ocean_triangles,
+                         std::vector<LandWaterType>  * const point_land_water_types,
+                         const std::vector<gfx::Triangle> &triangles,
+                         const std::vector<vmath::Vector3> &points,
+                         const std::vector<std::vector<tri_index>> &point_tri_adjacency,
+                         const std::vector<std::vector<point_index>> &point_to_point_adjacency,
+                         float sealevel_radius);
+
 void createLake(std::vector<vmath::Vector3> * const lake_points,
                      std::vector<gfx::Triangle> * const lake_triangles,
                      std::vector<LandWaterType>  * const point_land_water_types,
@@ -168,8 +177,13 @@ Planet::Planet(const float radius, const int subdivision_level, const int seed)
     // depth first search triangles from deepest minima to a ocean level in order to
     // find the set of triangles needed for ocean rendering
 
-    createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
-                        mTriangles, mPoints, mPointToTriAdjacencyList, mTriToTriAdjacencyList,
+    //createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
+    //                    mTriangles, mPoints, mPointToTriAdjacencyList, mTriToTriAdjacencyList,
+    //                    radius);
+
+    // woops: bug in this one, need to use debugger
+    createOceanGeometry2(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
+                        mTriangles, mPoints, mPointToTriAdjacencyList, mPointToPointAdjacencyList,
                         radius);
 
     createLakesAndRivers(&mLakePoints, &mLakeTriangles, &mRiverLines, &mPointsLandWaterType, mTriangles, mPoints, mPointToPointAdjacencyList,
@@ -1161,73 +1175,78 @@ void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjac
 #include "graph_tools.h"
 using namespace graphtools;
 
-void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
+void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
                          std::vector<gfx::Triangle> * const ocean_triangles,
                          std::vector<LandWaterType>  * const point_land_water_types,
                          const std::vector<gfx::Triangle> &triangles,
                          const std::vector<vmath::Vector3> &points,
                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                         const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
+                         const std::vector<std::vector<point_index>> &point_to_point_adjacency,
                          float sealevel_radius)
 {
-    // initialize the point_sea_water_types
-    *point_land_water_types = std::vector<LandWaterType>(points.size(), LandWaterType::Land);
-
-    // start at a triangle adjacent to the global minimum
-    int i_globalmin = -1;
+    // find the deepest point on the planet as starting point
+    int start_point = -1;
     float smallest_length = std::numeric_limits<float>::max();
     for (int i = 0 ; i<points.size(); i++)
     {
         float length = vmath::length(points[i]);
-        if (length<smallest_length) {i_globalmin=i; smallest_length=length;}
+        if (length<smallest_length) {start_point=i; smallest_length=length;}
     }
-    tri_index tri_globalmin = point_tri_adjacency[i_globalmin][0];
 
-    // create a graph to search
-    auto tri_graph = make_graph(triangles, tri_tri_adjacency);
+    // do a search to certain depth, TODO: change to % triangle cover
+    auto flow_graph = make_graph(points, point_to_point_adjacency);
 
-    // create a heuristic function for prioritizing nodes to search
-    auto heuristic = [&](const tri_index &i)
+    auto heuristic = [&](const point_index &i)
     {
-        const gfx::Triangle &tri = triangles[int(i)];
-        float h0 = vmath::length(points[tri[0]]);
-        float h1 = vmath::length(points[tri[1]]);
-        float h2 = vmath::length(points[tri[2]]);
-        return std::min(h0, std::min(h1, h2));
+        return vmath::length(points[i]);
     };
 
-//    int visit_counter = 0;
-//    for ( auto it = tri_graph.search(tri_globalmin, heuristic);
-//          /*it.heuristic_eval() < sealevel_radius && */!it.search_end();
-//          ++it )
-//    {
-//        visit_counter++;
-//        std::cout << "counter " << visit_counter << "/" << triangles.size()
-//                  << " or "<< float(visit_counter)/float(triangles.size())*100.0f << " % complete" << std::endl;
-//    } // test complete search
+    auto it = flow_graph.search(start_point, heuristic);
 
+    // initialize the point_sea_water_types
+    *point_land_water_types = std::vector<LandWaterType>(points.size(), LandWaterType::Land);
 
-    for ( auto it = tri_graph.search(tri_globalmin, heuristic);
-          it.heuristic_eval() < sealevel_radius && !it.search_end();
-          ++it )
+    // save the search sequence
+    std::vector<point_index> search_sequence;
+    search_sequence.push_back(it.get_index());
+
+    // save list of triangle indices
+    std::vector<tri_index> search_tris;
+
+    float current_sea_level = vmath::length(points[it.get_index()]);
+    while (current_sea_level < sealevel_radius && !it.search_end())
     {
-        ocean_triangles->push_back(*it);
-    } // test complete search
+        ++it;
+
+        point_index this_index = it.get_index();
+        search_sequence.push_back(this_index);
+
+        // set the land/water type
+        (*point_land_water_types)[this_index] = LandWaterType::Sea;
+
+        current_sea_level = vmath::length(points[it.get_index()]);
+
+        // save triangles (contains duplicates)
+        for (const auto &i_t : point_tri_adjacency[int(this_index)])
+            search_tris.push_back( i_t );
+    }
+
+    // remove duplicate triangles
+    std::sort(search_tris.begin(), search_tris.end());
+    auto last = std::unique(search_tris.begin(), search_tris.end());
+    search_tris.erase(last, search_tris.end());
 
     // remap the triangles/points to create a sparse point/triangle representation for just the ocean
     std::vector<point_index> point_ocean_map(points.size(), -1);
 
-    for (int i = 0 ; i<ocean_triangles->size(); i++)
+    (*ocean_triangles).resize(search_tris.size());
+
+    for (int i = 0 ; i<search_tris.size(); i++)
     {
+        tri_index i_triangle = search_tris[i];
         for (int j = 0; j<3; j++)
         {
-            point_index i_p_unmapped = (*ocean_triangles)[i][j];
-
-            // Not all points in a sea triangle are below sealevel, therefore extra check
-            if (vmath::length(points[i_p_unmapped]) < sealevel_radius)
-            {
-                (*point_land_water_types)[i_p_unmapped] = LandWaterType::Sea;
-            }
+            point_index i_p_unmapped = triangles[int(i_triangle)][j];
 
             // map the point index
             if (point_ocean_map[i_p_unmapped] == -1)
@@ -1247,7 +1266,6 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
         (*ocean_points)[i] = sealevel_radius * vmath::normalize((*ocean_points)[i]);
     }
 }
-
 
 template<class element_t>
 inline void dump_vector(std::vector<element_t> vec_in, std::string label = "vector")
@@ -1282,7 +1300,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
 
         auto heuristic = [&](const point_index &i)
         {
-            //std::cout << "i = " << i << std::endl;
             return vmath::length(points[i]);
         };
 
@@ -1422,35 +1439,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
         }
 
         lake_triangles->insert(lake_triangles->end(), this_lake_triangles.begin(), this_lake_triangles.end());
-
-        /*
-        std::cout << "added " << this_lake_triangles.size() << " lake triangles" << std::endl;
-        std::cout << "with " << lake_points->size() << " lake points" << std::endl;
-
-        std::cout << "drainage system point: " << std::endl;
-        for (const auto &i_p : search_sequence)
-        {
-            std::cout << "i_p: " << i_p << " p: ";
-            //if (search_prev_index[i_p].exists()) std::cout << search_prev_index[i_p].get();
-            std::cout << " ch: ";
-            //for (const auto &c: search_next_index[i_p]) std::cout << c << ",";
-            std::cout << "\b " << "tl: " << vmath::length(points[i_p]) << " wl: ";
-            if (water_height[i_p].exists())
-            {
-                std::cout << water_height[i_p].get() << ", ";
-                if (water_height[i_p].get() > vmath::length(points[i_p]))
-                {
-                    std::cout << "lake ";
-                }
-                else
-                {
-                    std::cout << "river ";
-                }
-            }
-            std::cout << std::endl;
-        }
-        */
-
     }
 }
 
