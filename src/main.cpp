@@ -17,15 +17,14 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    // some bugs:
-    // 1 seems like river lines sometimes get added through the planet
-    // 2 middle/minimum lake triangle position not added properly
 
     // Generate planet
     Planet planet(
-        3.15f,   // radius
-        6,       // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        6   // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake
+        3.15f,  // radius
+        6,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        0.6f,   // fraction of planet covered by ocean
+        100,    // number of freshwater springs
+        6      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake
     );
 
     // think a bit about the usage

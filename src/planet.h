@@ -44,7 +44,11 @@ enum class LandWaterType
 class Planet
 {
 public:
-    Planet(const float radius, const int subdivision_level, const int seed);
+    Planet(const float radius,
+           const int subdivision_level,
+           const float ocean_fraction,
+           const unsigned int n_springs,
+           const int seed);
 
     const std::vector<Vectormath::Aos::Vector4> * const getPointsPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getTrianglesPtr() const {return &mTriangles;}
