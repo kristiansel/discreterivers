@@ -8,29 +8,9 @@
 #include <cstdlib>
 
 #include "gfx_primitives.h"
+#include "topology.h"
 
 namespace vmath = Vectormath::Aos;
-
-// should probably move this elsewhere
-void createCubeGeometry(std::vector<vmath::Vector3> * const points,
-                        std::vector<gfx::Triangle> * const triangles,
-                        float half_side);
-
-// should probably move this elsewhere
-void createIcosahedronGeometry(std::vector<vmath::Vector3> * const points,
-                               std::vector<gfx::Triangle> * const triangles,
-                               const float radius);
-
-// should probably move this elsewhere
-void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
-                             std::vector<gfx::Triangle> * const triangles,
-                             std::vector<std::vector<gfx::Triangle>> * const subd_triangles,
-                             const float radius,
-                             const int num_subdivisions);
-
-void createAdjacencyList(std::vector<ConnectionList> * const edges,
-                     const std::vector<vmath::Vector3> &points,
-                     const std::vector<gfx::Triangle> &triangles);
 
 void findCriticalPoints(std::vector<TopoTypeIndexPair> * const critical_point_type,
                         std::vector<point_index> * const maxima,
@@ -56,11 +36,12 @@ void createFlowAdjacencyLists(  std::vector<ConnectionList> * const flow_down_ad
                                 const std::vector<ConnectionList> &connectivity_adjacency,
                                 PotentialFunc pot_func);
 
+/*
 void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
                          std::vector<gfx::Line> * const ridge_lines,
                          const std::vector<vmath::Vector3> &points,
                          const std::vector<ConnectionList> &point_to_point_adjacency_list,
-                         const std::vector<ConnectionList> &flow_down_adjacency);
+                         const std::vector<ConnectionList> &flow_down_adjacency);*/
 
 // helper adjacency list methods
 void createPointToTriAdjacency(std::vector<std::vector<tri_index>> * point_tri_adjacency,
@@ -82,28 +63,9 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
                          const std::vector<gfx::Triangle> &triangles,
                          const std::vector<vmath::Vector3> &points,
                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                         const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                         float sealevel_radius);
-
-void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
-                         std::vector<gfx::Triangle> * const ocean_triangles,
-                         std::vector<LandWaterType>  * const point_land_water_types,
-                         const std::vector<gfx::Triangle> &triangles,
-                         const std::vector<vmath::Vector3> &points,
-                         const std::vector<std::vector<tri_index>> &point_tri_adjacency,
                          const std::vector<std::vector<point_index>> &point_to_point_adjacency,
                          float sealevel_radius,
                          const float ocean_fraction);
-
-void createLake(std::vector<vmath::Vector3> * const lake_points,
-                     std::vector<gfx::Triangle> * const lake_triangles,
-                     std::vector<LandWaterType>  * const point_land_water_types,
-                     float &lake_level_radius,
-                     const std::vector<gfx::Triangle> &triangles,
-                     const std::vector<vmath::Vector3> &points,
-                     const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                     const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                     const std::vector<point_index> &contained_minima);
 
 void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                           std::vector<gfx::Triangle> * const lake_triangles,
@@ -119,19 +81,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                           const float sealevel_radius,
                           const unsigned int n_springs);
 
-
-void createLakesAndRivers2(std::vector<vmath::Vector3> * const lake_points,
-                          std::vector<gfx::Triangle> * const lake_triangles,
-                          std::vector<gfx::Line> * const river_lines,
-                          std::vector<LandWaterType>  * const point_land_water_types,
-                          const std::vector<gfx::Triangle> &triangles,
-                          const std::vector<vmath::Vector3> &points,
-                          const std::vector<ConnectionList> &point_to_point_adjacency,
-                          const std::vector<ConnectionList> &flow_down_adjacency,
-                          const std::vector<ConnectionList> &flow_up_adjacency,
-                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                          const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                          float sealevel_radius);
 
 float get_height(const vmath::Vector3 &p)
 {
@@ -160,7 +109,7 @@ Planet::Planet(const float radius,
 
 
     //createIcoSphereGeometry(&mPoints, &mTriangles, radius, 8);
-    createIcoSphereGeometry(&mPoints, &mTriangles, &mSubdTriangles, radius, subdivision_level);
+    Topology::createIcoSphereGeometry(&mPoints, &mTriangles, &mSubdTriangles, radius, subdivision_level);
     //mPointsDirty = true;
 
     // assertion failure (flow_up_or_down) at:
@@ -168,13 +117,13 @@ Planet::Planet(const float radius,
     //createIcoSphereGeometry(&mPoints, &mTriangles, radius, 8);
     //createIcoSphereGeometry(&mPoints, &mTriangles, radius, 7);
 
-    createAdjacencyList(&mPointToPointAdjacencyList, mPoints, mTriangles);
+    Topology::createAdjacencyList(&mPointToPointAdjacencyList, mPoints, mTriangles);
 
     createFlowAdjacencyLists(&mFlowDownAdjacency, &mFlowUpAdjacency, mPoints,
                              mPointToPointAdjacencyList, get_height);
 
-    createRidgeGeometry(&mRidgePoints, &mRidgeLines, mPoints, mPointToPointAdjacencyList,
-                        mFlowDownAdjacency);
+//    createRidgeGeometry(&mRidgePoints, &mRidgeLines, mPoints, mPointToPointAdjacencyList,
+//                        mFlowDownAdjacency);
 
     findCriticalPoints(&mPointsTopologicalType, &mMaxima, &mMinima, &mSaddles,
                        mPoints, mTriangles, mPointToPointAdjacencyList);
@@ -182,15 +131,8 @@ Planet::Planet(const float radius,
     createPointToTriAdjacency(&mPointToTriAdjacencyList, mTriangles, mPoints);
     createTriToTriAdjacency(&mTriToTriAdjacencyList, mTriangles, mPoints, mPointToTriAdjacencyList);
 
-    // depth first search triangles from deepest minima to a ocean level in order to
-    // find the set of triangles needed for ocean rendering
-
-    //createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
-    //                    mTriangles, mPoints, mPointToTriAdjacencyList, mTriToTriAdjacencyList,
-    //                    radius);
-
     // woops: bug in this one, need to use debugger
-    createOceanGeometry2(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
+    createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
                         mTriangles, mPoints, mPointToTriAdjacencyList, mPointToPointAdjacencyList,
                         radius, ocean_fraction);
 
@@ -198,26 +140,6 @@ Planet::Planet(const float radius,
                          mFlowDownAdjacency, mFlowUpAdjacency,
     //createLakesAndRivers(&mLakePoints, &mLakeTriangles, &mRiverLines, mTriangles, mPoints, mFlowDownAdjacency,
                          mPointToTriAdjacencyList, mTriToTriAdjacencyList, radius, n_springs);
-
-
-    //findWatersheds(&mMinimumToSaddleAdjecency, &mSaddleToMinimumAdjecency,
-    //               mPoints, mPointToPointAdjacencyList, mPointsTopologicalType,
-    //               mMinima, mSaddles);
-
-//    // list critical points
-//    std::cout << "listing maxima: " << std::endl;
-//    for (const auto &i : mMaxima)
-//    {
-//        vmath::Vector3 p = mPoints[i];
-//        std::cout << "  " << i << ", r = " << vmath::length(p()) << std::endl;
-//    }
-
-//    std::cout << "listing minima: " << std::endl;
-//    for (const auto &i : mMinima)
-//    {
-//        vmath::Vector3 p = mPoints[i];
-//        std::cout << "  " << i << ", r = " << vmath::length(p()) << std::endl;
-//    }
 }
 
 // dirty hack... is this the sort of code one gets fired for?
@@ -253,10 +175,10 @@ const std::vector<vmath::Vector4> * const Planet::getPointsPtr()
     return coerceVec3toVec4(mPoints);
 }
 
-const std::vector<vmath::Vector4> * const Planet::getRidgePointsPtr()
-{
-    return coerceVec3toVec4(mRidgePoints);
-}
+//const std::vector<vmath::Vector4> * const Planet::getRidgePointsPtr()
+//{
+//    return coerceVec3toVec4(mRidgePoints);
+//}
 
 const std::vector<vmath::Vector4> * const Planet::getOceanVerticesPtr()
 {
@@ -996,99 +918,100 @@ typedef ID<ridge_point_tag, int, -1> ridge_point_id;
 struct ridge_line_tag{};
 typedef ID<ridge_line_tag, int, -1> ridge_line_id;
 
-void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
-                         std::vector<gfx::Line> * const ridge_lines,
-                         const std::vector<vmath::Vector3> &points,
-                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
-                         const std::vector<ConnectionList> &flow_down_adjacency)
-{
+
+//void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
+//                         std::vector<gfx::Line> * const ridge_lines,
+//                         const std::vector<vmath::Vector3> &points,
+//                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
+//                         const std::vector<ConnectionList> &flow_down_adjacency)
+//{
 
 
-    // cache of already added points (could exchange for map to conserve memory, at the cost of log(n) lookup)
-    std::vector<ridge_point_id> already_added_point(points.size());
+//    // cache of already added points (could exchange for map to conserve memory, at the cost of log(n) lookup)
+//    std::vector<ridge_point_id> already_added_point(points.size());
 
-    // point helper functions
-    auto is_ridge_point = [&](point_index i_p) { return flow_down_adjacency[i_p].size() > 1; };
+//    // point helper functions
+//    auto is_ridge_point = [&](point_index i_p) { return flow_down_adjacency[i_p].size() > 1; };
 
-    auto point_not_added = [&](point_index i_p) { return already_added_point[i_p]==ridge_point_id::invalid(); };
+//    auto point_not_added = [&](point_index i_p) { return already_added_point[i_p]==ridge_point_id::invalid(); };
 
-    auto add_point = [&](point_index i_p)
-    {
-        ridge_point_id j_p = ridge_point_id(ridge_points->size());
-        ridge_points->push_back(points[i_p]);
-        already_added_point[i_p] = j_p;
-        return j_p;
-    };
+//    auto add_point = [&](point_index i_p)
+//    {
+//        ridge_point_id j_p = ridge_point_id(ridge_points->size());
+//        ridge_points->push_back(points[i_p]);
+//        already_added_point[i_p] = j_p;
+//        return j_p;
+//    };
 
-    // line cache
-    std::map<std::pair<point_index, point_index>, gfx::Line> already_added_line;
+//    // line cache
+//    std::map<std::pair<point_index, point_index>, gfx::Line> already_added_line;
 
-    // line helper functions
-    auto line_not_added = [&](std::pair<point_index, point_index> ii)
-    {
-        point_index i_lo = ii.first < ii.second ? ii.first : ii.second;
-        point_index i_hi = ii.first > ii.second ? ii.first : ii.second;
-        auto set_it = already_added_line.find({i_lo, i_hi});
-        return set_it == already_added_line.end();
-    };
+//    // line helper functions
+//    auto line_not_added = [&](std::pair<point_index, point_index> ii)
+//    {
+//        point_index i_lo = ii.first < ii.second ? ii.first : ii.second;
+//        point_index i_hi = ii.first > ii.second ? ii.first : ii.second;
+//        auto set_it = already_added_line.find({i_lo, i_hi});
+//        return set_it == already_added_line.end();
+//    };
 
-    auto add_line = [&](std::pair<point_index, point_index> ii, gfx::Line l_jj)
-    {
-        ridge_line_id k_l = ridge_line_id(ridge_lines->size());
-        ridge_lines->push_back(l_jj);
-        already_added_line[ii] = l_jj;
-        return k_l;
-    };
+//    auto add_line = [&](std::pair<point_index, point_index> ii, gfx::Line l_jj)
+//    {
+//        ridge_line_id k_l = ridge_line_id(ridge_lines->size());
+//        ridge_lines->push_back(l_jj);
+//        already_added_line[ii] = l_jj;
+//        return k_l;
+//    };
 
-    // start at a ridge points, pick a direction
-    for (int i = 0; i<points.size(); i++)
-    {
-        if (is_ridge_point(i) && point_not_added(i)) // it is a ridge point and should be added
-        {
-            ridge_point_id j = add_point(i);
+//    // start at a ridge points, pick a direction
+//    for (int i = 0; i<points.size(); i++)
+//    {
+//        if (is_ridge_point(i) && point_not_added(i)) // it is a ridge point and should be added
+//        {
+//            ridge_point_id j = add_point(i);
 
-            // start tracing
-            auto adj_list = point_to_point_adjacency_list[i];
-            for (const auto &i_adj : adj_list)
-            {
-                point_index i_lo = i_adj < i ? i_adj : i;
-                point_index i_hi = i_adj > i ? i_adj : i;
-                if (is_ridge_point(i_adj) && line_not_added({i_lo, i_hi}))
-                {
-                    ridge_point_id j_adj = point_not_added(i_adj) ? add_point(i_adj) : already_added_point[i_adj];
-                    ridge_line_id k = add_line({i, i_adj}, {int(j), int(j_adj)});
-                }
-            }
-        }
-    }
+//            // start tracing
+//            auto adj_list = point_to_point_adjacency_list[i];
+//            for (const auto &i_adj : adj_list)
+//            {
+//                point_index i_lo = i_adj < i ? i_adj : i;
+//                point_index i_hi = i_adj > i ? i_adj : i;
+//                if (is_ridge_point(i_adj) && line_not_added({i_lo, i_hi}))
+//                {
+//                    ridge_point_id j_adj = point_not_added(i_adj) ? add_point(i_adj) : already_added_point[i_adj];
+//                    ridge_line_id k = add_line({i, i_adj}, {int(j), int(j_adj)});
+//                }
+//            }
+//        }
+//    }
 
-    // terminate if a point has been marked as ridge before
+//    // terminate if a point has been marked as ridge before
 
-    // verify that all ridge points are connected
-#define DEBUG_RIDGELINES
+//    // verify that all ridge points are connected
+//#define DEBUG_RIDGELINES
 
-#ifdef DEBUG_RIDGELINES
-    for (int i = 0; i<points.size(); i++)
-    {
-        // assert only ridge points are added
-        if (is_ridge_point(i)) assert(!point_not_added(i)); else assert(point_not_added(i));
-    }
+//#ifdef DEBUG_RIDGELINES
+//    for (int i = 0; i<points.size(); i++)
+//    {
+//        // assert only ridge points are added
+//        if (is_ridge_point(i)) assert(!point_not_added(i)); else assert(point_not_added(i));
+//    }
 
-    std::cout << "number of ridge points: " << ridge_points->size() << std::endl;
-    std::cout << "number of ridge lines: " << ridge_lines->size() << std::endl;
+//    std::cout << "number of ridge points: " << ridge_points->size() << std::endl;
+//    std::cout << "number of ridge lines: " << ridge_lines->size() << std::endl;
 
-    // check index bounds
-    for (const auto &line : (*ridge_lines))
-    {
-        bool ridge_line_index_overflow_up = line[0] > ridge_points->size()-1 ||  line[1] > ridge_points->size()-1;
-        bool ridge_line_index_overflow_down = line[0] < 0 ||  line[1] < 0;
-        assert(!(ridge_line_index_overflow_up || ridge_line_index_overflow_down));
-    }
+//    // check index bounds
+//    for (const auto &line : (*ridge_lines))
+//    {
+//        bool ridge_line_index_overflow_up = line[0] > ridge_points->size()-1 ||  line[1] > ridge_points->size()-1;
+//        bool ridge_line_index_overflow_down = line[0] < 0 ||  line[1] < 0;
+//        assert(!(ridge_line_index_overflow_up || ridge_line_index_overflow_down));
+//    }
 
-    // find out how many dead ends there are...?
+//    // find out how many dead ends there are...?
 
-#endif // #ifdef DEBUG_RIDGELINES
-}
+//#endif // #ifdef DEBUG_RIDGELINES
+//}
 
 
 const std::vector<gfx::Line> * const Planet::getFlowLinesPtr()
@@ -1186,7 +1109,7 @@ using namespace graphtools;
 const float max_ocean_fraction = 0.95f;
 const float min_ocean_fraction = 0.00f;
 
-void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
+void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
                          std::vector<gfx::Triangle> * const ocean_triangles,
                          std::vector<LandWaterType>  * const point_land_water_types,
                          const std::vector<gfx::Triangle> &triangles,
@@ -1235,6 +1158,10 @@ void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
 
     float current_sea_level = vmath::length(points[it.get_index()]);
     while (current_sea_level < sealevel_radius && !it.search_end())
+
+    //unsigned int num_ocean_points = 0;
+    //float current_sea_coverage = 0.f;
+    //while (current_sea_coverage < ocean_fraction && !it.search_end())
     {
         ++it;
 
@@ -1245,6 +1172,8 @@ void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
         (*point_land_water_types)[this_index] = LandWaterType::Sea;
 
         current_sea_level = vmath::length(points[it.get_index()]);
+        //num_ocean_points++;
+        //current_sea_coverage = (float)(num_ocean_points)/(float)(points.size());
 
         // save triangles (contains duplicates)
         for (const auto &i_t : point_tri_adjacency[int(this_index)])
@@ -1286,85 +1215,6 @@ void createOceanGeometry2(std::vector<vmath::Vector3> * const ocean_points,
         (*ocean_points)[i] = sealevel_radius * vmath::normalize((*ocean_points)[i]);
     }
 }
-
-/*
-void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
-                         std::vector<gfx::Triangle> * const ocean_triangles,
-                         std::vector<LandWaterType>  * const point_land_water_types,
-                         const std::vector<gfx::Triangle> &triangles,
-                         const std::vector<vmath::Vector3> &points,
-                         const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                         const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                         float sealevel_radius)
-{
-    // initialize the point_sea_water_types
-    *point_land_water_types = std::vector<LandWaterType>(points.size(), LandWaterType::Land);
-
-    // start at a triangle adjacent to the global minimum
-    int i_globalmin = -1;
-    float smallest_length = std::numeric_limits<float>::max();
-    for (int i = 0 ; i<points.size(); i++)
-    {
-        float length = vmath::length(points[i]);
-        if (length<smallest_length) {i_globalmin=i; smallest_length=length;}
-    }
-    tri_index tri_globalmin = point_tri_adjacency[i_globalmin][0];
-
-    // create a graph to search
-    auto tri_graph = make_graph(triangles, tri_tri_adjacency);
-
-    // create a heuristic function for prioritizing nodes to search
-    auto heuristic = [&](const tri_index &i)
-    {
-        const gfx::Triangle &tri = triangles[int(i)];
-        float h0 = vmath::length(points[tri[0]]);
-        float h1 = vmath::length(points[tri[1]]);
-        float h2 = vmath::length(points[tri[2]]);
-        return std::min(h0, std::min(h1, h2));
-    };
-
-    for ( auto it = tri_graph.search(tri_globalmin, heuristic);
-          it.heuristic_eval() < sealevel_radius && !it.search_end();
-          ++it )
-    {
-        ocean_triangles->push_back(*it);
-    } // test complete search
-
-    // remap the triangles/points to create a sparse point/triangle representation for just the ocean
-    std::vector<point_index> point_ocean_map(points.size(), -1);
-
-    for (int i = 0 ; i<ocean_triangles->size(); i++)
-    {
-        for (int j = 0; j<3; j++)
-        {
-            point_index i_p_unmapped = (*ocean_triangles)[i][j];
-
-            // Not all points in a sea triangle are below sealevel, therefore extra check
-            if (vmath::length(points[i_p_unmapped]) < sealevel_radius)
-            {
-                (*point_land_water_types)[i_p_unmapped] = LandWaterType::Sea;
-            }
-
-            // map the point index
-            if (point_ocean_map[i_p_unmapped] == -1)
-            {
-                point_ocean_map[i_p_unmapped] = ocean_points->size();
-                ocean_points->push_back(points[i_p_unmapped]);
-            }
-
-            // change the triangle->point index from unmapped to mapped
-            (*ocean_triangles)[i][j] = point_ocean_map[i_p_unmapped];
-        }
-    }
-
-    // normalise the ocean points length to sea level
-    for (int i = 0 ; i<ocean_points->size(); i++)
-    {
-        (*ocean_points)[i] = sealevel_radius * vmath::normalize((*ocean_points)[i]);
-    }
-}
-*/
-
 
 template<class element_t>
 inline void dump_vector(std::vector<element_t> vec_in, std::string label = "vector")
@@ -1538,250 +1388,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
             }
         }
 
-        lake_triangles->insert(lake_triangles->end(), this_lake_triangles.begin(), this_lake_triangles.end());
-    }
-}
-
-// createLakesAndRivers backup
-void createLakesAndRivers2(std::vector<vmath::Vector3> * const lake_points,
-                          std::vector<gfx::Triangle> * const lake_triangles,
-                          std::vector<gfx::Line> * const river_lines,
-                          std::vector<LandWaterType>  * const point_land_water_types,
-                          const std::vector<gfx::Triangle> &triangles,
-                          const std::vector<vmath::Vector3> &points,
-                          const std::vector<ConnectionList> &point_to_point_adjacency,
-                          const std::vector<ConnectionList> &flow_down_adjacency,
-                          const std::vector<ConnectionList> &flow_up_adjacency,
-                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
-                          const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                          float sealevel_radius)
-{
-    for (int i_springs = 0; i_springs<100; i_springs++)
-    {
-        point_index start_point;
-
-        //srand(213213123);
-        do
-        {
-            start_point = rand() % points.size();
-        } while ((*point_land_water_types)[int(start_point)] != LandWaterType::Land);
-        // The start_point should be guaranteed to be on land
-
-        std::cout << "start_point = " << start_point << std::endl;
-
-        //start_point = 3119; // nice and visible point for debug
-
-        //start_point = 2500; // nice and visible point for debug
-
-        auto flow_graph = make_graph(points, point_to_point_adjacency);
-
-        auto heuristic = [&](const point_index &i)
-        {
-            //std::cout << "i = " << i << std::endl;
-            return vmath::length(points[i]);
-        };
-
-        auto it = flow_graph.search(start_point, heuristic);
-
-        // Save search sequence and resulting graph
-        std::vector<optional<point_index>> search_prev_index(points.size());
-        std::vector<std::vector<point_index>> search_next_index(points.size());
-        std::vector<optional<point_index>> search_parents(points.size());
-        std::vector<std::vector<point_index>> search_children(points.size());
-
-
-        std::vector<point_index> drainage_system_points;
-        drainage_system_points.push_back(it.get_index());
-        //std::cout << "start_point: " << start_point << ", get_index: " << it.get_index() << std::endl;
-
-        do
-        {
-            ++it;
-
-            drainage_system_points.push_back(it.get_index());
-
-            optional<point_index> op_prev_index = it.get_prev_index();
-            if (op_prev_index.exists())
-            {
-                point_index prev_index = op_prev_index.get();
-                point_index this_index = it.get_index();
-
-                search_prev_index[this_index] = make_optional(prev_index);
-                search_next_index[prev_index].push_back(this_index);
-                search_parents[this_index] = it.get_parent_index();
-                if (it.get_parent_index().exists()) search_children[it.get_parent_index().get()].push_back(this_index);
-
-                if (prev_index != this_index)
-                {
-                    // if the search was on its way down, then it is a river
-                    if (vmath::length(points[prev_index]) > vmath::length(points[this_index]))
-                    {
-                        //river_lines->push_back(gfx::Line{parent_index, this_index});
-                    }
-                    else // if the search was on its way up, then it is a lake
-                    {
-    //                    // iterate over all triangles adjacent to point
-    //                    for (const auto &adj_tri : point_tri_adjacency[this_index])
-    //                    {
-    //                        push_back_if_unique(lake_triangle_indices, adj_tri);
-    //                    }
-                    } // if length of parent point greater than this point
-                } // if parent index is not the same as this index
-            } // if parent  exists
-        } while ((*point_land_water_types)[it.get_index()] == LandWaterType::Land && !it.search_end());
-
-        // sort out the lake triangles
-
-        point_index end_index = it.get_index();
-
-        std::vector<gfx::Triangle> this_lake_triangles;
-
-        // reverse the search and set the height water height
-        std::vector<optional<float>> water_height(points.size());
-        {
-            point_index rev_search_index = end_index;
-            float highest_water_level = vmath::length(points[rev_search_index]);
-            do
-            {
-                // set the highest water level
-                water_height[rev_search_index] = make_optional(highest_water_level);
-
-                // update search
-                rev_search_index = search_prev_index[rev_search_index].get();
-                if (vmath::length(points[rev_search_index]) > highest_water_level)
-                {
-                    highest_water_level = vmath::length(points[rev_search_index]);
-                }
-            }
-            while (search_prev_index[rev_search_index].exists());
-        }
-
-        // do the forward search again, and set water height on points not necessarily
-        // on shortest path between sea and starting point.
-        point_index for_search_index = start_point;
-        {
-            float lowest_water_level = vmath::length(points[for_search_index]);
-
-            std::function<void (point_index)> do_for_children = [&] (point_index i_p)
-            {
-                if (!water_height[i_p].exists())
-                {
-                    water_height[i_p] = make_optional(lowest_water_level);
-                }
-                else
-                {
-                    if (water_height[i_p].get() < lowest_water_level)
-                    {
-                        lowest_water_level = water_height[i_p].get();
-                    }
-                }
-
-                // assume water_height[i_p] exists!
-                if (water_height[i_p].get() > vmath::length(points[i_p])) // if water height > terrain hight
-                {
-                    // the point is a lake point
-                    (*point_land_water_types)[i_p] == LandWaterType::Lake;
-
-                    // iterate over all triangles adjacent to point
-                    for (const auto &adj_tri : point_tri_adjacency[i_p])
-                    {
-                        push_back_if_unique(this_lake_triangles, triangles[int(adj_tri)]);
-                    }
-
-                    // if the parent exists...
-                    if (search_parents[i_p].exists())
-                    {
-                        point_index prev = search_parents[i_p].get();
-                        // ...and is a river point...
-                        if (!(water_height[prev].get() > vmath::length(points[prev])))
-                        {
-                            // ...add a river line as well!
-                            river_lines->push_back(gfx::Line{prev, i_p});
-                        }
-                    }
-                }
-                else
-                {
-                    // the point is a river point
-                    (*point_land_water_types)[i_p] == LandWaterType::River;
-
-                    // if the point has a parent, make a river
-                    if (search_parents[i_p].exists())
-                    {
-                        river_lines->push_back(gfx::Line{search_parents[i_p].get(), i_p});
-                    }
-
-                }
-
-                for (const auto &i_c : search_children[i_p]) do_for_children(i_c);
-            };
-
-            do_for_children(for_search_index);
-        }
-
-        // remap the triangles/points to create a sparse point/triangle representation for just the lakes
-        std::vector<point_index> point_lake_map(points.size(), -1);
-
-        for (int i = 0 ; i<this_lake_triangles.size(); i++)
-        {
-            float lake_height = -1.0f;
-            for (int j = 0; j<3; j++)
-            {
-                point_index i_p_unmapped = (this_lake_triangles)[i][j];
-                if (water_height[i_p_unmapped].exists()) lake_height = water_height[i_p_unmapped].get();
-            }
-            assert(lake_height > 0.0f);
-
-            for (int j = 0; j<3; j++)
-            {
-                point_index i_p_unmapped = (this_lake_triangles)[i][j];
-                //float lake_height = water_height[i_p_unmapped].get();
-
-                // Not all points in a sea triangle are below sealevel, therefore extra check
-                if (vmath::length(points[i_p_unmapped]) < lake_height)
-                {
-                    (*point_land_water_types)[i_p_unmapped] = LandWaterType::Lake;
-                }
-
-                // map the point index
-                if (point_lake_map[i_p_unmapped] == -1)
-                {
-                    point_lake_map[i_p_unmapped] = lake_points->size();
-
-                    vmath::Vector3 lake_point = lake_height * vmath::normalize(points[i_p_unmapped]);
-                    lake_points->push_back(lake_point);
-                }
-
-                // change the triangle->point index from unmapped to mapped
-                (this_lake_triangles)[i][j] = point_lake_map[i_p_unmapped];
-            }
-        }
-
-        std::cout << "added " << this_lake_triangles.size() << " lake triangles" << std::endl;
-        std::cout << "with " << lake_points->size() << " lake points" << std::endl;
-
-        std::cout << "drainage system point: " << std::endl;
-        for (const auto &i_p : drainage_system_points)
-        {
-            std::cout << "i_p: " << i_p << " p: ";
-            if (search_prev_index[i_p].exists()) std::cout << search_prev_index[i_p].get();
-            std::cout << " ch: ";
-            for (const auto &c: search_next_index[i_p]) std::cout << c << ",";
-            std::cout << "\b " << "tl: " << vmath::length(points[i_p]) << " wl: ";
-            if (water_height[i_p].exists())
-            {
-                std::cout << water_height[i_p].get() << ", ";
-                if (water_height[i_p].get() > vmath::length(points[i_p]))
-                {
-                    std::cout << "lake ";
-                }
-                else
-                {
-                    std::cout << "river ";
-                }
-            }
-            std::cout << std::endl;
-        }
         lake_triangles->insert(lake_triangles->end(), this_lake_triangles.begin(), this_lake_triangles.end());
     }
 }

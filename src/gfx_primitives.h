@@ -8,8 +8,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace vmath=Vectormath::Aos;
-
+namespace vmath = Vectormath::Aos;
 
 namespace gfx
 {

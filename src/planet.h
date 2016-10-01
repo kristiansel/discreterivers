@@ -62,8 +62,8 @@ public:
     const std::vector<Vectormath::Aos::Vector4> * const getLakeVerticesPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getLakeTrianglesPtr() const {return &mLakeTriangles;}
 
-    const std::vector<Vectormath::Aos::Vector4> * const getRidgePointsPtr(); // non-const because of lazy setting w=1 for all points
-    const std::vector<gfx::Line> * const getRidgeLinesPtr() const {return &mRidgeLines;}
+    //const std::vector<Vectormath::Aos::Vector4> * const getRidgePointsPtr(); // non-const because of lazy setting w=1 for all points
+    //const std::vector<gfx::Line> * const getRidgeLinesPtr() const {return &mRidgeLines;}
 
     //const std::vector<Vectormath::Aos::Vector4> * const getMinimaPointsPtr(); // non-const because of lazy evaluation
     const std::vector<gfx::Point> * const getMinimaPointsPtr() const {return (std::vector<gfx::Point> *)&mMinima;}
@@ -111,8 +111,8 @@ private:
     std::vector<gfx::Line> mRiverLines;
 
     // graphics ridges
-    std::vector<Vectormath::Aos::Vector3> mRidgePoints;
-    std::vector<gfx::Line> mRidgeLines;
+    // std::vector<Vectormath::Aos::Vector3> mRidgePoints;
+    // std::vector<gfx::Line> mRidgeLines;
 
     std::vector<LandWaterType> mPointsLandWaterType;
 
