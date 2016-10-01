@@ -34,12 +34,13 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     "out vec4 position;"
     "out vec4 normal;"
 
-    "uniform mat4 mvp;"
+    "uniform mat4 mv;"
+    "uniform mat4 p;"
 
     "void main() {"
-    "  position = mvp * vec4(vertex_position.xyz, 1.0);"
-    "  normal = mvp * vec4(vertex_normal.xyz, 0.0);"
-    "  gl_Position = position;"
+    "  position = mv * vec4(vertex_position.xyz, 1.0);"
+    "  normal = mv * vec4(vertex_normal.xyz, 0.0);"
+    "  gl_Position = p * position;"
     "}";
 
     const char * fragment_shader_src =
@@ -51,11 +52,14 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     "out vec4 frag_color;"
 
     "uniform vec4 color;"
+    "uniform vec4 light_position;"
+    "uniform vec4 light_color;"
 
     "void main() {"
     //"  vec3 eyedirn = normalize(vec3(0,0,0) - position) ;"
-    "  vec3 lightdirection = normalize(vec3(1.0, 1.0, -1.0));"
-    "  float nDotL = dot(normal.xyz, lightdirection);"
+    //"  vec3 lightdirection = normalize(vec3(1.0, 1.0, -1.0));"
+    "  vec4 lightdirection = light_position - position;"
+    "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
     "  frag_color = vec4(color.rgb * max(nDotL, 0), 1.0);"
     "}";
 
@@ -87,20 +91,30 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
 
     //glUseProgram(mShaderProgramID);r
 
-    mUniforms.mvp = glGetUniformLocation(mShaderProgramID, "mvp") ;
+    mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
+    mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
     mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
+    mUniforms.light_position = glGetUniformLocation(mShaderProgramID, "light_position") ;
+    mUniforms.light_color = glGetUniformLocation(mShaderProgramID, "light_color") ;
 
     // set up camera
     // camera
     // projection matrix
-    mCamera.mProjectionMatrix = vmath::Matrix4::perspective(
-        M_PI_2,                         // field of view (radians)
-        (float)(width)/(float)(height), // aspect ratio
-        0.1f,                           // znear
-        100.0f                          // zfar
+    float aspect_ratio = (float)(width)/(float)(height);
+//    mCamera.mProjectionMatrix = vmath::Matrix4::perspective(
+//        M_PI_4,                         // field of view (radians)
+//        aspect_ratio,                   // aspect ratio
+//        0.1f,                           // znear
+//        100.0f                          // zfar
+//    );
+
+    float half_height = 3.5f;
+    mCamera.mProjectionMatrix = vmath::Matrix4::orthographic(
+        -aspect_ratio*half_height, aspect_ratio*half_height, -half_height, half_height, 0.1f, 100.0f
     );
 
-    vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 5.0f));
+
+    vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 10.0f));
     mCamera.mCamMatrixInverse = vmath::inverse(camera_matrix);
 
     // Check for errors:
@@ -182,10 +196,10 @@ SceneNode * OpenGLRenderer::getSceneNodePtr(scenenode_id id)
 
 SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
                                          const Material &material,
-                                         const Transform &transform_in)
+                                         const Transform &transform)
 {
     sceneobject_id id_out(mSceneObjects.size());
-    mSceneObjects.emplace_back(transform_in, material, geometry);
+    mSceneObjects.emplace_back(transform, material, geometry);
 
     return SceneObjectHandle(this, id_out);
 }
@@ -193,6 +207,17 @@ SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
 SceneObject * SceneNode::getSceneObjectPtr(sceneobject_id id)
 {
     return &mSceneObjects[int(id)];
+}
+
+
+LightHandle SceneNode::addLight(const vmath::Vector4 &color,
+                     const Transform &transform)
+{
+    light_id id_out(mLights.size());
+    mLights.emplace_back(transform, color);
+
+    return LightHandle(this, id_out);
+
 }
 
 Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
@@ -251,20 +276,21 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
     const auto &vertices = geometry.getVertices();
     const auto &primitives = geometry.getPrimitives();
 
-    vmath::Matrix4 model_view_matrix = camera.mCamMatrixInverse * model_matrix;
+    vmath::Matrix4 mv = camera.mCamMatrixInverse * model_matrix;
 
 #ifdef _VECTORMATH_DEBUG
     //vmath::print(model_matrix, ("model_matrix"+std::to_string(debug_counter)).c_str());
 #endif
 
     // combined model view projection matrix
-    vmath::Matrix4 mvp = camera.mProjectionMatrix * model_view_matrix;
+    vmath::Matrix4 p = camera.mProjectionMatrix;
 
 //#ifdef _VECTORMATH_DEBUG
 //    vmath::print(mvp, "mvp");
 //#endif
 
-    glUniformMatrix4fv(uniforms.mvp, 1, false, (const GLfloat*)&(mvp[0]));
+    glUniformMatrix4fv(uniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
+    glUniformMatrix4fv(uniforms.p, 1, false, (const GLfloat*)&(p[0]));
     glUniform4fv(uniforms.color, 1, (const GLfloat*)&material.getColor());
 
     //glBindVertexArray (vertices.vao);
@@ -297,22 +323,61 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
 
 void OpenGLRenderer::draw() const
 {
+    // switch shader, (might be done later at material stage...)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram (mShaderProgramID);
 
+    // prepare lights
+    mLightObjectsVector.clear();
+    for (const auto &scene_node : mSceneNodesVector)
+    {
+        for (const auto &light : scene_node.getLights())
+        {
+            vmath::Vector4 light_world_pos = scene_node.transform.getTransformMatrix() * light.mTransform.position;
+            mLightObjectsVector.emplace_back(
+
+                LightObject(light_world_pos, light.mColor)
+            );
+        }
+    }
+
+    vmath::Vector4 light_position_world;
+    vmath::Vector4 light_color;
+    if (mLightObjectsVector.size()>0)
+    {
+        // use first light
+        light_position_world = mLightObjectsVector[0].mPosition;
+        light_color = mLightObjectsVector[0].mColor;
+    }
+    else // default light
+    {
+        light_position_world = vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
+        light_color = vmath::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    vmath::Matrix4 vp_matrix = mCamera.mCamMatrixInverse;
+    vmath::Vector4 light_position = vp_matrix * light_position_world;
+
+    glUniform4fv(mUniforms.light_position, 1, (const GLfloat*)&light_position);
+    glUniform4fv(mUniforms.light_color, 1, (const GLfloat*)&light_color);
+
+    // prepare the drawobjects
     mDrawObjectsVector.clear(); // could/does this need to be optimized?
     for (const auto &scene_node : mSceneNodesVector)
     {
         for (const auto &scene_object : scene_node.getSceneObjects())
         {
-            vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix() * scene_object.mTransform.getTransformMatrix();
-            mDrawObjectsVector.emplace_back(
+            if (scene_object.mMaterial.getVisible()) // woops branching in tight loop, optimize me please!
+            {
+                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix() * scene_object.mTransform.getTransformMatrix();
+                mDrawObjectsVector.emplace_back(
 
-                DrawObject(world_matrix, scene_object.mMaterial, scene_object.mGeometry)
-            );
+                    DrawObject(world_matrix, scene_object.mMaterial, scene_object.mGeometry)
+                );
+            }
         }
     }
 
+    // actually draw the batched draw objects
     for (const auto &draw_object : mDrawObjectsVector)
     {
         drawDrawObject(draw_object, mCamera, mUniforms, mGlobalWireframe);

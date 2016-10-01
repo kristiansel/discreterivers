@@ -60,11 +60,11 @@ void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjac
 void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
                          std::vector<gfx::Triangle> * const ocean_triangles,
                          std::vector<LandWaterType>  * const point_land_water_types,
+                         float * const sealevel_radius,
                          const std::vector<gfx::Triangle> &triangles,
                          const std::vector<vmath::Vector3> &points,
                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
                          const std::vector<std::vector<point_index>> &point_to_point_adjacency,
-                         float sealevel_radius,
                          const float ocean_fraction);
 
 void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
@@ -78,7 +78,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                           const std::vector<ConnectionList> &flow_up_adjacency,
                           const std::vector<std::vector<tri_index>> &point_tri_adjacency,
                           const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                          const float sealevel_radius,
                           const unsigned int n_springs);
 
 
@@ -131,15 +130,15 @@ Planet::Planet(const float radius,
     createPointToTriAdjacency(&mPointToTriAdjacencyList, mTriangles, mPoints);
     createTriToTriAdjacency(&mTriToTriAdjacencyList, mTriangles, mPoints, mPointToTriAdjacencyList);
 
-    // woops: bug in this one, need to use debugger
-    createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType,
+    float sealevel_radius;
+    createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType, &sealevel_radius,
                         mTriangles, mPoints, mPointToTriAdjacencyList, mPointToPointAdjacencyList,
-                        radius, ocean_fraction);
+                        ocean_fraction);
 
     createLakesAndRivers(&mLakePoints, &mLakeTriangles, &mRiverLines, &mPointsLandWaterType, mTriangles, mPoints, mPointToPointAdjacencyList,
                          mFlowDownAdjacency, mFlowUpAdjacency,
     //createLakesAndRivers(&mLakePoints, &mLakeTriangles, &mRiverLines, mTriangles, mPoints, mFlowDownAdjacency,
-                         mPointToTriAdjacencyList, mTriToTriAdjacencyList, radius, n_springs);
+                         mPointToTriAdjacencyList, mTriToTriAdjacencyList, n_springs);
 }
 
 // dirty hack... is this the sort of code one gets fired for?
@@ -196,7 +195,7 @@ float randFloatInRange(float a, float b) {
     float r = random * diff;
     return a + r;
 }
-
+/*
 // Other functions
 // should probably move this elsewhere
 void createCubeGeometry(std::vector<vmath::Vector3> * const points,
@@ -631,12 +630,15 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
 //              << std::endl;
 }
 
+*/
+
 template<class T>
 void push_back_if_unique(std::vector<T> &v, const T &e)
 {
     if (std::find(v.begin(), v.end(), e) == v.end()) v.push_back(e);
 }
 
+/*
 typedef std::pair<point_index, point_index> edge_t;
 void createAdjacencyList(std::vector<ConnectionList> * const edges,
                      const std::vector<vmath::Vector3> &points,
@@ -743,6 +745,8 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
 #endif // #ifdef DEBUG_ADJACECYLIST
 }
 
+*/
+#include <map>
 template<class KeyType, class VectorType, class KeyFunc>
 void createHistogramMap(std::map<KeyType, int> * const key_count_map, const VectorType &val_vector, KeyFunc key_func)
 {
@@ -1112,11 +1116,11 @@ const float min_ocean_fraction = 0.00f;
 void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
                          std::vector<gfx::Triangle> * const ocean_triangles,
                          std::vector<LandWaterType>  * const point_land_water_types,
+                         float * const sealevel_radius,
                          const std::vector<gfx::Triangle> &triangles,
                          const std::vector<vmath::Vector3> &points,
                          const std::vector<std::vector<tri_index>> &point_tri_adjacency,
                          const std::vector<std::vector<point_index>> &point_to_point_adjacency,
-                         float sealevel_radius,
                          float ocean_fraction)
 {
     // sanitize input
@@ -1156,12 +1160,16 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
     // save list of triangle indices
     std::vector<tri_index> search_tris;
 
-    float current_sea_level = vmath::length(points[it.get_index()]);
-    while (current_sea_level < sealevel_radius && !it.search_end())
+    //float current_sea_level = vmath::length(points[it.get_index()]);
+    //while (current_sea_level < sealevel_radius && !it.search_end())
 
-    //unsigned int num_ocean_points = 0;
-    //float current_sea_coverage = 0.f;
-    //while (current_sea_coverage < ocean_fraction && !it.search_end())
+    unsigned int num_ocean_points = 0;
+    float current_sea_coverage = 0.f;
+    float highest_ocean_lvl = 0.f;
+    float latest_ocean_lvl = 0.f;
+    int rising_global_sealevel = true;
+    while ((  current_sea_coverage < ocean_fraction || (!rising_global_sealevel) ) &&
+            !it.search_end())
     {
         ++it;
 
@@ -1171,14 +1179,31 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
         // set the land/water type
         (*point_land_water_types)[this_index] = LandWaterType::Sea;
 
-        current_sea_level = vmath::length(points[it.get_index()]);
-        //num_ocean_points++;
-        //current_sea_coverage = (float)(num_ocean_points)/(float)(points.size());
+        //current_sea_level = vmath::length(points[it.get_index()]);
+        num_ocean_points++;
+        current_sea_coverage = (float)(num_ocean_points)/(float)(points.size());
+
+        latest_ocean_lvl = vmath::length(points[this_index]);
+        if (latest_ocean_lvl > highest_ocean_lvl)
+        {
+            rising_global_sealevel = true;
+            highest_ocean_lvl = latest_ocean_lvl;
+        }
+        else
+        {
+            rising_global_sealevel = false;
+        }
+
+
 
         // save triangles (contains duplicates)
         for (const auto &i_t : point_tri_adjacency[int(this_index)])
             search_tris.push_back( i_t );
     }
+    *sealevel_radius = latest_ocean_lvl;
+
+    std::cout << "final ocean level: " << latest_ocean_lvl << std::endl;
+    std::cout << "final ocean coverage: " << current_sea_coverage << std::endl;
 
     // remove duplicate triangles
     std::sort(search_tris.begin(), search_tris.end());
@@ -1212,7 +1237,7 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
     // normalise the ocean points length to sea level
     for (int i = 0 ; i<ocean_points->size(); i++)
     {
-        (*ocean_points)[i] = sealevel_radius * vmath::normalize((*ocean_points)[i]);
+        (*ocean_points)[i] = highest_ocean_lvl * vmath::normalize((*ocean_points)[i]);
     }
 }
 
@@ -1234,7 +1259,6 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
                           const std::vector<ConnectionList> &flow_up_adjacency,
                           const std::vector<std::vector<tri_index>> &point_tri_adjacency,
                           const std::vector<std::vector<tri_index>> &tri_tri_adjacency,
-                          const float sealevel_radius,
                           const unsigned int n_springs)
 {
     for (int i_springs = 0; i_springs<n_springs; i_springs++)

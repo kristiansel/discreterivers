@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
     Planet planet(
         3.15f,  // radius
         6,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        0.6f,   // fraction of planet covered by ocean
-        100,    // number of freshwater springs
-        6      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake
+        0.70f,   // fraction of planet covered by ocean
+        150,    // number of freshwater springs
+        5782      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
     // think a bit about the usage
@@ -66,8 +66,23 @@ int main(int argc, char *argv[])
     std::cout << "Found graphics card: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
+
+
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer(width, height);
+
+    // create a scene graph node for a light
+    gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
+    gfx::LightHandle light;
+    {
+        vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(10.0f, 10.0f, 10.0f);
+
+        light = light_scene_node->addLight(color, transform);
+    }
+
+
 
     // create some geometry
     const std::vector<vmath::Vector4> &planet_position_data = *(planet.getPointsPtr());
@@ -78,10 +93,12 @@ int main(int argc, char *argv[])
 
     gfx::Vertices planet_vertices = gfx::Vertices(planet_position_data, planet_normal_data /*, texcoords*/);
 
-    // create a scene graph node
+    // create a scene graph node for the planet
     gfx::SceneNodeHandle planet_scene_node = opengl_renderer.addSceneNode();
 
     vmath::Vector4 fresh_water_color(0.3f, 0.6f, 1.0f, 1.0f);
+    vmath::Vector4 salt_water_color(0.00f, 0.0f, 0.55f, 1.0f);
+
 
     // create some scene objects using/sharing geometry
     gfx::SceneObjectHandle planet_sceneobject;
@@ -252,12 +269,12 @@ int main(int argc, char *argv[])
 
         gfx::Geometry geometry = gfx::Geometry( ocean_vertices, primitives );
 
-        vmath::Vector4 color(0.0f, 0.0f, 1.0f, 1.0f);
+        vmath::Vector4 color = salt_water_color;
         gfx::Material material = gfx::Material(color);
 
         gfx::Transform transform;
         transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
+        //transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
 
         ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
@@ -310,9 +327,13 @@ int main(int argc, char *argv[])
                         case(SDLK_q):
                             done = true;
                             break;
+                        case(SDLK_h):
+                            planet_sceneobject->toggleVisible();
+                            break;
                         case(SDLK_ESCAPE):
                             done = true;
                             break;
+
                     }
                     break; // without this, it quits...
 

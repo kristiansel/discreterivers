@@ -82,23 +82,26 @@ private:
 
 struct Material
 {
-    Material() : color(1.0f), wireframe(false) {}
-    Material(const Material &m) : color(m.color), wireframe(m.wireframe) {}
-    Material(const vmath::Vector4 &color_in) : color(color_in), wireframe(false) {}
+    Material() : color(1.0f), wireframe(false), visible(true) {}
+    Material(const Material &m) : color(m.color), wireframe(m.wireframe), visible(m.visible){}
+    Material(const vmath::Vector4 &color_in) : color(color_in), wireframe(false), visible(true) {}
 
 
     // get
     const vmath::Vector4 &getColor() const {return color;}
     const bool &getWireframe() const {return wireframe;}
+    const bool &getVisible() const {return visible;}
 
     // set
     void setColor(const vmath::Vector4 &color_in) {color=color_in;}
     void setWireframe(bool w) {wireframe=w;}
+    void setVisible(bool v) {visible=v;}
 
 
 private:
     vmath::Vector4 color;
     bool wireframe;
+    bool visible;
 };
 
 struct Transform
@@ -118,14 +121,27 @@ struct Transform
 struct sceneobject_tag{};
 typedef ID<sceneobject_tag, int, -1> sceneobject_id;
 
+struct light_tag{};
+typedef ID<light_tag, int, -1> light_id;
+
 struct scenenode_tag{};
 typedef ID<scenenode_tag, int, -1> scenenode_id;
 
+struct Light
+{
+    Light(const Transform &transform, const vmath::Vector4 &color)
+        : mTransform(transform), mColor(color) {}
+
+    Transform mTransform;
+    vmath::Vector4 mColor;
+};
 
 struct SceneObject
 {
     SceneObject(const Transform &transform, const Material &material, const Geometry &geometry)
         : mTransform(transform), mMaterial(material), mGeometry(geometry) {}
+
+    void toggleVisible() {if(mMaterial.getVisible()) mMaterial.setVisible(false); else mMaterial.setVisible(true);}
 
     Transform mTransform;
     Material mMaterial;
@@ -142,9 +158,20 @@ struct DrawObject
     Geometry mGeometry;
 };
 
+struct LightObject
+{
+    LightObject(const vmath::Vector4 &position, const vmath::Vector4 &color)
+        : mPosition(position), mColor(color) {}
+
+    vmath::Vector4 mPosition;
+    vmath::Vector4 mColor;
+};
+
 struct SceneNode;
+struct Light;
 
 struct SceneNodeHandle;
+struct LightHandle;
 
 void checkOpenGLErrors(const std::string &error_check_label);
 
@@ -153,8 +180,8 @@ class OpenGLRenderer
 public:
     OpenGLRenderer(int width, int height);
 
-    //scenenode_id addSceneNode();
     SceneNodeHandle addSceneNode();
+
     SceneNode * getSceneNodePtr(scenenode_id id);
 
     void toggleWireframe() { mGlobalWireframe = mGlobalWireframe ? false : true; }
@@ -168,8 +195,11 @@ private:
         GLuint mShaderProgramID;
         struct Uniforms
         {
-            GLint mvp;
+            GLint mv;
+            GLint p;
             GLint color;
+            GLint light_position;
+            GLint light_color;
         } mUniforms;
 //    } mShaderProgram;
 
@@ -186,6 +216,8 @@ private:
 
     std::vector<SceneNode> mSceneNodesVector;
     mutable std::vector<DrawObject> mDrawObjectsVector;
+
+    mutable std::vector<LightObject> mLightObjectsVector;
 
     inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe = false);
 };
@@ -209,7 +241,7 @@ private:
 };
 
 
-class SceneObjectHandle;
+struct SceneObjectHandle;
 
 struct SceneNode
 {
@@ -219,12 +251,19 @@ struct SceneNode
                                   const Material &material,
                                   const Transform &transform = Transform());
 
+    LightHandle addLight(const vmath::Vector4 &color,
+                         const Transform &transform = Transform());
+
     SceneObject * getSceneObjectPtr(sceneobject_id id);
 
+    Light * getLightPtr(light_id id);
+
     const std::vector<SceneObject> &getSceneObjects() const {return mSceneObjects;}
+    const std::vector<Light> &getLights() const {return mLights;}
 
 private:
     std::vector<SceneObject> mSceneObjects;
+    std::vector<Light> mLights;
 
     scenenode_id mParent;
 };
@@ -253,6 +292,31 @@ private:
 
     SceneNode * mSceneNode;
     sceneobject_id mID;
+};
+
+struct LightHandle
+{
+    LightHandle() :
+        mSceneNode(nullptr), mID(0) {}
+
+    LightHandle(const LightHandle &l) :
+        mSceneNode(l.mSceneNode), mID(l.mID) {}
+
+    LightHandle(SceneNode * const scene_node, light_id id) :
+        mSceneNode(scene_node), mID(id) {}
+
+    LightHandle& operator=(const LightHandle &l)
+        {mSceneNode = l.mSceneNode; mID = l.mID;}
+
+    Light& operator*() const { assert (mSceneNode); return *(mSceneNode->getLightPtr(mID)); }
+    Light* operator->() const { assert (mSceneNode); return mSceneNode->getLightPtr(mID); }
+
+    light_id getLightID() const {return mID;}
+
+private:
+
+    SceneNode * mSceneNode;
+    light_id mID;
 };
 
 template<class PrimitiveType>
