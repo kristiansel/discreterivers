@@ -11,6 +11,8 @@
 #include "gfx_primitives.h"
 #include "openglrenderer.h"
 
+#include "topology.h"
+
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 //namespace oglr = OpenGLRenderer;
@@ -26,6 +28,11 @@ int main(int argc, char *argv[])
         150,    // number of freshwater springs
         5782      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
+
+
+    Topology::Test::barycentricCoords();
+    Topology::Test::multinomialCoefficient();
+
 
     // think a bit about the usage
 

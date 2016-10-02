@@ -35,6 +35,14 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
                      const std::vector<gfx::Triangle> &triangles);
 
 
-}
+namespace Test {
+
+void barycentricCoords();
+
+void multinomialCoefficient();
+
+} // namespace Test
+
+} // namespace Topology
 
 #endif // TOPOLOGY_H

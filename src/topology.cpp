@@ -1,6 +1,9 @@
-#include "topology.h"
+﻿#include "topology.h"
+
+#include "barycentric.h"
 
 #include <map>
+
 
 namespace Topology
 
@@ -208,34 +211,6 @@ float midpoint_displacement(    const vmath::Vector3 &p1,
 
 } // namespace fractal
 
-inline vmath::Vector3 linePlaneIntersection(vmath::Vector3 line_dir, vmath::Vector3 line_point,
-                                     vmath::Vector3 plane_normal, vmath::Vector3 plane_point)
-{
-    // from wikipedia
-    float d = vmath::dot(plane_point-line_point, plane_normal)/vmath::dot(plane_normal, line_dir);
-    return line_point + d*line_dir;
-}
-
-inline vmath::Vector3 linePlaneIntersectionNormalized(vmath::Vector3 line_dir_normalized, vmath::Vector3 line_point,
-                                               vmath::Vector3 plane_normal_normalized, vmath::Vector3 plane_point)
-{
-    assert(abs(vmath::length(line_dir_normalized)-1.f)<0.0001);
-    assert(abs(vmath::length(plane_normal_normalized)-1.f)<0.0001);
-
-    float d = vmath::dot(plane_point-line_point, plane_normal_normalized);
-    return line_point + d*line_dir_normalized;
-}
-
-inline vmath::Vector3 findPointInTriangle(point_index i_p1, point_index i_p2, point_index i_p3,
-                                   const std::vector<vmath::Vector3> &points,
-                                   const std::vector<vmath::Vector3> &normals)
-{
-    // find barycentric coordinates
-
-    // evaluate bernstein basis at barycentric coords (6 polys)
-
-    // find the... fuark need edge normals for 3 edge planes
-}
 
 
 template<class fractal>
@@ -256,8 +231,8 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
 
     // new method
     vmath::Vector3 p_mid = 0.5f*(p1 + p2);
-    vmath::Vector3 p_n1  = linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n1, p1);
-    vmath::Vector3 p_n2  = linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n2, p2);
+    vmath::Vector3 p_n1  = MultiCalculus::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n1, p1);
+    vmath::Vector3 p_n2  = MultiCalculus::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n2, p2);
 
     float b02 = 0.25; // hardcoded bernstein polynomial coefficient for midpoint
     float b12 = 0.50; // hardcoded bernstein polynomial coefficient for midpoint
@@ -557,5 +532,73 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
     }
 #endif // #ifdef DEBUG_ADJACECYLIST
 }
+
+
+
+//-----------------------------TESTS---------------------------------------------
+
+namespace Test {
+void barycentricCoords()
+{
+    // do some unit testing of barycentric coordinates
+    vmath::Vector3 tp0(0.0f, 0.0f, 0.0f);
+    vmath::Vector3 tp1(1.0f, 0.0f, 0.0f);
+    vmath::Vector3 tp2(0.0f, 1.0f, 0.0f);
+
+    vmath::Vector3 b100 = MultiCalculus::barycentricCoords(tp0, tp0, tp1, tp2);
+    vmath::Vector3 b010 = MultiCalculus::barycentricCoords(tp1, tp0, tp1, tp2);
+    vmath::Vector3 b001 = MultiCalculus::barycentricCoords(tp2, tp0, tp1, tp2);
+
+
+    std::cout << "b100 = (" << b100[0] << ", " << b100[1] << ", " << b100[2] << ")" << std::endl;
+    std::cout << "b010 = (" << b010[0] << ", " << b010[1] << ", " << b010[2] << ")" << std::endl;
+    std::cout << "b001 = (" << b001[0] << ", " << b001[1] << ", " << b001[2] << ")" << std::endl;
+
+    vmath::Vector3 b110 = MultiCalculus::barycentricCoords(0.5f*(tp0+tp1), tp0, tp1, tp2);
+    vmath::Vector3 b011 = MultiCalculus::barycentricCoords(0.5f*(tp1+tp2), tp0, tp1, tp2);
+    vmath::Vector3 b101 = MultiCalculus::barycentricCoords(0.5f*(tp2+tp0), tp0, tp1, tp2);
+
+    std::cout << "b110 = (" << b110[0] << ", " << b110[1] << ", " << b110[2] << ")" << std::endl;
+    std::cout << "b011 = (" << b011[0] << ", " << b011[1] << ", " << b011[2] << ")" << std::endl;
+    std::cout << "b101 = (" << b101[0] << ", " << b101[1] << ", " << b101[2] << ")" << std::endl;
+
+    vmath::Vector3 b111 = MultiCalculus::barycentricCoords(0.333333333f*(tp0+tp1+tp2), tp0, tp1, tp2);
+
+    std::cout << "b111 = (" << b111[0] << ", " << b111[1] << ", " << b111[2] << ")" << std::endl;
+
+    vmath::Vector3 b = MultiCalculus::barycentricCoords({0.4832,0.3421, 0.0}, tp0, tp1, tp2);
+
+    std::cout << "b = (" << b[0] << ", " << b[1] << ", " << b[2] << ")" << std::endl;
+
+    //    should give:
+    //    b100 = (1, 0, 0)
+    //    b010 = (0, 1, 0)
+    //    b001 = (0, 0, 1)
+    //    b110 = (0.5, 0.5, 0)
+    //    b011 = (0, 0.5, 0.5)
+    //    b101 = (0.5, 0, 0.5)
+    //    b111 = (0.333333, 0.333333, 0.333333)
+    //    b = (0.1747, 0.4832, 0.3421)
+
+    vmath::Vector3 br = MultiCalculus::barycentricCoords({-0.1f, -0.1f, 0.0}, tp0, tp1, tp2);
+
+    std::cout << "br = (" << br[0] << ", " << br[1] << ", " << br[2] << ")" << std::endl;
+    //    bary centric coordinates outside triangle do not satisfy sum(b)=1
+    //    br = (1.2, 0.1, 0.1)
+
+}
+
+void multinomialCoefficient()
+{
+    std::cout << "(2, 2, 0, 0): " << MultiCalculus::multinomialCoefficient2(2, 0, 0) << std::endl;
+    std::cout << "(2, 0, 2, 0): " << MultiCalculus::multinomialCoefficient2(0, 2, 0) << std::endl;
+    std::cout << "(2, 0, 0, 2): " << MultiCalculus::multinomialCoefficient2(0, 0, 2) << std::endl;
+    std::cout << "(2, 1, 0, 1): " << MultiCalculus::multinomialCoefficient2(1, 0, 1) << std::endl;
+    std::cout << "(2, 1, 1, 0): " << MultiCalculus::multinomialCoefficient2(1, 1, 0) << std::endl;
+    std::cout << "(2, 0, 1, 1): " << MultiCalculus::multinomialCoefficient2(0, 1, 1) << std::endl;
+}
+
+} // namespace Test
+
 
 } // namespace Topology

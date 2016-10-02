@@ -139,6 +139,7 @@ Planet::Planet(const float radius,
                          mFlowDownAdjacency, mFlowUpAdjacency,
     //createLakesAndRivers(&mLakePoints, &mLakeTriangles, &mRiverLines, mTriangles, mPoints, mFlowDownAdjacency,
                          mPointToTriAdjacencyList, mTriToTriAdjacencyList, n_springs);
+
 }
 
 // dirty hack... is this the sort of code one gets fired for?
