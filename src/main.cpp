@@ -7,11 +7,11 @@
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
-#include "planet.h"
-#include "gfx_primitives.h"
-#include "openglrenderer.h"
+#include "planet/planet.h"
+#include "common/gfx_primitives.h"
+#include "graphics/openglrenderer.h"
 
-#include "topology.h"
+#include "planet/topology.h" // for testing
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;

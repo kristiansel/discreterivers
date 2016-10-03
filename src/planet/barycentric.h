@@ -1,7 +1,7 @@
 #ifndef MULTICALCULUS
 #define MULTICALCULUS_H
 
-#include "gfx_primitives.h"
+#include "../common/gfx_primitives.h"
 
 namespace vmath = Vectormath::Aos;
 

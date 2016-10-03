@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <iostream>
 
-#include "gfx_primitives.h"
+#include "../common/gfx_primitives.h"
 
-#include "typetag.h"
+#include "../common/typetag.h"
 
 namespace vmath = Vectormath::Aos;
 

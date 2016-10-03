@@ -4,8 +4,8 @@
 #include <vector>
 #include <array>
 #include <iostream>
-#include "gfx_primitives.h"
-#include "typetag.h"
+#include "../common/gfx_primitives.h"
+#include "../common/typetag.h"
 
 
 // don't mess with working code..

@@ -2,7 +2,7 @@
 #define GFX_PRIMITIVES_H
 
 #define _VECTORMATH_DEBUG
-#include "dep/vecmath/vectormath_aos.h"
+#include "../dep/vecmath/vectormath_aos.h"
 
 #include <vector>
 #include <algorithm>

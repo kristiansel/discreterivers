@@ -31,9 +31,11 @@ include_directories(
     ${GLEW_INCLUDE_DIRS}
 )
 
-aux_source_directory(./src SRC_LIST)
+# aux_source_directory(./src SRC_LIST)
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+file(GLOB_RECURSE SRCS *.cpp)
+
+add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARY}
