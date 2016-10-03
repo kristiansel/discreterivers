@@ -25,10 +25,12 @@ void createIcosahedronGeometry(std::vector<vmath::Vector3> * const points,
 
 // should probably move this elsewhere
 void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
+                             std::vector<vmath::Vector3> * const normals,
                              std::vector<gfx::Triangle> * const triangles,
                              std::vector<std::vector<gfx::Triangle>> * const subd_triangles,
                              const float radius,
                              const int num_subdivisions);
+
 
 void createAdjacencyList(std::vector<ConnectionList> * const edges,
                      const std::vector<vmath::Vector3> &points,

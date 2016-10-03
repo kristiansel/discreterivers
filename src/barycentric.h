@@ -15,10 +15,13 @@ vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
                                 const vmath::Vector3 &tp1,
                                 const vmath::Vector3 &tp2);
 
+bool pointInTriangle(const vmath::Vector3 &barycentric_coords);
+
 int multinomialCoefficient2(int i, int j, int k);
 
 vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
                                    const gfx::Triangle &triangle,
+                                   const vmath::Vector3 &barycentric_coords,
                                    const std::vector<vmath::Vector3> &points,
                                    const std::vector<vmath::Vector3> &point_normals);
 

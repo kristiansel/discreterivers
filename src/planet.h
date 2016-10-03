@@ -50,6 +50,8 @@ public:
            const unsigned int n_springs,
            const int seed);
 
+
+
     const std::vector<Vectormath::Aos::Vector4> * const getPointsPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getTrianglesPtr() const {return &mTriangles;}
 
@@ -92,9 +94,17 @@ public:
 protected:
     // protected functions
 
+    float getHeightAtPoint(Vectormath::Aos::Vector3 point, tri_index guess_triangle);
+
+    void smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
+                                std::vector<gfx::Triangle> * subd_triangles,
+                                tri_index tri_to_subd);
+
+
 private:
     // graphics/shared data
     std::vector<Vectormath::Aos::Vector3> mPoints;
+    std::vector<Vectormath::Aos::Vector3> mNormals;
     std::vector<gfx::Triangle> mTriangles;
     std::vector<std::vector<gfx::Triangle>> mSubdTriangles;
 
@@ -154,6 +164,7 @@ private:
     // watershed->sub-watershed->...->points
     std::vector<SaddleList> mMinimumToSaddleAdjecency;    // maps to mMinima
     std::vector<MinimaList> mSaddleToMinimumAdjecency;   // maps to mSaddles
+
 };
 
 // Template methods

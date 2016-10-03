@@ -9,6 +9,7 @@
 
 #include "gfx_primitives.h"
 #include "topology.h"
+#include "barycentric.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -108,7 +109,8 @@ Planet::Planet(const float radius,
 
 
     //createIcoSphereGeometry(&mPoints, &mTriangles, radius, 8);
-    Topology::createIcoSphereGeometry(&mPoints, &mTriangles, &mSubdTriangles, radius, subdivision_level);
+    Topology::createIcoSphereGeometry(&mPoints, &mNormals, &mTriangles, &mSubdTriangles, radius, subdivision_level);
+
     //mPointsDirty = true;
 
     // assertion failure (flow_up_or_down) at:
@@ -1415,6 +1417,36 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
 
         lake_triangles->insert(lake_triangles->end(), this_lake_triangles.begin(), this_lake_triangles.end());
     }
+}
+
+
+float Planet::getHeightAtPoint(Vectormath::Aos::Vector3 point, tri_index guess_triangle)
+{
+    // find barycentric coords in guess_triangle
+    gfx::Triangle &triangle = mTriangles[int(guess_triangle)];
+    vmath::Vector3 tp0 = mPoints[triangle[0]];
+    vmath::Vector3 tp1 = mPoints[triangle[1]];
+    vmath::Vector3 tp2 = mPoints[triangle[2]];
+
+    vmath::Vector3 b = MultiCalculus::barycentricCoords(point, tp0, tp1, tp2);
+
+    if (MultiCalculus::pointInTriangle(b))
+    {
+        vmath::Vector3 point = MultiCalculus::findPointInTriangle(point, triangle, b, mPoints, mNormals);
+        return vmath::length(point);
+    }
+    else
+    {
+        // start a search for the triangle
+        // ...TODO
+    }
+}
+
+void Planet::smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
+                            std::vector<gfx::Triangle> * subd_triangles,
+                            tri_index tri_to_subd)
+{
+
 }
 
 // shit really hit the fan from here down...

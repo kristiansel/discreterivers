@@ -44,7 +44,7 @@ vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
 
     // project the point onto the triangle
     vmath::Vector3 normal = vmath::normalize(cross_vt);
-    vmath::Vector3 p = projectPointIntoPlane(pt, normal, tp0);
+    vmath::Vector3 p = linePlaneIntersection(vmath::normalize(pt), pt, normal, tp0);
 
     // find vectors from triangle corners to point
     vmath::Vector3 vpt0 = tp0 - p;
@@ -62,6 +62,12 @@ vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
     float b2 = ap01/ta;
 
     return vmath::Vector3(b0, b1, b2);
+}
+
+bool pointInTriangle(const vmath::Vector3 &barycentric_coords)
+{
+    const vmath::Vector3 &b = barycentric_coords;
+    if (b[0]+b[1]+b[2]>1.0f) return false; else return true;
 }
 
 int multinomialCoefficient2(int i, int j, int k)
@@ -109,20 +115,29 @@ inline float bernesteinBarycentric(vmath::Vector3 b, int i, int j, int k)
     return (float)(multinomialCoefficient2(i, j, k)) * pow(b[0], i) * pow(b[1], j) * pow(b[2], k);
 }
 
+//vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
+//                                   const gfx::Triangle &triangle,
+//                                   const std::vector<vmath::Vector3> &points,
+//                                   const std::vector<vmath::Vector3> &point_normals)
+//{
+//    // project triangle to unit sphere
+//    vmath::Vector3 pt = point;
+//    vmath::Vector3 tp0 = vmath::normalize(points[triangle[0]]);
+//    vmath::Vector3 tp1 = vmath::normalize(points[triangle[1]]);
+//    vmath::Vector3 tp2 = vmath::normalize(points[triangle[2]]);
+
+//    // find barycentric coordinates
+//    vmath::Vector3 b = barycentricCoords(pt, tp0, tp1, tp2);
+
+
 vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
                                    const gfx::Triangle &triangle,
+                                   const vmath::Vector3 &barycentric_coords,
                                    const std::vector<vmath::Vector3> &points,
                                    const std::vector<vmath::Vector3> &point_normals)
 {
-    // project all points to unit sphere
     vmath::Vector3 pt = vmath::normalize(point);
-    vmath::Vector3 tp0 = vmath::normalize(points[triangle[0]]);
-    vmath::Vector3 tp1 = vmath::normalize(points[triangle[1]]);
-    vmath::Vector3 tp2 = vmath::normalize(points[triangle[2]]);
-
-    // find barycentric coordinates
-    vmath::Vector3 b = barycentricCoords(pt, tp0, tp1, tp2);
-
+    vmath::Vector3 b = barycentric_coords;
     assert((b[0]+b[1]+b[2]<=1.0f));
 
     // evaluate bernstein basis at barycentric coords (6 polys)

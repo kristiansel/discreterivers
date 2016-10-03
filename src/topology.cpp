@@ -199,7 +199,7 @@ float midpoint_displacement(    const vmath::Vector3 &p1,
     float length_scale_as_frac_radius = unit_sphere_distance_p1p2;
     float x = length_scale_as_frac_radius;
 
-    float frac_scale = 0.025+0.045*log_normal(5.0f*x, 0.0f, 0.5f);
+    float frac_scale = 0.025+0.045*log_normal(5.0f*x, 0.0f, 0.5f); // officially best
     //float frac_scale = x > 0.3 ? 0.075f : 0.0;
     //float frac_scale = 0.035f;
     //float frac_scale = 0.00f;
@@ -256,7 +256,7 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
 
 //    vmath::Vector3 midpoint = vmath::Vector3( new_radius * midpoint_sphere_projected );
 
-////     std::cout << "length of subdivision point = " << vmath::length(midpoint()) << std::endl;
+//     std::cout << "length of subdivision point = " << vmath::length(midpoint()) << std::endl;
 
     return midpoint;
 }
@@ -301,6 +301,7 @@ int getSubdPointIndex(const point_index i1,
 
 
 void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
+                             std::vector<vmath::Vector3> * const normals,
                              std::vector<gfx::Triangle> * const triangles,
                              std::vector<std::vector<gfx::Triangle>> * const subd_triangles,
                              const float radius,
@@ -325,8 +326,8 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
 
     createIcosahedronGeometry(points, &triangles_subd_lvls[0], radius);
 
-    std::vector<vmath::Vector3> normals;
-    gfx::generateNormals(&normals, *points, triangles_subd_lvls[0]);
+    //std::vector<vmath::Vector3> normals;
+    gfx::generateNormals(normals, *points, triangles_subd_lvls[0]);
 
     // Subsequently subdivide triangles
     for (int k = 1; k < num_subdivisions + 1; k++)
@@ -359,9 +360,9 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
             // get indices of the three new points (organized by sides)
             gfx::Triangle const &prev_triangle = triangles_subd_lvls[k-1][i];
             point_index new_points_indices[] = {
-                getSubdPointIndex(prev_triangle[0], prev_triangle[1], radius, points, normals, &midpoints_cache),
-                getSubdPointIndex(prev_triangle[1], prev_triangle[2], radius, points, normals, &midpoints_cache),
-                getSubdPointIndex(prev_triangle[2], prev_triangle[0], radius, points, normals, &midpoints_cache)
+                getSubdPointIndex(prev_triangle[0], prev_triangle[1], radius, points, *normals, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[1], prev_triangle[2], radius, points, *normals, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[2], prev_triangle[0], radius, points, *normals, &midpoints_cache)
             };
 
             // create the subdivided triangles, using previously existing and new corners
@@ -398,7 +399,7 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
             );
         } // for (int i = 0; i < prev_subdlvl_size; i++)
 
-        gfx::generateNormals(&normals, *points, triangles_subd_lvls[k]);
+        gfx::generateNormals(normals, *points, triangles_subd_lvls[k]);
 
         std::cout << std::endl;
 

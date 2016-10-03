@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
         transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
         transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
 
-        rivers_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+        //rivers_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
     gfx::SceneObjectHandle lambda_valleys_sceneobject;
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
         transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
         //transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
 
-        ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+        //ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
     gfx::SceneObjectHandle lakes_sceneobject;
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
         transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
         transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
 
-        lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+        //lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
     // SDL event loop
