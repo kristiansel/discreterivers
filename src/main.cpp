@@ -7,6 +7,8 @@
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
+#define _VECTORMATH_DEBUG
+
 #include "planet/planet.h"
 #include "common/gfx_primitives.h"
 #include "graphics/openglrenderer.h"
@@ -23,7 +25,7 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        4,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        3,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
         0.70f,   // fraction of planet covered by ocean
         15,    // number of freshwater springs
         5782      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
@@ -120,7 +122,32 @@ int main(int argc, char *argv[])
         gfx::Material material = gfx::Material(color);
         //material.setWireframe(true);
 
-        planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
+        //planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
+    }
+
+    // create some scene objects using/sharing geometry
+    gfx::SceneObjectHandle subd_planet_sceneobject;
+    {
+        std::vector<vmath::Vector4> subd_planet_position_data;
+        std::vector<gfx::Triangle> subd_planet_primitive_data;
+
+        planet.getSmoothSubdGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 2);
+
+        std::vector<vmath::Vector4> subd_planet_normal_data;
+        gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);
+
+        gfx::Vertices subd_planet_vertices = gfx::Vertices(subd_planet_position_data, subd_planet_normal_data /*, texcoords*/);
+
+        gfx::Primitives primitives = gfx::Primitives(subd_planet_primitive_data);
+        gfx::Geometry geometry = gfx::Geometry(subd_planet_vertices, primitives);
+
+        vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
+        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
+        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
+        gfx::Material material = gfx::Material(color);
+        //material.setWireframe(true);
+
+        subd_planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
     }
 
 //    gfx::SceneObjectHandle planet_sceneobject_lod;

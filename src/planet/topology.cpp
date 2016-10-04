@@ -1,9 +1,10 @@
 ﻿#include "topology.h"
 
-#include "barycentric.h"
+#include "vectorgeometry.h"
 
 #include <map>
 
+namespace vgeom = VectorGeometry;
 
 namespace Topology
 
@@ -231,8 +232,8 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
 
     // new method
     vmath::Vector3 p_mid = 0.5f*(p1 + p2);
-    vmath::Vector3 p_n1  = MultiCalculus::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n1, p1);
-    vmath::Vector3 p_n2  = MultiCalculus::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n2, p2);
+    vmath::Vector3 p_n1  = vgeom::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n1, p1);
+    vmath::Vector3 p_n2  = vgeom::linePlaneIntersection(p_mid, vmath::Vector3(0.0f), n2, p2);
 
     float b02 = 0.25; // hardcoded bernstein polynomial coefficient for midpoint
     float b12 = 0.50; // hardcoded bernstein polynomial coefficient for midpoint
@@ -617,28 +618,31 @@ void barycentricCoords()
     vmath::Vector3 tp1(1.0f, 0.0f, 0.0f);
     vmath::Vector3 tp2(0.0f, 1.0f, 0.0f);
 
-    vmath::Vector3 b100 = MultiCalculus::barycentricCoords(tp0, tp0, tp1, tp2);
-    vmath::Vector3 b010 = MultiCalculus::barycentricCoords(tp1, tp0, tp1, tp2);
-    vmath::Vector3 b001 = MultiCalculus::barycentricCoords(tp2, tp0, tp1, tp2);
+    vmath::Vector3 b100 = vgeom::baryPointInTriangle(tp0, tp0, tp1, tp2);
+    vmath::Vector3 b010 = vgeom::baryPointInTriangle(tp1, tp0, tp1, tp2);
+    vmath::Vector3 b001 = vgeom::baryPointInTriangle(tp2, tp0, tp1, tp2);
+
+    // assertion failed
+    //vmath::Vector3 sometest = MultiCalculus::baryPointInTriangle({1.f,1.f,1.f}, tp0, tp1, tp2);
 
 
     std::cout << "b100 = (" << b100[0] << ", " << b100[1] << ", " << b100[2] << ")" << std::endl;
     std::cout << "b010 = (" << b010[0] << ", " << b010[1] << ", " << b010[2] << ")" << std::endl;
     std::cout << "b001 = (" << b001[0] << ", " << b001[1] << ", " << b001[2] << ")" << std::endl;
 
-    vmath::Vector3 b110 = MultiCalculus::barycentricCoords(0.5f*(tp0+tp1), tp0, tp1, tp2);
-    vmath::Vector3 b011 = MultiCalculus::barycentricCoords(0.5f*(tp1+tp2), tp0, tp1, tp2);
-    vmath::Vector3 b101 = MultiCalculus::barycentricCoords(0.5f*(tp2+tp0), tp0, tp1, tp2);
+    vmath::Vector3 b110 = vgeom::baryPointInTriangle(0.5f*(tp0+tp1), tp0, tp1, tp2);
+    vmath::Vector3 b011 = vgeom::baryPointInTriangle(0.5f*(tp1+tp2), tp0, tp1, tp2);
+    vmath::Vector3 b101 = vgeom::baryPointInTriangle(0.5f*(tp2+tp0), tp0, tp1, tp2);
 
     std::cout << "b110 = (" << b110[0] << ", " << b110[1] << ", " << b110[2] << ")" << std::endl;
     std::cout << "b011 = (" << b011[0] << ", " << b011[1] << ", " << b011[2] << ")" << std::endl;
     std::cout << "b101 = (" << b101[0] << ", " << b101[1] << ", " << b101[2] << ")" << std::endl;
 
-    vmath::Vector3 b111 = MultiCalculus::barycentricCoords(0.333333333f*(tp0+tp1+tp2), tp0, tp1, tp2);
+    vmath::Vector3 b111 = vgeom::baryPointInTriangle(0.333333333f*(tp0+tp1+tp2), tp0, tp1, tp2);
 
     std::cout << "b111 = (" << b111[0] << ", " << b111[1] << ", " << b111[2] << ")" << std::endl;
 
-    vmath::Vector3 b = MultiCalculus::barycentricCoords({0.4832,0.3421, 0.0}, tp0, tp1, tp2);
+    vmath::Vector3 b = vgeom::baryPointInTriangle({0.4832,0.3421, 0.0}, tp0, tp1, tp2);
 
     std::cout << "b = (" << b[0] << ", " << b[1] << ", " << b[2] << ")" << std::endl;
 
@@ -652,7 +656,7 @@ void barycentricCoords()
     //    b111 = (0.333333, 0.333333, 0.333333)
     //    b = (0.1747, 0.4832, 0.3421)
 
-    vmath::Vector3 br = MultiCalculus::barycentricCoords({-0.1f, -0.1f, 0.0}, tp0, tp1, tp2);
+    vmath::Vector3 br = vgeom::baryPointInTriangle({-0.1f, -0.1f, 0.0}, tp0, tp1, tp2);
 
     std::cout << "br = (" << br[0] << ", " << br[1] << ", " << br[2] << ")" << std::endl;
     //    bary centric coordinates outside triangle do not satisfy sum(b)=1
@@ -662,12 +666,12 @@ void barycentricCoords()
 
 void multinomialCoefficient()
 {
-    std::cout << "(2, 2, 0, 0): " << MultiCalculus::multinomialCoefficient2(2, 0, 0) << std::endl;
-    std::cout << "(2, 0, 2, 0): " << MultiCalculus::multinomialCoefficient2(0, 2, 0) << std::endl;
-    std::cout << "(2, 0, 0, 2): " << MultiCalculus::multinomialCoefficient2(0, 0, 2) << std::endl;
-    std::cout << "(2, 1, 0, 1): " << MultiCalculus::multinomialCoefficient2(1, 0, 1) << std::endl;
-    std::cout << "(2, 1, 1, 0): " << MultiCalculus::multinomialCoefficient2(1, 1, 0) << std::endl;
-    std::cout << "(2, 0, 1, 1): " << MultiCalculus::multinomialCoefficient2(0, 1, 1) << std::endl;
+    std::cout << "(2, 2, 0, 0): " << vgeom::multinomialCoefficient2(2, 0, 0) << std::endl;
+    std::cout << "(2, 0, 2, 0): " << vgeom::multinomialCoefficient2(0, 2, 0) << std::endl;
+    std::cout << "(2, 0, 0, 2): " << vgeom::multinomialCoefficient2(0, 0, 2) << std::endl;
+    std::cout << "(2, 1, 0, 1): " << vgeom::multinomialCoefficient2(1, 0, 1) << std::endl;
+    std::cout << "(2, 1, 1, 0): " << vgeom::multinomialCoefficient2(1, 1, 0) << std::endl;
+    std::cout << "(2, 0, 1, 1): " << vgeom::multinomialCoefficient2(0, 1, 1) << std::endl;
 }
 
 } // namespace Test

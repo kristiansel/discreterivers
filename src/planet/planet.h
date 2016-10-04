@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <iostream>
+#include <map>
 #include "../common/gfx_primitives.h"
 #include "../common/typetag.h"
 #include "topology.h"
@@ -52,16 +53,16 @@ public:
 
 
 
-    const std::vector<Vectormath::Aos::Vector4> * const getPointsPtr(); // non-const because of lazy setting w=1 for all points
+    const std::vector<vmath::Vector4> * const getPointsPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getTrianglesPtr() const {return &mTriangles;}
 
     const std::vector<gfx::Triangle> * const getSubdTrianglesPtr(int subd_lvl) const {assert((subd_lvl>=0 && subd_lvl<mSubdTriangles.size()));
                                                                                       return &mSubdTriangles[subd_lvl];}
 
-    const std::vector<Vectormath::Aos::Vector4> * const getOceanVerticesPtr(); // non-const because of lazy setting w=1 for all points
+    const std::vector<vmath::Vector4> * const getOceanVerticesPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getOceanTrianglesPtr() const {return &mOceanTriangles;}
 
-    const std::vector<Vectormath::Aos::Vector4> * const getLakeVerticesPtr(); // non-const because of lazy setting w=1 for all points
+    const std::vector<vmath::Vector4> * const getLakeVerticesPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getLakeTrianglesPtr() const {return &mLakeTriangles;}
 
     const std::vector<gfx::Point> * const getMinimaPointsPtr() const {return (std::vector<gfx::Point> *)&mMinima;}
@@ -73,7 +74,9 @@ public:
     inline const std::vector<ConnectionList> &getAdjacency() {return mPointToPointAdjacencyList;}
     inline const std::vector<ConnectionList> &getFlowDownAdjacency() {return mFlowDownAdjacency;}
     inline const std::vector<ConnectionList> &getFlowUpAdjacency() {return mFlowUpAdjacency;}
-    inline const std::vector<Vectormath::Aos::Vector3> &getPoints() {return mPoints;}
+    inline const std::vector<vmath::Vector3> &getPoints() {return mPoints;}
+
+    void getSmoothSubdGeometry(std::vector<vmath::Vector4> * points, std::vector<gfx::Triangle> * triangles, int subd_lvl);
 
 
     template<class FilterFunc, class ... Args>
@@ -90,40 +93,49 @@ public:
 protected:
     // protected functions
 
-    float getHeightAtPoint(Vectormath::Aos::Vector3 point, tri_index guess_triangle);
+    vmath::Vector3 getSmoothPoint(vmath::Vector3 point, tri_index guess_triangle);
 
-    void smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
+    typedef std::map<std::pair<int, int>, int> IntpairIntMapType;
+    int getSubdPointIndex(const point_index i1,
+                          const point_index i2,
+                          const tri_index triangle_index,
+                          std::vector<vmath::Vector3> * const points,
+                          IntpairIntMapType * const midpoints_cache);
+
+    void smoothSubdivideTriangle( std::vector<vmath::Vector3> * subd_points,
                                 std::vector<gfx::Triangle> * subd_triangles,
                                 const tri_index tri_to_subd);
 
 
+    bool checkPointInTriIndex(vmath::Vector3 *b, const vmath::Vector3 point, const gfx::Triangle &triangle);
+
 private:
     // graphics/shared data
-    std::vector<Vectormath::Aos::Vector3> mPoints;
-    std::vector<Vectormath::Aos::Vector3> mNormals;
+    std::vector<vmath::Vector3> mPoints;
+    std::vector<vmath::Vector3> mNormals;
     std::vector<gfx::Triangle> mTriangles;
     std::vector<std::vector<gfx::Triangle>> mSubdTriangles;
 
     // graphics/shared data
-    std::vector<Vectormath::Aos::Vector3> mOceanPoints;
+    std::vector<vmath::Vector3> mOceanPoints;
     std::vector<gfx::Triangle> mOceanTriangles;
 
     // graphics/shared data
-    std::vector<Vectormath::Aos::Vector3> mLakePoints;
+    std::vector<vmath::Vector3> mLakePoints;
     std::vector<gfx::Triangle> mLakeTriangles;
 
     // graphics/shared data
-    // std::vector<Vectormath::Aos::Vector3> mRiverPoints; // not needed yet since rivers are at terrain position
+    // std::vector<vmath::Vector3> mRiverPoints; // not needed yet since rivers are at terrain position
     std::vector<gfx::Line> mRiverLines;
 
     // graphics ridges
-    // std::vector<Vectormath::Aos::Vector3> mRidgePoints;
+    // std::vector<vmath::Vector3> mRidgePoints;
     // std::vector<gfx::Line> mRidgeLines;
 
     std::vector<LandWaterType> mPointsLandWaterType;
 
 //    bool mPointsDirty;
-//    std::vector<Vectormath::Aos::Vector4> mVertices;
+//    std::vector<vmath::Vector4> mVertices;
 
     // graph/topology related
     // bidirected graph of all connected points
@@ -139,7 +151,7 @@ private:
     std::vector<ConnectionList> mFlowUpAdjacency;
 
     // graphics maxima
-    std::vector<Vectormath::Aos::Vector3> mMinimaPoints;
+    std::vector<vmath::Vector3> mMinimaPoints;
 
     // graphics flow graph
     std::vector<gfx::Line> mFlowLines;

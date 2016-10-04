@@ -8,8 +8,9 @@
 #include <cstdlib>
 
 #include "../common/gfx_primitives.h"
-#include "barycentric.h"
+#include "vectorgeometry.h"
 
+namespace vgeom = VectorGeometry;
 namespace vmath = Vectormath::Aos;
 
 void findCriticalPoints(std::vector<TopoTypeIndexPair> * const critical_point_type,
@@ -652,34 +653,209 @@ void createLakesAndRivers(std::vector<vmath::Vector3> * const lake_points,
     }
 }
 
-
-float Planet::getHeightAtPoint(Vectormath::Aos::Vector3 point, tri_index guess_triangle)
+// function with only intention to save lines of code
+inline bool Planet::checkPointInTriIndex(vmath::Vector3 *b, const vmath::Vector3 point, const gfx::Triangle &triangle)
 {
-    // find barycentric coords in guess_triangle
-    gfx::Triangle &triangle = mTriangles[int(guess_triangle)];
     vmath::Vector3 tp0 = mPoints[triangle[0]];
     vmath::Vector3 tp1 = mPoints[triangle[1]];
     vmath::Vector3 tp2 = mPoints[triangle[2]];
 
-    vmath::Vector3 b = MultiCalculus::barycentricCoords(point, tp0, tp1, tp2);
+    vmath::Vector3 tri_cross = vgeom::triangleCross(tp0, tp1, tp2);
+    //vmath::Vector3 n_unit_tri = vgeom::triangleUnitNormal(tp0, tp1, tp2);
 
-    if (MultiCalculus::pointInTriangle(b))
-    {
-        vmath::Vector3 point = MultiCalculus::findPointInTriangle(point, triangle, b, mPoints, mNormals);
-        return vmath::length(point);
-    }
-    else
+    // project point onto triangle
+    vmath::Vector3 p_proj = vgeom::linePlaneIntersection(point, point, tri_cross, tp0);
+
+    // find the barycentric coordinates
+    *b = vgeom::baryPointInTriangle(p_proj, tp0, tp1, tp2, tri_cross);
+
+    return vgeom::pointInTriangle(*b);
+}
+
+vmath::Vector3 Planet::getSmoothPoint(vmath::Vector3 point, tri_index guess_triangle)
+{
+    // debug
+//    std::cout << "Planet::getSmoothPoint" << std::endl << "point: ";
+//    vmath::print(point);
+//    std::cout << "tri: ";
+//    for(int i=0;i<3;i++)vmath::print(mPoints[mTriangles[int(guess_triangle)][i]]);
+
+
+
+    // get the guess triangle
+    const gfx::Triangle &triangle = mTriangles[int(guess_triangle)];
+
+    // find the barycentric coordinates
+    vmath::Vector3 b;
+
+
+
+    bool is_in_tri = checkPointInTriIndex(&b, point, triangle);
+
+    // debug
+//    std::cout << "b: ";
+//    vmath::print(b);
+
+    if (!is_in_tri)
     {
         // start a search for the triangle
-        // ...TODO
+        auto tri_graph = make_graph(mTriangles, mTriToTriAdjacencyList);
+
+        // prioritize triangles close to the point in question
+        auto heuristic = [&](const tri_index &i)
+        {
+            point_index p = mTriangles[int(i)][0];
+            return vmath::lengthSqr(point-mPoints[p]);
+        };
+
+        auto it = tri_graph.search(guess_triangle, heuristic);
+
+        do
+        {
+            ++it;
+            tri_index i_tri = it.get_index();
+            const gfx::Triangle &search_triangle = mTriangles[int(i_tri)];
+            is_in_tri = checkPointInTriIndex(&b, point, search_triangle);
+        }
+        while (!is_in_tri && !it.search_end());
+
+        assert( (!it.search_end()) );
     }
+
+    return vgeom::findPointInTriangle(point, triangle, b, mPoints, mNormals);
 }
+
 
 void Planet::smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
                             std::vector<gfx::Triangle> * subd_triangles,
                             tri_index tri_to_subd)
 {
+    //
+}
 
+
+
+int Planet::getSubdPointIndex(const point_index i1,
+                      const point_index i2,
+                      const tri_index triangle_index,
+                      std::vector<vmath::Vector3> * const points,
+                      IntpairIntMapType * const midpoints_cache)
+{
+    // ordering of subdivision edge points is irrelevant, so
+    // order i1 and i2 according to relative magnitude to avoid
+    // duplicates in cache, i.e. don't want both (i1,i2) and (i2,i1)
+    point_index i_lo = i1<i2 ? i1 : i2;
+    point_index i_hi = i1>i2 ? i1 : i2;
+    std::pair<point_index, point_index> midpoint_key = {i_lo, i_hi};
+
+    // check if point exists in cache
+    auto midpoint_it = midpoints_cache->find(midpoint_key);
+
+    if (midpoint_it != midpoints_cache->end())
+    {
+        // just return the point from the cache
+        return midpoint_it->second;
+    }
+    else
+    {
+        // create point by averaging parents
+        vmath::Vector3 mid_pt = 0.5f*((*points)[i_lo]+(*points)[i_hi]);
+
+        // project the mid_pt onto the spline surface
+        mid_pt = getSmoothPoint(mid_pt, triangle_index);
+
+        points->push_back(
+            mid_pt
+        );
+        int last_element_index = points->size() - 1;
+
+        // add it to the cache
+        midpoints_cache->insert( {midpoint_key, last_element_index} );
+        return last_element_index;
+    }
+}
+
+void Planet::getSmoothSubdGeometry(std::vector<vmath::Vector4> * vertices,
+                                   std::vector<gfx::Triangle> * triangles, int subd_lvl)
+{
+    assert( ((subd_lvl>=0) && vertices && triangles) );
+
+    std::cout << "subdividing smooth geometry..." << std::endl;
+
+    // get the real geometry
+    std::vector<vmath::Vector3> points = mPoints; // copy the existing points
+
+    // temporary vector to store triangle subdivision levels
+    std::vector<std::vector<gfx::Triangle>> subd_triangles;
+    subd_triangles.push_back(mTriangles); // subd lvl zero
+
+    // Subdivide triangles
+    for (int k = 1; k < subd_lvl+1; k++)
+    {
+        // add another triangle subdivision level
+        subd_triangles.push_back(std::vector<gfx::Triangle>());
+
+        // Use a cache to keep points resulting from subidiving a shared edge
+        IntpairIntMapType midpoints_cache;
+
+        for (int i = 0; i < subd_triangles[k-1].size(); i++)
+        {
+            // original parent triangle index
+            tri_index i_tri_orig = tri_index(i/(std::pow(4,k-1)));
+
+            // get indices of the three new points (organized by sides)
+            gfx::Triangle const &prev_triangle = subd_triangles[k-1][i];
+            point_index new_points_indices[] = {
+                getSubdPointIndex(prev_triangle[0], prev_triangle[1], i_tri_orig, &points, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[1], prev_triangle[2], i_tri_orig, &points, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[2], prev_triangle[0], i_tri_orig, &points, &midpoints_cache)
+            };
+
+            // create the subdivided triangles, using previously existing and new corners
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[0],
+                    new_points_indices[0],
+                    new_points_indices[2]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[1],
+                    new_points_indices[1],
+                    new_points_indices[0]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[2],
+                    new_points_indices[2],
+                    new_points_indices[1]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    new_points_indices[0],
+                    new_points_indices[1],
+                    new_points_indices[2]
+                }
+            );
+        } // for (int i = 0; i < prev_subdlvl_size; i++)
+
+        std::cout << "lvl: " << k << "/" << subd_lvl << std::endl;
+    }
+
+    // convert the points to vertices
+    const std::vector<vmath::Vector4> * const points4_ptr = coerceVec3toVec4(points);
+    *vertices = *points4_ptr;
+
+    // copy the highest subdivision level to the resulting triangles
+    *triangles = subd_triangles.back();
+
+    std::cout << "...done!" << std::endl;
 }
 
 // shit really hit the fan from here down...
