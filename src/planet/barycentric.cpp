@@ -61,6 +61,8 @@ vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
     float b1 = ap02/ta;
     float b2 = ap01/ta;
 
+    std::cout << "ta: " << ta << std::endl;
+
     return vmath::Vector3(b0, b1, b2);
 }
 

@@ -2,16 +2,22 @@
 #define TOPOLOGY_H
 
 #include "../common/gfx_primitives.h"
+#include "../common/typetag.h"
 
 namespace vmath = Vectormath::Aos;
 
-namespace Topology
-{
-
+// old non-type-safe "int" tags
 typedef int point_index;
 
+// typesafe tag type tags
+struct triangle_tag{};
+typedef ID<triangle_tag, int, -1> tri_index;
+
+// typedefs
 typedef std::vector<point_index> ConnectionList;
 
+namespace Topology
+{
 
 // should probably move this elsewhere
 void createCubeGeometry(std::vector<vmath::Vector3> * const points,
@@ -35,6 +41,19 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
 void createAdjacencyList(std::vector<ConnectionList> * const edges,
                      const std::vector<vmath::Vector3> &points,
                      const std::vector<gfx::Triangle> &triangles);
+
+void createPointToTriAdjacency(std::vector<std::vector<tri_index>> * point_tri_adjacency,
+                              const std::vector<gfx::Triangle> &triangles,
+                              const std::vector<vmath::Vector3> &points);
+
+void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
+                             const std::vector<gfx::Triangle> &triangles,
+                             const std::vector<vmath::Vector3> &points,
+                             const std::vector<std::vector<tri_index>> &point_tri_adjacency);
+
+void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
+                              const std::vector<gfx::Triangle> &triangles,
+                              const std::vector<vmath::Vector3> &points);
 
 
 namespace Test {

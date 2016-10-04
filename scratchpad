@@ -1,0 +1,118 @@
+// planet.h
+
+    //const std::vector<Vectormath::Aos::Vector4> * const getRidgePointsPtr(); // non-const because of lazy setting w=1 for all points
+    //const std::vector<gfx::Line> * const getRidgeLinesPtr() const {return &mRidgeLines;}
+
+    //const std::vector<Vectormath::Aos::Vector4> * const getMinimaPointsPtr(); // non-const because of lazy evaluation
+    
+// planet.cpp
+
+/*
+void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
+                         std::vector<gfx::Line> * const ridge_lines,
+                         const std::vector<vmath::Vector3> &points,
+                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
+                         const std::vector<ConnectionList> &flow_down_adjacency);*/
+
+//    createRidgeGeometry(&mRidgePoints, &mRidgeLines, mPoints, mPointToPointAdjacencyList,
+//                        mFlowDownAdjacency);
+
+//const std::vector<vmath::Vector4> * const Planet::getRidgePointsPtr()
+//{
+//    return coerceVec3toVec4(mRidgePoints);
+//}
+
+
+//void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
+//                         std::vector<gfx::Line> * const ridge_lines,
+//                         const std::vector<vmath::Vector3> &points,
+//                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
+//                         const std::vector<ConnectionList> &flow_down_adjacency)
+//{
+
+
+//    // cache of already added points (could exchange for map to conserve memory, at the cost of log(n) lookup)
+//    std::vector<ridge_point_id> already_added_point(points.size());
+
+//    // point helper functions
+//    auto is_ridge_point = [&](point_index i_p) { return flow_down_adjacency[i_p].size() > 1; };
+
+//    auto point_not_added = [&](point_index i_p) { return already_added_point[i_p]==ridge_point_id::invalid(); };
+
+//    auto add_point = [&](point_index i_p)
+//    {
+//        ridge_point_id j_p = ridge_point_id(ridge_points->size());
+//        ridge_points->push_back(points[i_p]);
+//        already_added_point[i_p] = j_p;
+//        return j_p;
+//    };
+
+//    // line cache
+//    std::map<std::pair<point_index, point_index>, gfx::Line> already_added_line;
+
+//    // line helper functions
+//    auto line_not_added = [&](std::pair<point_index, point_index> ii)
+//    {
+//        point_index i_lo = ii.first < ii.second ? ii.first : ii.second;
+//        point_index i_hi = ii.first > ii.second ? ii.first : ii.second;
+//        auto set_it = already_added_line.find({i_lo, i_hi});
+//        return set_it == already_added_line.end();
+//    };
+
+//    auto add_line = [&](std::pair<point_index, point_index> ii, gfx::Line l_jj)
+//    {
+//        ridge_line_id k_l = ridge_line_id(ridge_lines->size());
+//        ridge_lines->push_back(l_jj);
+//        already_added_line[ii] = l_jj;
+//        return k_l;
+//    };
+
+//    // start at a ridge points, pick a direction
+//    for (int i = 0; i<points.size(); i++)
+//    {
+//        if (is_ridge_point(i) && point_not_added(i)) // it is a ridge point and should be added
+//        {
+//            ridge_point_id j = add_point(i);
+
+//            // start tracing
+//            auto adj_list = point_to_point_adjacency_list[i];
+//            for (const auto &i_adj : adj_list)
+//            {
+//                point_index i_lo = i_adj < i ? i_adj : i;
+//                point_index i_hi = i_adj > i ? i_adj : i;
+//                if (is_ridge_point(i_adj) && line_not_added({i_lo, i_hi}))
+//                {
+//                    ridge_point_id j_adj = point_not_added(i_adj) ? add_point(i_adj) : already_added_point[i_adj];
+//                    ridge_line_id k = add_line({i, i_adj}, {int(j), int(j_adj)});
+//                }
+//            }
+//        }
+//    }
+
+//    // terminate if a point has been marked as ridge before
+
+//    // verify that all ridge points are connected
+//#define DEBUG_RIDGELINES
+
+//#ifdef DEBUG_RIDGELINES
+//    for (int i = 0; i<points.size(); i++)
+//    {
+//        // assert only ridge points are added
+//        if (is_ridge_point(i)) assert(!point_not_added(i)); else assert(point_not_added(i));
+//    }
+
+//    std::cout << "number of ridge points: " << ridge_points->size() << std::endl;
+//    std::cout << "number of ridge lines: " << ridge_lines->size() << std::endl;
+
+//    // check index bounds
+//    for (const auto &line : (*ridge_lines))
+//    {
+//        bool ridge_line_index_overflow_up = line[0] > ridge_points->size()-1 ||  line[1] > ridge_points->size()-1;
+//        bool ridge_line_index_overflow_down = line[0] < 0 ||  line[1] < 0;
+//        assert(!(ridge_line_index_overflow_up || ridge_line_index_overflow_down));
+//    }
+
+//    // find out how many dead ends there are...?
+
+//#endif // #ifdef DEBUG_RIDGELINES
+//}

@@ -8,7 +8,6 @@
 #include <cstdlib>
 
 #include "../common/gfx_primitives.h"
-#include "topology.h"
 #include "barycentric.h"
 
 namespace vmath = Vectormath::Aos;
@@ -36,27 +35,6 @@ void createFlowAdjacencyLists(  std::vector<ConnectionList> * const flow_down_ad
                                 const std::vector<vmath::Vector3> &points,
                                 const std::vector<ConnectionList> &connectivity_adjacency,
                                 PotentialFunc pot_func);
-
-/*
-void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
-                         std::vector<gfx::Line> * const ridge_lines,
-                         const std::vector<vmath::Vector3> &points,
-                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
-                         const std::vector<ConnectionList> &flow_down_adjacency);*/
-
-// helper adjacency list methods - move these out into a method library library files
-void createPointToTriAdjacency(std::vector<std::vector<tri_index>> * point_tri_adjacency,
-                              const std::vector<gfx::Triangle> &triangles,
-                              const std::vector<vmath::Vector3> &points);
-
-void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
-                             const std::vector<gfx::Triangle> &triangles,
-                             const std::vector<vmath::Vector3> &points,
-                             const std::vector<std::vector<tri_index>> &point_tri_adjacency);
-
-void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
-                              const std::vector<gfx::Triangle> &triangles,
-                              const std::vector<vmath::Vector3> &points);
 
 // set these as planet methods
 
@@ -107,15 +85,14 @@ Planet::Planet(const float radius,
     createFlowAdjacencyLists(&mFlowDownAdjacency, &mFlowUpAdjacency, mPoints,
                              mPointToPointAdjacencyList, get_height);
 
-//    createRidgeGeometry(&mRidgePoints, &mRidgeLines, mPoints, mPointToPointAdjacencyList,
-//                        mFlowDownAdjacency);
+
 
     findCriticalPoints(&mPointsTopologicalType, &mMaxima, &mMinima, &mSaddles,
                        mPoints, mTriangles, mPointToPointAdjacencyList);
     // ..........................................................................................
 
-    createPointToTriAdjacency(&mPointToTriAdjacencyList, mTriangles, mPoints);
-    createTriToTriAdjacency(&mTriToTriAdjacencyList, mTriangles, mPoints, mPointToTriAdjacencyList);
+    Topology::createPointToTriAdjacency(&mPointToTriAdjacencyList, mTriangles, mPoints);
+    Topology::createTriToTriAdjacency(&mTriToTriAdjacencyList, mTriangles, mPoints, mPointToTriAdjacencyList);
 
     float sealevel_radius;
     createOceanGeometry(&mOceanPoints, &mOceanTriangles, &mPointsLandWaterType, &sealevel_radius,
@@ -147,11 +124,6 @@ const std::vector<vmath::Vector4> * const Planet::getPointsPtr()
 {
     return coerceVec3toVec4(mPoints);
 }
-
-//const std::vector<vmath::Vector4> * const Planet::getRidgePointsPtr()
-//{
-//    return coerceVec3toVec4(mRidgePoints);
-//}
 
 const std::vector<vmath::Vector4> * const Planet::getOceanVerticesPtr()
 {
@@ -354,100 +326,6 @@ struct ridge_line_tag{};
 typedef ID<ridge_line_tag, int, -1> ridge_line_id;
 
 
-//void createRidgeGeometry(std::vector<vmath::Vector3> * const ridge_points,
-//                         std::vector<gfx::Line> * const ridge_lines,
-//                         const std::vector<vmath::Vector3> &points,
-//                         const std::vector<ConnectionList> &point_to_point_adjacency_list,
-//                         const std::vector<ConnectionList> &flow_down_adjacency)
-//{
-
-
-//    // cache of already added points (could exchange for map to conserve memory, at the cost of log(n) lookup)
-//    std::vector<ridge_point_id> already_added_point(points.size());
-
-//    // point helper functions
-//    auto is_ridge_point = [&](point_index i_p) { return flow_down_adjacency[i_p].size() > 1; };
-
-//    auto point_not_added = [&](point_index i_p) { return already_added_point[i_p]==ridge_point_id::invalid(); };
-
-//    auto add_point = [&](point_index i_p)
-//    {
-//        ridge_point_id j_p = ridge_point_id(ridge_points->size());
-//        ridge_points->push_back(points[i_p]);
-//        already_added_point[i_p] = j_p;
-//        return j_p;
-//    };
-
-//    // line cache
-//    std::map<std::pair<point_index, point_index>, gfx::Line> already_added_line;
-
-//    // line helper functions
-//    auto line_not_added = [&](std::pair<point_index, point_index> ii)
-//    {
-//        point_index i_lo = ii.first < ii.second ? ii.first : ii.second;
-//        point_index i_hi = ii.first > ii.second ? ii.first : ii.second;
-//        auto set_it = already_added_line.find({i_lo, i_hi});
-//        return set_it == already_added_line.end();
-//    };
-
-//    auto add_line = [&](std::pair<point_index, point_index> ii, gfx::Line l_jj)
-//    {
-//        ridge_line_id k_l = ridge_line_id(ridge_lines->size());
-//        ridge_lines->push_back(l_jj);
-//        already_added_line[ii] = l_jj;
-//        return k_l;
-//    };
-
-//    // start at a ridge points, pick a direction
-//    for (int i = 0; i<points.size(); i++)
-//    {
-//        if (is_ridge_point(i) && point_not_added(i)) // it is a ridge point and should be added
-//        {
-//            ridge_point_id j = add_point(i);
-
-//            // start tracing
-//            auto adj_list = point_to_point_adjacency_list[i];
-//            for (const auto &i_adj : adj_list)
-//            {
-//                point_index i_lo = i_adj < i ? i_adj : i;
-//                point_index i_hi = i_adj > i ? i_adj : i;
-//                if (is_ridge_point(i_adj) && line_not_added({i_lo, i_hi}))
-//                {
-//                    ridge_point_id j_adj = point_not_added(i_adj) ? add_point(i_adj) : already_added_point[i_adj];
-//                    ridge_line_id k = add_line({i, i_adj}, {int(j), int(j_adj)});
-//                }
-//            }
-//        }
-//    }
-
-//    // terminate if a point has been marked as ridge before
-
-//    // verify that all ridge points are connected
-//#define DEBUG_RIDGELINES
-
-//#ifdef DEBUG_RIDGELINES
-//    for (int i = 0; i<points.size(); i++)
-//    {
-//        // assert only ridge points are added
-//        if (is_ridge_point(i)) assert(!point_not_added(i)); else assert(point_not_added(i));
-//    }
-
-//    std::cout << "number of ridge points: " << ridge_points->size() << std::endl;
-//    std::cout << "number of ridge lines: " << ridge_lines->size() << std::endl;
-
-//    // check index bounds
-//    for (const auto &line : (*ridge_lines))
-//    {
-//        bool ridge_line_index_overflow_up = line[0] > ridge_points->size()-1 ||  line[1] > ridge_points->size()-1;
-//        bool ridge_line_index_overflow_down = line[0] < 0 ||  line[1] < 0;
-//        assert(!(ridge_line_index_overflow_up || ridge_line_index_overflow_down));
-//    }
-
-//    // find out how many dead ends there are...?
-
-//#endif // #ifdef DEBUG_RIDGELINES
-//}
-
 
 const std::vector<gfx::Line> * const Planet::getFlowLinesPtr()
 {
@@ -466,77 +344,6 @@ const std::vector<gfx::Line> * const Planet::getFlowLinesPtr()
     return &mFlowLines;
 }
 
-
-
-void createPointToTriAdjacency(std::vector<std::vector<tri_index>> * point_tri_adjacency,
-                              const std::vector<gfx::Triangle> &triangles,
-                              const std::vector<vmath::Vector3> &points)
-{
-    (*point_tri_adjacency) =  std::vector<std::vector<tri_index>>(points.size());
-    for (int i = 0; i<triangles.size(); i++)
-    {
-        (*point_tri_adjacency)[triangles[i][0]].push_back(tri_index(i));
-        (*point_tri_adjacency)[triangles[i][1]].push_back(tri_index(i));
-        (*point_tri_adjacency)[triangles[i][2]].push_back(tri_index(i));
-    }
-}
-
-void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
-                             const std::vector<gfx::Triangle> &triangles,
-                             const std::vector<vmath::Vector3> &points,
-                             const std::vector<std::vector<tri_index>> &point_tri_adjacency)
-{
-    (*tri_tri_adjacency) =  std::vector<std::vector<tri_index>>(triangles.size());
-    for (int i = 0; i<triangles.size(); i++)
-    {
-        // create big list of all tri indices adjacent
-        std::vector<tri_index> thirteen_adj;
-        thirteen_adj.reserve(18); // some will be added twice
-        for (int j = 0; j<3; j++)
-        {
-            point_index i_p = triangles[i][j];
-            for (const tri_index i_t : point_tri_adjacency[i_p]) thirteen_adj.push_back(i_t);
-        }
-
-        std::sort(thirteen_adj.begin(), thirteen_adj.end());
-        auto last = std::unique(thirteen_adj.begin(), thirteen_adj.end());
-        thirteen_adj.erase(last, thirteen_adj.end());
-
-        // assert(thirteen_adj.size()==13); // can't assert this because of pentagonal points
-
-        // filter list on two common points
-        for (const tri_index i_t_adj: thirteen_adj)
-        {
-            if (int(i_t_adj)!=i)
-            {
-                // check if two indices are common
-                int common_counter = 0;
-                for (int j_adj = 0; j_adj<3; j_adj++)
-                {
-                    for (int j = 0; j<3; j++)
-                    {
-                        if(triangles[i][j]==triangles[int(i_t_adj)][j_adj]) common_counter++;
-                    }
-                }
-
-                // if they are, add the adjacency
-                if (common_counter==2) (*tri_tri_adjacency)[i].push_back(i_t_adj);
-            }
-        }
-
-        assert((*tri_tri_adjacency)[i].size()==3);
-    }
-}
-
-void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
-                              const std::vector<gfx::Triangle> &triangles,
-                              const std::vector<vmath::Vector3> &points)
-{
-    std::vector<std::vector<tri_index>> point_tri_adjacency;
-    createPointToTriAdjacency(&point_tri_adjacency, triangles, points);
-
-    createTriToTriAdjacency(tri_tri_adjacency, triangles, points, point_tri_adjacency);
-}
 
 #include "../common/graph_tools.h"
 using namespace graphtools;
@@ -624,8 +431,6 @@ void createOceanGeometry(std::vector<vmath::Vector3> * const ocean_points,
         {
             rising_global_sealevel = false;
         }
-
-
 
         // save triangles (contains duplicates)
         for (const auto &i_t : point_tri_adjacency[int(this_index)])

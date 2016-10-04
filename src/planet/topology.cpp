@@ -535,6 +535,77 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
 }
 
 
+void createPointToTriAdjacency(std::vector<std::vector<tri_index>> * point_tri_adjacency,
+                              const std::vector<gfx::Triangle> &triangles,
+                              const std::vector<vmath::Vector3> &points)
+{
+    (*point_tri_adjacency) =  std::vector<std::vector<tri_index>>(points.size());
+    for (int i = 0; i<triangles.size(); i++)
+    {
+        (*point_tri_adjacency)[triangles[i][0]].push_back(tri_index(i));
+        (*point_tri_adjacency)[triangles[i][1]].push_back(tri_index(i));
+        (*point_tri_adjacency)[triangles[i][2]].push_back(tri_index(i));
+    }
+}
+
+void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
+                             const std::vector<gfx::Triangle> &triangles,
+                             const std::vector<vmath::Vector3> &points,
+                             const std::vector<std::vector<tri_index>> &point_tri_adjacency)
+{
+    (*tri_tri_adjacency) =  std::vector<std::vector<tri_index>>(triangles.size());
+    for (int i = 0; i<triangles.size(); i++)
+    {
+        // create big list of all tri indices adjacent
+        std::vector<tri_index> thirteen_adj;
+        thirteen_adj.reserve(18); // some will be added twice
+        for (int j = 0; j<3; j++)
+        {
+            point_index i_p = triangles[i][j];
+            for (const tri_index i_t : point_tri_adjacency[i_p]) thirteen_adj.push_back(i_t);
+        }
+
+        std::sort(thirteen_adj.begin(), thirteen_adj.end());
+        auto last = std::unique(thirteen_adj.begin(), thirteen_adj.end());
+        thirteen_adj.erase(last, thirteen_adj.end());
+
+        // assert(thirteen_adj.size()==13); // can't assert this because of pentagonal points
+
+        // filter list on two common points
+        for (const tri_index i_t_adj: thirteen_adj)
+        {
+            if (int(i_t_adj)!=i)
+            {
+                // check if two indices are common
+                int common_counter = 0;
+                for (int j_adj = 0; j_adj<3; j_adj++)
+                {
+                    for (int j = 0; j<3; j++)
+                    {
+                        if(triangles[i][j]==triangles[int(i_t_adj)][j_adj]) common_counter++;
+                    }
+                }
+
+                // if they are, add the adjacency
+                if (common_counter==2) (*tri_tri_adjacency)[i].push_back(i_t_adj);
+            }
+        }
+
+        assert((*tri_tri_adjacency)[i].size()==3);
+    }
+}
+
+void createTriToTriAdjacency(std::vector<std::vector<tri_index>> * tri_tri_adjacency,
+                              const std::vector<gfx::Triangle> &triangles,
+                              const std::vector<vmath::Vector3> &points)
+{
+    std::vector<std::vector<tri_index>> point_tri_adjacency;
+    createPointToTriAdjacency(&point_tri_adjacency, triangles, points);
+
+    createTriToTriAdjacency(tri_tri_adjacency, triangles, points, point_tri_adjacency);
+}
+
+
 
 //-----------------------------TESTS---------------------------------------------
 

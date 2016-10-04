@@ -6,6 +6,7 @@
 #include <iostream>
 #include "../common/gfx_primitives.h"
 #include "../common/typetag.h"
+#include "topology.h"
 
 
 // don't mess with working code..
@@ -13,16 +14,15 @@
 //typedef ID<point_tag, int, -1> point_index;
 
 // should ideally type-safe this...
-typedef int point_index;
+// typedef int point_index;
 typedef int watershed_index;
 typedef int saddle_index;
 typedef int minimum_index;
 typedef int topological_index;
 
-struct triangle_tag{};
-typedef ID<triangle_tag, int, -1> tri_index;
 
-typedef std::vector<point_index> ConnectionList;
+
+//typedef std::vector<point_index> ConnectionList;
 typedef std::vector<saddle_index> SaddleList;
 typedef std::vector<minimum_index> MinimaList;
 
@@ -64,10 +64,6 @@ public:
     const std::vector<Vectormath::Aos::Vector4> * const getLakeVerticesPtr(); // non-const because of lazy setting w=1 for all points
     const std::vector<gfx::Triangle> * const getLakeTrianglesPtr() const {return &mLakeTriangles;}
 
-    //const std::vector<Vectormath::Aos::Vector4> * const getRidgePointsPtr(); // non-const because of lazy setting w=1 for all points
-    //const std::vector<gfx::Line> * const getRidgeLinesPtr() const {return &mRidgeLines;}
-
-    //const std::vector<Vectormath::Aos::Vector4> * const getMinimaPointsPtr(); // non-const because of lazy evaluation
     const std::vector<gfx::Point> * const getMinimaPointsPtr() const {return (std::vector<gfx::Point> *)&mMinima;}
 
     const std::vector<gfx::Line> * const getFlowLinesPtr();
@@ -98,7 +94,7 @@ protected:
 
     void smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
                                 std::vector<gfx::Triangle> * subd_triangles,
-                                tri_index tri_to_subd);
+                                const tri_index tri_to_subd);
 
 
 private:

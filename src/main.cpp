@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        6,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        4,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
         0.70f,   // fraction of planet covered by ocean
-        150,    // number of freshwater springs
+        15,    // number of freshwater springs
         5782      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
