@@ -47,6 +47,7 @@ class Planet
 public:
     Planet(const float radius,
            const int subdivision_level,
+           const float terrain_roughness,
            const float ocean_fraction,
            const unsigned int n_springs,
            const int seed);
@@ -94,6 +95,7 @@ protected:
     // protected functions
 
     vmath::Vector3 getSmoothPoint(vmath::Vector3 point, tri_index guess_triangle);
+    vmath::Vector3 getSmoothPointKnownTriangle(vmath::Vector3 point, tri_index known_triangle);
 
     typedef std::map<std::pair<int, int>, int> IntpairIntMapType;
     int getSubdPointIndex(const point_index i1,

@@ -182,7 +182,8 @@ inline float evaluate_radius(   const vmath::Vector3 &p1,
 
 
 float midpoint_displacement(    const vmath::Vector3 &p1,
-                                const vmath::Vector3 &p2 )
+                                const vmath::Vector3 &p2,
+                                const float terrain_roughness)
 {
     // infer radius from parent points:
     float length_p1 = vmath::length(p1);
@@ -200,7 +201,7 @@ float midpoint_displacement(    const vmath::Vector3 &p1,
     float length_scale_as_frac_radius = unit_sphere_distance_p1p2;
     float x = length_scale_as_frac_radius;
 
-    float frac_scale = 0.025+0.045*log_normal(5.0f*x, 0.0f, 0.5f); // officially best
+    float frac_scale = terrain_roughness*(0.025+0.045*log_normal(5.0f*x, 0.0f, 0.5f)); // officially best
     //float frac_scale = x > 0.3 ? 0.075f : 0.0;
     //float frac_scale = 0.035f;
     //float frac_scale = 0.00f;
@@ -219,7 +220,8 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
                                   const vmath::Vector3 &p2,
                                   const vmath::Vector3 &n1,
                                   const vmath::Vector3 &n2,
-                                  fractal frac)
+                                  fractal frac,
+                                  const float terrain_roughness)
 {
     // should assert that normalized quantity is not zero
 
@@ -241,7 +243,7 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
     vmath::Vector3 p_spline_interp = b02 * p_n1 + b12 * p_mid + b22 * p_n2;
 
     float old_height = vmath::length(p_spline_interp);
-    float new_height = old_height + frac(p1, p2);
+    float new_height = old_height + frac(p1, p2, terrain_roughness);
 
     vmath::Vector3 midpoint = new_height * vmath::normalize(p_spline_interp);
 
@@ -265,6 +267,7 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
 int getSubdPointIndex(const point_index i1,
                       const point_index i2,
                       const float radius,
+                      const float terrain_roughness,
                       std::vector<vmath::Vector3> * const points,
                       std::vector<vmath::Vector3> &normals,
                       IntpairIntMapType * const midpoints_cache)
@@ -290,7 +293,8 @@ int getSubdPointIndex(const point_index i1,
         points->push_back(
             getMidpoint((*points)[i_lo], (*points)[i_hi],
                           normals[i_lo], normals[i_hi],
-                        fractal::midpoint_displacement)
+                        fractal::midpoint_displacement,
+                        terrain_roughness)
         );
         int last_element_index = points->size() - 1;
 
@@ -306,7 +310,8 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
                              std::vector<gfx::Triangle> * const triangles,
                              std::vector<std::vector<gfx::Triangle>> * const subd_triangles,
                              const float radius,
-                             const int num_subdivisions)
+                             const int num_subdivisions,
+                             const float terrain_roughness)
 {
     // check input
     // check pointer validity
@@ -361,9 +366,9 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
             // get indices of the three new points (organized by sides)
             gfx::Triangle const &prev_triangle = triangles_subd_lvls[k-1][i];
             point_index new_points_indices[] = {
-                getSubdPointIndex(prev_triangle[0], prev_triangle[1], radius, points, *normals, &midpoints_cache),
-                getSubdPointIndex(prev_triangle[1], prev_triangle[2], radius, points, *normals, &midpoints_cache),
-                getSubdPointIndex(prev_triangle[2], prev_triangle[0], radius, points, *normals, &midpoints_cache)
+                getSubdPointIndex(prev_triangle[0], prev_triangle[1], radius, terrain_roughness, points, *normals, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[1], prev_triangle[2], radius, terrain_roughness, points, *normals, &midpoints_cache),
+                getSubdPointIndex(prev_triangle[2], prev_triangle[0], radius, terrain_roughness, points, *normals, &midpoints_cache)
             };
 
             // create the subdivided triangles, using previously existing and new corners

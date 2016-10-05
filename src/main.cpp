@@ -25,10 +25,11 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        3,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        0.70f,   // fraction of planet covered by ocean
-        15,    // number of freshwater springs
-        5782      // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
+        2,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        0.0f,   // terrain roughness
+        0.70f,  // fraction of planet covered by ocean
+        15,     // number of freshwater springs
+        5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
 
@@ -91,8 +92,6 @@ int main(int argc, char *argv[])
         light = light_scene_node->addLight(color, transform);
     }
 
-
-
     // create some geometry
     const std::vector<vmath::Vector4> &planet_position_data = *(planet.getPointsPtr());
     const std::vector<gfx::Triangle> &planet_primitives_data = *(planet.getTrianglesPtr());
@@ -131,7 +130,7 @@ int main(int argc, char *argv[])
         std::vector<vmath::Vector4> subd_planet_position_data;
         std::vector<gfx::Triangle> subd_planet_primitive_data;
 
-        planet.getSmoothSubdGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 2);
+        planet.getSmoothSubdGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
 
         std::vector<vmath::Vector4> subd_planet_normal_data;
         gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);

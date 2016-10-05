@@ -70,6 +70,7 @@ inline float get_height(const vmath::Vector3 &p)
 
 Planet::Planet(const float radius,
                const int subdivision_level,
+               const float terrain_roughness,
                const float ocean_fraction,
                const unsigned int n_springs,
                const int seed)
@@ -78,7 +79,7 @@ Planet::Planet(const float radius,
     srand(seed);
 
     //createIcoSphereGeometry(&mPoints, &mTriangles, radius, 8);
-    Topology::createIcoSphereGeometry(&mPoints, &mNormals, &mTriangles, &mSubdTriangles, radius, subdivision_level);
+    Topology::createIcoSphereGeometry(&mPoints, &mNormals, &mTriangles, &mSubdTriangles, radius, subdivision_level, terrain_roughness);
 
     Topology::createAdjacencyList(&mPointToPointAdjacencyList, mPoints, mTriangles);
 
@@ -667,7 +668,10 @@ inline bool Planet::checkPointInTriIndex(vmath::Vector3 *b, const vmath::Vector3
     vmath::Vector3 p_proj = vgeom::linePlaneIntersection(point, point, tri_cross, tp0);
 
     // find the barycentric coordinates
-    *b = vgeom::baryPointInTriangle(p_proj, tp0, tp1, tp2, tri_cross);
+     *b = vgeom::baryPointInTriangle(p_proj, tp0, tp1, tp2, tri_cross);
+    //*b = vgeom::findSphereBarycentric(p_proj, tp0, tp1, tp2);
+
+    //*b = {0.f, 0.f, 0.f};
 
     return vgeom::pointInTriangle(*b);
 }
@@ -725,6 +729,19 @@ vmath::Vector3 Planet::getSmoothPoint(vmath::Vector3 point, tri_index guess_tria
     return vgeom::findPointInTriangle(point, triangle, b, mPoints, mNormals);
 }
 
+vmath::Vector3 Planet::getSmoothPointKnownTriangle(vmath::Vector3 point, tri_index known_triangle)
+{
+    // get the guess triangle
+    const gfx::Triangle &triangle = mTriangles[int(known_triangle)];
+
+    // find the barycentric coordinates
+    vmath::Vector3 b;
+
+    /*bool is_in_tri = */checkPointInTriIndex(&b, point, triangle);
+
+    return vgeom::findPointInTriangle(point, triangle, b, mPoints, mNormals);
+}
+
 
 void Planet::smoothSubdivideTriangle( std::vector<Vectormath::Aos::Vector3> * subd_points,
                             std::vector<gfx::Triangle> * subd_triangles,
@@ -762,7 +779,11 @@ int Planet::getSubdPointIndex(const point_index i1,
         vmath::Vector3 mid_pt = 0.5f*((*points)[i_lo]+(*points)[i_hi]);
 
         // project the mid_pt onto the spline surface
-        mid_pt = getSmoothPoint(mid_pt, triangle_index);
+        // mid_pt = getSmoothPoint(mid_pt, triangle_index);
+        mid_pt = getSmoothPointKnownTriangle(mid_pt, triangle_index);
+
+        // project the mid_pt onto sphere interpolation surface
+        // mid_pt = 0.5f*(vmath::length((*points)[i_lo])+vmath::length((*points)[i_hi]))*vmath::normalize(mid_pt);
 
         points->push_back(
             mid_pt
@@ -785,9 +806,19 @@ void Planet::getSmoothSubdGeometry(std::vector<vmath::Vector4> * vertices,
     // get the real geometry
     std::vector<vmath::Vector3> points = mPoints; // copy the existing points
 
+
     // temporary vector to store triangle subdivision levels
     std::vector<std::vector<gfx::Triangle>> subd_triangles;
     subd_triangles.push_back(mTriangles); // subd lvl zero
+
+    // map the existing points to spline
+    for (int t = 0; t<mTriangles.size(); t++)
+    {
+        const gfx::Triangle &tri = subd_triangles[0][t];
+        for (point_index i = 0; i<3; i++)
+            points[tri[i]] = getSmoothPointKnownTriangle(points[tri[i]], tri_index(t));
+    }
+
 
     // Subdivide triangles
     for (int k = 1; k < subd_lvl+1; k++)
@@ -800,7 +831,7 @@ void Planet::getSmoothSubdGeometry(std::vector<vmath::Vector4> * vertices,
 
         for (int i = 0; i < subd_triangles[k-1].size(); i++)
         {
-            // original parent triangle index
+            // original parent triangle index // seems to work ok..
             tri_index i_tri_orig = tri_index(i/(std::pow(4,k-1)));
 
             // get indices of the three new points (organized by sides)

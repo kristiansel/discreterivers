@@ -8,6 +8,10 @@ vmath::Vector3 linePlaneIntersection(vmath::Vector3 line_dir, vmath::Vector3 lin
 {
     // from wikipedia
 
+    // not necessary
+    // plane_normal = vmath::normalize(plane_normal);
+    // line_dir = vmath::normalize(line_dir);
+
     float discr = vmath::dot(plane_normal, line_dir);
 
     float d = 0.0f;
@@ -196,7 +200,7 @@ vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
 //    return vmath::Vector3(b0, b1, b2);
 //}
 
-static constexpr float T_EPS = 0.000001f;
+static constexpr float T_EPS = 0.00001f;
 
 bool pointInTriangle(const vmath::Vector3 &barycentric_coords)
 {
@@ -234,7 +238,7 @@ inline float bernesteinBarycentric(vmath::Vector3 b, int i, int j, int k)
 //    // find barycentric coordinates
 //    vmath::Vector3 b = barycentricCoords(pt, tp0, tp1, tp2);
 
-
+static constexpr float BB_EPS = 0.000001f;
 vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
                                    const gfx::Triangle &triangle,
                                    const vmath::Vector3 &barycentric_coords,
@@ -243,6 +247,15 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
 {
     vmath::Vector3 pt = vmath::normalize(point);
     vmath::Vector3 b = barycentric_coords;
+
+    //debug
+    if (!(b[0]+b[1]+b[2]<=1.0f+T_EPS))
+    {
+        std::cout << "in findPointInTriangle, b = ";
+        vmath::print(b);
+        std::cout << "\nsum = " << b[0]+b[1]+b[2] << std::endl;
+    }
+
     assert((b[0]+b[1]+b[2]<=1.0f+T_EPS));
 
     // evaluate bernstein basis at barycentric coords (6 polys)
@@ -270,9 +283,71 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
     float z_n02 = vmath::length(linePlaneIntersection(pt, origin, n02, 0.5f*(points[triangle[0]]+points[triangle[2]])));
     float z_n12 = vmath::length(linePlaneIntersection(pt, origin, n12, 0.5f*(points[triangle[1]]+points[triangle[2]])));
 
-    float z = bb200*z_n0 + bb020*z_n1 + bb002*z_n2 + bb110*z_n01 + bb101*z_n02 + bb011*z_n12;
+    //float z = bb200*z_n0 + bb020*z_n1 + bb002*z_n2 + bb110*z_n01 + bb101*z_n02 + bb011*z_n12;
+
+    float z = bb002+3.15f;
+
+    // prime suspects are the basis functions, happy hunting
+    assert(((bb200 - b[0]*b[0])<BB_EPS));
+    assert(((bb020 - b[1]*b[1])<BB_EPS));
+    assert(((bb002 - b[2]*b[2])<BB_EPS));
+    assert(((bb110 - 2.0f*b[0]*b[1])<BB_EPS));
+    assert(((bb101 - 2.0f*b[0]*b[2])<BB_EPS));
+    assert(((bb011 - 2.0f*b[1]*b[2])<BB_EPS));
 
     return z*pt;
 }
+
+
+inline vmath::Vector3 findSphereTangent(const vmath::Vector3 &at_pt, const vmath::Vector3 &towards_pt)
+{
+    vmath::Vector3 towards_pt_proj = linePlaneIntersection(at_pt, towards_pt, at_pt, at_pt);
+    return (towards_pt_proj-at_pt);
+}
+
+inline float angleBetweenVectors(const vmath::Vector3 &a, const vmath::Vector3 &b)
+{
+    return atan2(vmath::length(vmath::cross(a,b)), vmath::dot(a,b));
+    // return: acos(vmath::dot(a,b)/(vmath::length(a)*vmath::length(b)));
+}
+
+inline float areaTriOnUnitSphere(float angle1, float angle2, float angle3)
+{
+    return (angle1 + angle2 + angle3 - M_PI);
+}
+
+inline float areaTriOnUnitSphere(const vmath::Vector3 &tp0,
+                                 const vmath::Vector3 &tp1,
+                                 const vmath::Vector3 &tp2)
+{
+    assert(((vmath::length(tp0)-1.0f<T_EPS)&&(vmath::length(tp1)-1.0f<T_EPS)&&(vmath::length(tp2)-1.0f<T_EPS)));
+    float angle0 = angleBetweenVectors(findSphereTangent(tp0, tp1), findSphereTangent(tp0, tp2));
+    float angle1 = angleBetweenVectors(findSphereTangent(tp1, tp0), findSphereTangent(tp1, tp2));
+    float angle2 = angleBetweenVectors(findSphereTangent(tp2, tp1), findSphereTangent(tp2, tp0));
+    return areaTriOnUnitSphere(angle0, angle1, angle2);
+}
+
+
+vmath::Vector3 findSphereBarycentric(   const vmath::Vector3 &pt,   const vmath::Vector3 &tp0,
+                                        const vmath::Vector3 &tp1,  const vmath::Vector3 &tp2)
+{
+    // bring all points down to unit sphere
+    auto pt_n = vmath::normalize(pt);
+    auto tp0_n = vmath::normalize(tp0);
+    auto tp1_n = vmath::normalize(tp1);
+    auto tp2_n = vmath::normalize(tp2);
+
+    float a01 = areaTriOnUnitSphere(pt_n, tp0_n, tp1_n);
+    float a02 = areaTriOnUnitSphere(pt_n, tp0_n, tp2_n);
+    float a12 = areaTriOnUnitSphere(pt_n, tp1_n, tp2_n);
+
+    float at = areaTriOnUnitSphere(tp0_n, tp1_n, tp2_n);
+
+    vmath::Vector3 b = {a12/at, a02/at, a01/at};
+    return b;
+}
+
+// spherical barycentric
+// same principle, but area on sphere surface
 
 }

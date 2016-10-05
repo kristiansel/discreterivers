@@ -35,7 +35,8 @@ void createIcoSphereGeometry(std::vector<vmath::Vector3> * const points,
                              std::vector<gfx::Triangle> * const triangles,
                              std::vector<std::vector<gfx::Triangle>> * const subd_triangles,
                              const float radius,
-                             const int num_subdivisions);
+                             const int num_subdivisions,
+                             const float terrain_roughness);
 
 
 void createAdjacencyList(std::vector<ConnectionList> * const edges,

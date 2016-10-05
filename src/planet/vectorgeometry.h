@@ -24,6 +24,9 @@ vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
                                    const vmath::Vector3 &tp2,
                                    const vmath::Vector3 &tri_cross);
 
+vmath::Vector3 findSphereBarycentric(   const vmath::Vector3 &pt,   const vmath::Vector3 &tp0,
+                                        const vmath::Vector3 &tp1,  const vmath::Vector3 &tp2);
+
 
 vmath::Vector3 triangleNormal(const vmath::Vector3 &tp0,
                              const vmath::Vector3 &tp1,
