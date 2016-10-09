@@ -283,9 +283,9 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
     float z_n02 = vmath::length(linePlaneIntersection(pt, origin, n02, 0.5f*(points[triangle[0]]+points[triangle[2]])));
     float z_n12 = vmath::length(linePlaneIntersection(pt, origin, n12, 0.5f*(points[triangle[1]]+points[triangle[2]])));
 
-    //float z = bb200*z_n0 + bb020*z_n1 + bb002*z_n2 + bb110*z_n01 + bb101*z_n02 + bb011*z_n12;
+    float z = bb200*z_n0 + bb020*z_n1 + bb002*z_n2 + bb110*z_n01 + bb101*z_n02 + bb011*z_n12;
 
-    float z = bb002+3.15f;
+    //float z = bb002+3.15f;
 
     // prime suspects are the basis functions, happy hunting
     assert(((bb200 - b[0]*b[0])<BB_EPS));
@@ -296,6 +296,28 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
     assert(((bb011 - 2.0f*b[1]*b[2])<BB_EPS));
 
     return z*pt;
+}
+
+vmath::Vector3 evalCubicBezierTri(const vmath::Vector3 &b,
+                                  const std::vector<vmath::Vector3> &cp) // ten control points
+{
+    //debug
+    if (!(b[0]+b[1]+b[2]<=1.0f+T_EPS))
+    {
+        std::cout << "in findPointInTriangle, b = ";
+        vmath::print(b);
+        std::cout << "\nsum = " << b[0]+b[1]+b[2] << std::endl;
+    }
+
+    assert((b[0]+b[1]+b[2]<=1.0f+T_EPS));
+
+
+    vmath::Vector3 out = ( b[0]*b[0]*b[0]*cp[0] + b[1]*b[1]*b[1]*cp[1] + b[2]*b[2]*b[2]*cp[2] ) +  // three corner control points
+    3.0f*(b[0]*b[0]*b[1]*cp[3] + b[0]*b[0]*b[2]*cp[4] + b[1]*b[1]*b[0]*cp[5] +
+          b[1]*b[1]*b[2]*cp[6] + b[2]*b[2]*b[1]*cp[7] + b[2]*b[2]*b[0]*cp[8]) + // six side control points, double check!
+    6.0f*(b[0]*b[1]*b[2]*cp[9]); // middle control points
+
+    return out;
 }
 
 

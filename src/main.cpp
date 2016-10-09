@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     Planet planet(
         3.15f,  // radius
         2,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        0.0f,   // terrain roughness
+        4.0f,   // terrain roughness
         0.70f,  // fraction of planet covered by ocean
         15,     // number of freshwater springs
         5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
         std::vector<vmath::Vector4> subd_planet_position_data;
         std::vector<gfx::Triangle> subd_planet_primitive_data;
 
-        planet.getSmoothSubdGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
+        planet.getCubicBezierGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
 
         std::vector<vmath::Vector4> subd_planet_normal_data;
         gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);

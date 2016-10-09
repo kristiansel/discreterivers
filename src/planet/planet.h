@@ -79,6 +79,8 @@ public:
 
     void getSmoothSubdGeometry(std::vector<vmath::Vector4> * points, std::vector<gfx::Triangle> * triangles, int subd_lvl);
 
+    void getCubicBezierGeometry(std::vector<vmath::Vector4> * points, std::vector<gfx::Triangle> * triangles, int subd_lvl);
+
 
     template<class FilterFunc, class ... Args>
     void getLinePrimitives(std::vector<gfx::Line> * const primitives_data,
@@ -110,6 +112,20 @@ protected:
 
 
     bool checkPointInTriIndex(vmath::Vector3 *b, const vmath::Vector3 point, const gfx::Triangle &triangle);
+
+    vmath::Vector3 getBezierPoint(vmath::Vector3 point, tri_index guess_triangle,
+                                  const std::vector<std::vector<vmath::Vector3>> &control_points);
+
+    vmath::Vector3 getBezierPointKnownTriangle(vmath::Vector3 point,
+                                               tri_index known_triangle,
+                                               const std::vector<std::vector<vmath::Vector3>> &control_points);
+
+    int getBezierPointIndex(const point_index i1,
+                          const point_index i2,
+                          const tri_index triangle_index,
+                          const std::vector<std::vector<vmath::Vector3>> &control_points,
+                          std::vector<vmath::Vector3> * const points,
+                          IntpairIntMapType * const midpoints_cache);
 
 private:
     // graphics/shared data

@@ -889,6 +889,279 @@ void Planet::getSmoothSubdGeometry(std::vector<vmath::Vector4> * vertices,
     std::cout << "...done!" << std::endl;
 }
 
+vmath::Vector3 Planet::getBezierPoint(vmath::Vector3 point, tri_index guess_triangle,
+                                      const std::vector<std::vector<vmath::Vector3>> &control_points)
+{
+    // debug
+//    std::cout << "Planet::getSmoothPoint" << std::endl << "point: ";
+//    vmath::print(point);
+//    std::cout << "tri: ";
+//    for(int i=0;i<3;i++)vmath::print(mPoints[mTriangles[int(guess_triangle)][i]]);
+
+
+
+    // get the guess triangle
+    tri_index current_tri = guess_triangle;
+
+    // find the barycentric coordinates
+    vmath::Vector3 b;
+
+    bool is_in_tri = checkPointInTriIndex(&b, point, mTriangles[int(current_tri)]);
+
+    if (!is_in_tri)
+    {
+        // start a search for the triangle
+        auto tri_graph = make_graph(mTriangles, mTriToTriAdjacencyList);
+
+        // prioritize triangles close to the point in question
+        auto heuristic = [&](const tri_index &i)
+        {
+            point_index p = mTriangles[int(i)][0];
+            return vmath::lengthSqr(point-mPoints[p]);
+        };
+
+        auto it = tri_graph.search(guess_triangle, heuristic);
+
+        do
+        {
+            ++it;
+            current_tri = it.get_index();
+            is_in_tri = checkPointInTriIndex(&b, point, mTriangles[int(current_tri)]);
+        }
+        while (!is_in_tri && !it.search_end());
+
+        assert( (!it.search_end()) );
+    }
+
+    return vgeom::evalCubicBezierTri(b, control_points[int(current_tri)]);
+}
+
+vmath::Vector3 Planet::getBezierPointKnownTriangle(vmath::Vector3 point,
+                                                   tri_index known_triangle,
+                                                   const std::vector<std::vector<vmath::Vector3>> &control_points)
+{
+    // get the guess triangle
+    const gfx::Triangle &triangle = mTriangles[int(known_triangle)];
+
+    // find the barycentric coordinates
+    vmath::Vector3 b;
+
+    /*bool is_in_tri = */checkPointInTriIndex(&b, point, triangle);
+
+    return vgeom::evalCubicBezierTri(b, control_points[int(known_triangle)]);
+}
+
+
+int Planet::getBezierPointIndex(const point_index i1,
+                      const point_index i2,
+                      const tri_index triangle_index,
+                      const std::vector<std::vector<vmath::Vector3>> &control_points,
+                      std::vector<vmath::Vector3> * const points,
+                      IntpairIntMapType * const midpoints_cache)
+{
+    // ordering of subdivision edge points is irrelevant, so
+    // order i1 and i2 according to relative magnitude to avoid
+    // duplicates in cache, i.e. don't want both (i1,i2) and (i2,i1)
+    point_index i_lo = i1<i2 ? i1 : i2;
+    point_index i_hi = i1>i2 ? i1 : i2;
+    std::pair<point_index, point_index> midpoint_key = {i_lo, i_hi};
+
+    // check if point exists in cache
+    auto midpoint_it = midpoints_cache->find(midpoint_key);
+
+    if (midpoint_it != midpoints_cache->end())
+    {
+        // just return the point from the cache
+        return midpoint_it->second;
+    }
+    else
+    {
+        // create point by averaging parents
+        vmath::Vector3 mid_pt = 0.5f*((*points)[i_lo]+(*points)[i_hi]);
+
+        // project the mid_pt onto the spline surface
+        // mid_pt = getSmoothPoint(mid_pt, triangle_index);
+        mid_pt = getBezierPoint(mid_pt, triangle_index, control_points);
+
+        // project the mid_pt onto sphere interpolation surface
+        // mid_pt = 0.5f*(vmath::length((*points)[i_lo])+vmath::length((*points)[i_hi]))*vmath::normalize(mid_pt);
+
+        points->push_back(
+            mid_pt
+        );
+        int last_element_index = points->size() - 1;
+
+        // add it to the cache
+        midpoints_cache->insert( {midpoint_key, last_element_index} );
+        return last_element_index;
+    }
+}
+
+
+std::vector<std::vector<vmath::Vector3>> cubicBezierControlPoints(const std::vector<gfx::Triangle> &triangles,
+                                                     const std::vector<vmath::Vector3> &points,
+                                                     const std::vector<vmath::Vector3> &normals);
+
+void Planet::getCubicBezierGeometry(std::vector<vmath::Vector4> * vertices,
+                                    std::vector<gfx::Triangle> * triangles, int subd_lvl)
+{
+    // create the control points
+    std::vector<std::vector<vmath::Vector3>> control_points = cubicBezierControlPoints(mTriangles, mPoints, mNormals);
+
+    assert( ((subd_lvl>=0) && vertices && triangles) );
+
+    std::cout << "subdividing cubic bezier geometry..." << std::endl;
+
+    // get the real geometry
+    std::vector<vmath::Vector3> points = mPoints; // copy the existing points
+
+    // temporary vector to store triangle subdivision levels
+    std::vector<std::vector<gfx::Triangle>> subd_triangles;
+    subd_triangles.push_back(mTriangles); // subd lvl zero
+
+    // map the existing points to spline
+    for (int t = 0; t<mTriangles.size(); t++)
+    {
+        const gfx::Triangle &tri = subd_triangles[0][t];
+        for (point_index i = 0; i<3; i++)
+            points[tri[i]] = getSmoothPointKnownTriangle(points[tri[i]], tri_index(t));
+    }
+
+
+    // Subdivide triangles
+    for (int k = 1; k < subd_lvl+1; k++)
+    {
+        // add another triangle subdivision level
+        subd_triangles.push_back(std::vector<gfx::Triangle>());
+
+        // Use a cache to keep points resulting from subidiving a shared edge
+        IntpairIntMapType midpoints_cache;
+
+        for (int i = 0; i < subd_triangles[k-1].size(); i++)
+        {
+            // original parent triangle index // seems to work ok..
+            tri_index i_tri_orig = tri_index(i/(std::pow(4,k-1)));
+
+            // get indices of the three new points (organized by sides)
+            gfx::Triangle const &prev_triangle = subd_triangles[k-1][i];
+            point_index new_points_indices[] = {
+                getBezierPointIndex(prev_triangle[0], prev_triangle[1], i_tri_orig, control_points, &points, &midpoints_cache),
+                getBezierPointIndex(prev_triangle[1], prev_triangle[2], i_tri_orig, control_points, &points, &midpoints_cache),
+                getBezierPointIndex(prev_triangle[2], prev_triangle[0], i_tri_orig, control_points, &points, &midpoints_cache)
+            };
+
+            // create the subdivided triangles, using previously existing and new corners
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[0],
+                    new_points_indices[0],
+                    new_points_indices[2]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[1],
+                    new_points_indices[1],
+                    new_points_indices[0]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    prev_triangle[2],
+                    new_points_indices[2],
+                    new_points_indices[1]
+                }
+            );
+
+            subd_triangles[k].push_back(
+                {
+                    new_points_indices[0],
+                    new_points_indices[1],
+                    new_points_indices[2]
+                }
+            );
+        } // for (int i = 0; i < prev_subdlvl_size; i++)
+
+        std::cout << "lvl: " << k << "/" << subd_lvl << std::endl;
+    }
+
+    // convert the points to vertices
+    const std::vector<vmath::Vector4> * const points4_ptr = coerceVec3toVec4(points);
+    *vertices = *points4_ptr;
+
+    // copy the highest subdivision level to the resulting triangles
+    *triangles = subd_triangles.back();
+
+    std::cout << "...done!" << std::endl;
+
+
+
+}
+
+static float constexpr ONE_THIRD = 1.0f/3.0f;
+static float constexpr TWO_THIRDS = 2.0f/3.0f;
+
+std::vector<std::vector<vmath::Vector3>> cubicBezierControlPoints(const std::vector<gfx::Triangle> &triangles,
+                                                     const std::vector<vmath::Vector3> &points,
+                                                     const std::vector<vmath::Vector3> &normals)
+{
+    std::cout << "creating control points...";
+    std::vector<std::vector<vmath::Vector3>> control_points;
+
+
+    for (const auto &tri : triangles)
+    {
+        std::vector<vmath::Vector3> tri_control_points;
+
+        const auto &p0 = points[tri[0]];
+        const auto &p1 = points[tri[1]];
+        const auto &p2 = points[tri[2]];
+
+        const auto tri_norm = vgeom::triangleNormal(p0,p1,p2);
+
+        const auto &n0 = normals[tri[0]];
+        const auto &n1 = normals[tri[1]];
+        const auto &n2 = normals[tri[2]];
+
+        // first corner points
+        tri_control_points.push_back(p0);
+        tri_control_points.push_back(p1);
+        tri_control_points.push_back(p2);
+
+        // edge points
+        const auto p01 = vgeom::linePlaneIntersection(TWO_THIRDS*p0 + ONE_THIRD*p1, TWO_THIRDS*p0 + ONE_THIRD*p1, n0, p0);
+        const auto p02 = vgeom::linePlaneIntersection(TWO_THIRDS*p0 + ONE_THIRD*p2, TWO_THIRDS*p0 + ONE_THIRD*p2, n0, p0);
+
+        const auto p10 = vgeom::linePlaneIntersection(TWO_THIRDS*p1 + ONE_THIRD*p0, TWO_THIRDS*p1 + ONE_THIRD*p0, n1, p1);
+        const auto p12 = vgeom::linePlaneIntersection(TWO_THIRDS*p1 + ONE_THIRD*p2, TWO_THIRDS*p1 + ONE_THIRD*p2, n1, p1);
+
+        const auto p21 = vgeom::linePlaneIntersection(TWO_THIRDS*p2 + ONE_THIRD*p1, TWO_THIRDS*p2 + ONE_THIRD*p1, n2, p2);
+        const auto p20 = vgeom::linePlaneIntersection(TWO_THIRDS*p2 + ONE_THIRD*p0, TWO_THIRDS*p2 + ONE_THIRD*p0, n2, p2);
+
+        tri_control_points.push_back(p01);
+        tri_control_points.push_back(p02);
+        tri_control_points.push_back(p10);
+        tri_control_points.push_back(p12);
+        tri_control_points.push_back(p21);
+        tri_control_points.push_back(p20);
+
+        // middle points
+        const auto p012 = 1.0f/6.0f*(p01+p02+p10+p12+p21+p20);
+        //const auto p012 = 1.0f/3.0f*(p0+p1+p2);
+
+        tri_control_points.push_back(p012);
+
+        control_points.push_back(tri_control_points); // hope this is a move...
+    }
+
+    std::cout << "done!";
+
+    return control_points;
+}
+
+
 // shit really hit the fan from here down...
 
 
