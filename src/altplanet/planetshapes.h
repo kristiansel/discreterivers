@@ -69,7 +69,7 @@ public:
 
     AABB getAABB() const
     {
-        return {(2.0f*major_radius+minor_radius), 2.0f*minor_radius};
+        return {(2.0f*major_radius+2.0f*minor_radius), 2.0f*minor_radius};
     }
 
 private:
