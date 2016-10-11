@@ -15,6 +15,8 @@
 
 #include "planet/topology.h" // for testing
 
+#include "altplanet/altplanet.h"
+
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 //namespace oglr = OpenGLRenderer;
@@ -25,10 +27,10 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        2,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        4.0f,   // terrain roughness
+        5,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        1.0f,   // terrain roughness
         0.70f,  // fraction of planet covered by ocean
-        15,     // number of freshwater springs
+        40,     // number of freshwater springs
         5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
@@ -36,6 +38,12 @@ int main(int argc, char *argv[])
     Topology::Test::barycentricCoords();
     Topology::Test::multinomialCoefficient();
 
+
+    AltPlanet::Shape::Disk disk(3.0f);
+    AltPlanet::Shape::Sphere sphere(3.0f);
+    AltPlanet::Shape::Torus torus(3.0f, 1.0f);
+
+    std::vector<vmath::Vector3> alt_planet_points = AltPlanet::generate(10000, torus);
 
     // think a bit about the usage
 
@@ -119,35 +127,59 @@ int main(int argc, char *argv[])
         //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
         //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
         gfx::Material material = gfx::Material(color);
-        //material.setWireframe(true);
+        // material.setWireframe(false);
 
         //planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
     }
 
-    // create some scene objects using/sharing geometry
-    gfx::SceneObjectHandle subd_planet_sceneobject;
-    {
-        std::vector<vmath::Vector4> subd_planet_position_data;
-        std::vector<gfx::Triangle> subd_planet_primitive_data;
 
-        planet.getCubicBezierGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
+//    // create some scene objects using/sharing geometry
+//    gfx::SceneObjectHandle subd_planet_sceneobject;
+//    {
+//        std::vector<vmath::Vector4> subd_planet_position_data;
+//        std::vector<gfx::Triangle> subd_planet_primitive_data;
 
-        std::vector<vmath::Vector4> subd_planet_normal_data;
-        gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);
+//        planet.getCubicBezierGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
 
-        gfx::Vertices subd_planet_vertices = gfx::Vertices(subd_planet_position_data, subd_planet_normal_data /*, texcoords*/);
+//        std::vector<vmath::Vector4> subd_planet_normal_data;
+//        gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);
 
-        gfx::Primitives primitives = gfx::Primitives(subd_planet_primitive_data);
-        gfx::Geometry geometry = gfx::Geometry(subd_planet_vertices, primitives);
+//        gfx::Vertices subd_planet_vertices = gfx::Vertices(subd_planet_position_data, subd_planet_normal_data /*, texcoords*/);
 
-        vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
-        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-        //material.setWireframe(true);
+//        gfx::Primitives primitives = gfx::Primitives(subd_planet_primitive_data);
+//        gfx::Geometry geometry = gfx::Geometry(subd_planet_vertices, primitives);
 
-        subd_planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
-    }
+//        vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
+//        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
+//        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
+//        gfx::Material material = gfx::Material(color);
+//        //material.setWireframe(true);
+
+//        subd_planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
+//    }
+
+//    gfx::SceneObjectHandle subd_control_points_sceneobject;
+//    {
+//        std::vector<vmath::Vector4> controlpt_position_data;
+//        std::vector<gfx::Point> controlpt_primitive_data;
+
+//        planet.getBezierControlPtPrimitives(&controlpt_position_data, &controlpt_primitive_data);
+
+//        gfx::Vertices vertices = gfx::Vertices(controlpt_position_data, controlpt_position_data /*, texcoords*/);
+
+//        gfx::Primitives primitives = gfx::Primitives(controlpt_primitive_data);
+//        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+
+//        vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+//        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
+//        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
+//        gfx::Material material = gfx::Material(color);
+//        //material.setWireframe(true);
+
+//        //subd_control_points_sceneobject = planet_scene_node->addSceneObject(geometry, material);
+//    }
+
+
 
 //    gfx::SceneObjectHandle planet_sceneobject_lod;
 //    {
@@ -163,6 +195,32 @@ int main(int argc, char *argv[])
 
 //        planet_sceneobject_lod = planet_scene_node->addSceneObject(geometry, material);
 //    }
+
+    gfx::SceneObjectHandle alt_planet_points_so;
+    {
+
+
+        std::vector<vmath::Vector4> position_data;
+        std::vector<gfx::Point> primitives_data;
+
+        for (int i = 0; i<alt_planet_points.size(); i++)
+        {
+           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+           position_data.back().setW(1.0f);
+           primitives_data.push_back({i});
+        }
+
+        gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+
+        gfx::Primitives primitives = gfx::Primitives(primitives_data);
+        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+
+        vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+        gfx::Material material = gfx::Material(color);
+        //material.setWireframe(true);
+
+        alt_planet_points_so = planet_scene_node->addSceneObject(geometry, material);
+    }
 
     gfx::SceneObjectHandle lambda_flowdown_sceneobject;
     {

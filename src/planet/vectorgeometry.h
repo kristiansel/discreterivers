@@ -3,6 +3,9 @@
 
 #include "../common/gfx_primitives.h"
 
+#include <utility>
+
+
 // should make this header only...
 
 namespace vmath = Vectormath::Aos;
@@ -11,6 +14,17 @@ namespace VectorGeometry
 {
 vmath::Vector3 linePlaneIntersection(vmath::Vector3 line_dir, vmath::Vector3 line_point,
                                      vmath::Vector3 plane_normal, vmath::Vector3 plane_point);
+
+vmath::Vector3 projectPointIntoPlane(vmath::Vector3 point,
+                                    vmath::Vector3 plane_normal,
+                                    vmath::Vector3 plane_point);
+
+/*struct Line {vmath::Vector3 point, dir;};
+Line planePlaneIntersection(vmath::Vector3 p1, vmath::Vector3 n1, vmath::Vector3 p2, vmath::Vector3 n2);*/
+
+vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 p1,
+                                       vmath::Vector3 n2, vmath::Vector3 p2,
+                                       vmath::Vector3 n3, vmath::Vector3 p3);
 
 vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
                                    const vmath::Vector3 &tp0,

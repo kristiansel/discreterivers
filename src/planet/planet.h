@@ -81,6 +81,7 @@ public:
 
     void getCubicBezierGeometry(std::vector<vmath::Vector4> * points, std::vector<gfx::Triangle> * triangles, int subd_lvl);
 
+    void getBezierControlPtPrimitives(std::vector<vmath::Vector4> * positions, std::vector<gfx::Point> * primitives);
 
     template<class FilterFunc, class ... Args>
     void getLinePrimitives(std::vector<gfx::Line> * const primitives_data,

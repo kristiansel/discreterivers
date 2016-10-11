@@ -668,7 +668,7 @@ inline bool Planet::checkPointInTriIndex(vmath::Vector3 *b, const vmath::Vector3
     vmath::Vector3 p_proj = vgeom::linePlaneIntersection(point, point, tri_cross, tp0);
 
     // find the barycentric coordinates
-     *b = vgeom::baryPointInTriangle(p_proj, tp0, tp1, tp2, tri_cross);
+    *b = vgeom::baryPointInTriangle(p_proj, tp0, tp1, tp2, tri_cross);
     //*b = vgeom::findSphereBarycentric(p_proj, tp0, tp1, tp2);
 
     //*b = {0.f, 0.f, 0.f};
@@ -811,13 +811,14 @@ void Planet::getSmoothSubdGeometry(std::vector<vmath::Vector4> * vertices,
     std::vector<std::vector<gfx::Triangle>> subd_triangles;
     subd_triangles.push_back(mTriangles); // subd lvl zero
 
-    // map the existing points to spline
+    /*
+    // map the existing points to spline, should not be necessary
     for (int t = 0; t<mTriangles.size(); t++)
     {
         const gfx::Triangle &tri = subd_triangles[0][t];
         for (point_index i = 0; i<3; i++)
             points[tri[i]] = getSmoothPointKnownTriangle(points[tri[i]], tri_index(t));
-    }
+    }*/
 
 
     // Subdivide triangles
@@ -1024,7 +1025,7 @@ void Planet::getCubicBezierGeometry(std::vector<vmath::Vector4> * vertices,
     {
         const gfx::Triangle &tri = subd_triangles[0][t];
         for (point_index i = 0; i<3; i++)
-            points[tri[i]] = getSmoothPointKnownTriangle(points[tri[i]], tri_index(t));
+            points[tri[i]] = getBezierPoint(points[tri[i]], tri_index(t), control_points);
     }
 
 
@@ -1131,14 +1132,23 @@ std::vector<std::vector<vmath::Vector3>> cubicBezierControlPoints(const std::vec
         tri_control_points.push_back(p2);
 
         // edge points
-        const auto p01 = vgeom::linePlaneIntersection(TWO_THIRDS*p0 + ONE_THIRD*p1, TWO_THIRDS*p0 + ONE_THIRD*p1, n0, p0);
-        const auto p02 = vgeom::linePlaneIntersection(TWO_THIRDS*p0 + ONE_THIRD*p2, TWO_THIRDS*p0 + ONE_THIRD*p2, n0, p0);
+/*        const auto p01 = vgeom::linePlaneIntersection(n0, TWO_THIRDS*p0 + ONE_THIRD*p1, n0, p0);
+        const auto p02 = vgeom::linePlaneIntersection(n0, TWO_THIRDS*p0 + ONE_THIRD*p2, n0, p0);
 
-        const auto p10 = vgeom::linePlaneIntersection(TWO_THIRDS*p1 + ONE_THIRD*p0, TWO_THIRDS*p1 + ONE_THIRD*p0, n1, p1);
-        const auto p12 = vgeom::linePlaneIntersection(TWO_THIRDS*p1 + ONE_THIRD*p2, TWO_THIRDS*p1 + ONE_THIRD*p2, n1, p1);
+        const auto p10 = vgeom::linePlaneIntersection(n1, TWO_THIRDS*p1 + ONE_THIRD*p0, n1, p1);
+        const auto p12 = vgeom::linePlaneIntersection(n1, TWO_THIRDS*p1 + ONE_THIRD*p2, n1, p1);
 
-        const auto p21 = vgeom::linePlaneIntersection(TWO_THIRDS*p2 + ONE_THIRD*p1, TWO_THIRDS*p2 + ONE_THIRD*p1, n2, p2);
-        const auto p20 = vgeom::linePlaneIntersection(TWO_THIRDS*p2 + ONE_THIRD*p0, TWO_THIRDS*p2 + ONE_THIRD*p0, n2, p2);
+        const auto p21 = vgeom::linePlaneIntersection(n2, TWO_THIRDS*p2 + ONE_THIRD*p1, n2, p2);
+        const auto p20 = vgeom::linePlaneIntersection(n2, TWO_THIRDS*p2 + ONE_THIRD*p0, n2, p2);
+*/
+        const auto p01 = vgeom::projectPointIntoPlane(TWO_THIRDS*p0 + ONE_THIRD*p1, n0, p0);
+        const auto p02 = vgeom::projectPointIntoPlane(TWO_THIRDS*p0 + ONE_THIRD*p2, n0, p0);
+
+        const auto p10 = vgeom::projectPointIntoPlane(TWO_THIRDS*p1 + ONE_THIRD*p0, n1, p1);
+        const auto p12 = vgeom::projectPointIntoPlane(TWO_THIRDS*p1 + ONE_THIRD*p2, n1, p1);
+
+        const auto p21 = vgeom::projectPointIntoPlane(TWO_THIRDS*p2 + ONE_THIRD*p1, n2, p2);
+        const auto p20 = vgeom::projectPointIntoPlane(TWO_THIRDS*p2 + ONE_THIRD*p0, n2, p2);
 
         tri_control_points.push_back(p01);
         tri_control_points.push_back(p02);
@@ -1148,8 +1158,9 @@ std::vector<std::vector<vmath::Vector3>> cubicBezierControlPoints(const std::vec
         tri_control_points.push_back(p20);
 
         // middle points
-        const auto p012 = 1.0f/6.0f*(p01+p02+p10+p12+p21+p20);
-        //const auto p012 = 1.0f/3.0f*(p0+p1+p2);
+        const auto edge_cp_av = 1.0f/6.0f*(p01+p02+p10+p12+p21+p20);
+        const auto corner_cp_av = 1.0f/3.0f*(p0+p1+p2);
+        const auto p012 = edge_cp_av + 0.5f*(edge_cp_av - corner_cp_av);
 
         tri_control_points.push_back(p012);
 
@@ -1159,6 +1170,23 @@ std::vector<std::vector<vmath::Vector3>> cubicBezierControlPoints(const std::vec
     std::cout << "done!";
 
     return control_points;
+}
+
+
+void Planet::getBezierControlPtPrimitives(std::vector<vmath::Vector4> * positions, std::vector<gfx::Point> * primitives)
+{
+    const auto control_points_vv = cubicBezierControlPoints(mTriangles, mPoints, mNormals);
+
+    int n = 0;
+    for (const auto &cp_vec : control_points_vv)
+    {
+        for (const auto &cp : cp_vec)
+        {
+            positions->push_back((const vmath::Vector4&)(cp));
+            positions->back().setW(1.0f);
+            primitives->push_back({n++});
+        }
+    }
 }
 
 

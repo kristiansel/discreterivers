@@ -20,8 +20,12 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     glEnable(GL_DEPTH_TEST); // Is this necessary?
     glDepthFunc(GL_LESS); // Is this necessary?
 
-    glLineWidth(2.2f*1.2f);
-    glPointSize(2.2f*2.6f);
+    // Hi DPI
+    //glLineWidth(2.2f*1.2f);
+    //glPointSize(2.2f*2.6f);
+
+    glLineWidth(1.2f);
+    glPointSize(2.6f);
 
     // set up shaders
     const char * vertex_shader_src =

@@ -38,9 +38,9 @@ vmath::Vector3 linePlaneIntersectionNormalized(vmath::Vector3 line_dir_normalize
     return line_point + d*line_dir_normalized;
 }
 
-inline vmath::Vector3 projectPointIntoPlane(vmath::Vector3 point,
-                                            vmath::Vector3 plane_normal,
-                                            vmath::Vector3 plane_point)
+vmath::Vector3 projectPointIntoPlane(vmath::Vector3 point,
+                                    vmath::Vector3 plane_normal,
+                                    vmath::Vector3 plane_point)
 {
     return linePlaneIntersection(plane_normal, point, plane_normal, plane_point);
 }
@@ -151,7 +151,23 @@ vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
     return vmath::Vector3(b0, b1, b2);
 }
 
-////can't inline?
+/*Line planePlaneIntersection(vmath::Vector3 p1, vmath::Vector3 n1, vmath::Vector3 p2, vmath::Vector3 n2){
+    vmath::Vector3 dir = vmath::cross(n1, n2);
+    vmath::
+}*/
+
+vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 p1,
+                                       vmath::Vector3 n2, vmath::Vector3 p2,
+                                       vmath::Vector3 n3, vmath::Vector3 p3)
+{
+    vmath::Matrix3 n_mat(n1, n2, n3);
+    vmath::Vector3 b = vmath::dot(p1,n1)*vmath::cross(n2, n3) +
+                       vmath::dot(p2,n2)*vmath::cross(n3, n1) +
+                       vmath::dot(p3,n3)*vmath::cross(n1, n2);
+
+    return vmath::inverse(n_mat) * b;
+}
+
 //vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
 //                                        const vmath::Vector3 &tp0,
 //                                        const vmath::Vector3 &tp1,
