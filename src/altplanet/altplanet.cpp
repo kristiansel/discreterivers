@@ -15,14 +15,22 @@ inline float frand(float LO, float HI)
     return LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
 }
 
-std::vector<vmath::Vector3>  generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
+
+std::vector<gfx::Triangle> triangulate(const std::vector<vmath::Vector3> &points,
+                                       const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape);
+
+Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 {
     std::cout << "testing testing..." << std::endl;
+
+    Geometry geometry;
+    std::vector<vmath::Vector3> &points = geometry.points;
+    std::vector<gfx::Triangle> &triangles = geometry.triangles;
 
     // generate random points
     Shape::AABB aabb = planet_shape.getAABB();
 
-    std::vector<vmath::Vector3> points;
+
     points.reserve(n_points);
 
     for (unsigned int i=0; i<n_points; i++)
@@ -39,7 +47,7 @@ std::vector<vmath::Vector3>  generate(unsigned int n_points, const Shape::BaseSh
 
     // hash the points onto a 3d grid
     vmath::Vector3 max_corner = {aabb.width/2.0f, aabb.height/2.0f, aabb.width/2.0f};
-    SpaceHash3D spacehash(points, -max_corner*1.5f, max_corner*1.5f, 60, 20, 60);
+    SpaceHash3D spacehash(points, -max_corner*1.5f, max_corner*1.5f, 20, 8, 20);
 
 
     // Distribute them (more) evenly
@@ -110,9 +118,59 @@ std::vector<vmath::Vector3>  generate(unsigned int n_points, const Shape::BaseSh
     // finished distributing them evenly...
 
     // triangulate... :(
+    triangles = triangulate(points, spacehash, planet_shape);
+
+    std::cout << "found " << triangles.size() << " triangles" << std::endl;
+
+    return geometry;
+}
 
 
-    return points;
+
+std::vector<gfx::Triangle> triangulate(const std::vector<vmath::Vector3> &points,
+                                       const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
+{
+    std::vector<gfx::Triangle> tris_out;
+
+    // go block by block through the spacehash and
+    // check if all combinations of center block to whole block form delaunay triangles
+    int neighborhood_size = 3;
+
+//    int all_cells = 0;
+
+    spacehash.forEachCellNeighborhood(neighborhood_size,
+        [&](const std::vector<int> &cell_pts, const std::vector<int> &neighbor_pts)
+        {
+//            all_cells +=cell_pts.size();
+//            std::cout << "called: cellpts " << cell_pts.size() << ", neigh " << neighbor_pts.size() << std::endl;
+            for (const auto cell_pt : cell_pts)
+            {
+                for (const auto neigh_pt1 : neighbor_pts)
+                {
+                    for (const auto neigh_pt2 : neighbor_pts)
+                    {
+                        //std::cout << "inside loop: " << std::endl;
+                        //std::cout << "cell_pt: " << cell_pt << std::endl;
+                        //std::cout << "neigh_pt1: " << neigh_pt1 << std::endl;
+                        //std::cout << "neigh_pt2: " << neigh_pt2 << std::endl;
+
+                        // all three points must be distinct
+                        if (cell_pt!=neigh_pt1 && cell_pt!=neigh_pt2 && neigh_pt2!=neigh_pt1)
+                        {
+                            //std::cout << "inside if check" << std::endl;
+
+                            // form a triangle and check if it is delaunay
+                            if (spacehash.checkDelaunay(cell_pt, neigh_pt1, neigh_pt2, neighbor_pts))
+                            {
+                                tris_out.push_back({cell_pt, neigh_pt1, neigh_pt2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    return tris_out;
 }
 
 }
