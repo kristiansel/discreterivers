@@ -10,6 +10,7 @@
 
 #include "../common/gfx_primitives.h"
 #include "planetshapes.h"
+#include "spacehash3d.h"
 
 
 
@@ -21,6 +22,12 @@ namespace AltPlanet
 struct Geometry {std::vector<vmath::Vector3> points; std::vector<gfx::Triangle> triangles;};
 
 Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape);
+
+void orientTriangles(Geometry &geometry, const Shape::BaseShape &planet_shape);
+
+void pointsRepulse(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape, float repulse_factor);
+
+void pointsRepulse(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape, float repulse_factor);
 
 namespace util
 {

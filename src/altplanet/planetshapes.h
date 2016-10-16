@@ -21,6 +21,7 @@ public:
     virtual AABB getAABB() const = 0;
 };
 
+/* // need shape to be 3d, reimagine the disk as a squashed sphere (with two sides, exciting)
 class Disk : public BaseShape
 {
 public:
@@ -37,7 +38,7 @@ public:
 
 private:
     float radius;
-};
+};*/
 
 class Sphere : public BaseShape
 {

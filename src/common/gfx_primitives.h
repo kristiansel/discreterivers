@@ -47,6 +47,11 @@ namespace gfx
         {
             return indices[index];
         }
+
+        inline bool operator==(const Line &other) const
+        {
+            return indices[0]==other.indices[0] && indices[1]==other.indices[1];
+        }
     };
 
     struct Point
@@ -81,6 +86,37 @@ namespace gfx
     void generateNormals(std::vector<vmath::Vector3> * const normals,
                          const std::vector<vmath::Vector3> &vertices,
                          const std::vector<Triangle> &triangles);
+}
+
+
+namespace std
+{
+    // inject triangle hash into std namespace
+    template<> struct hash<gfx::Triangle>
+    {
+        typedef gfx::Triangle argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& t) const
+        {
+            std::size_t i0 = std::hash<int>{}(t[0]);
+            std::size_t i1 = std::hash<int>{}(t[1]);
+            std::size_t i2 = std::hash<int>{}(t[2]);
+            return i0 ^((i1 ^ (i2 << 1)) << 1);
+        }
+    };
+
+    // inject line hash into std namespace
+    template<> struct hash<gfx::Line>
+    {
+        typedef gfx::Line argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& l) const
+        {
+            std::size_t i0 = std::hash<int>{}(l[0]);
+            std::size_t i1 = std::hash<int>{}(l[1]);
+            return i0 ^ (i1 << 1);
+        }
+    };
 }
 
 #endif // GFX_PRIMITIVES_H

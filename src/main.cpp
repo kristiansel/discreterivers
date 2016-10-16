@@ -39,11 +39,12 @@ int main(int argc, char *argv[])
     Topology::Test::multinomialCoefficient();
 
 
-    AltPlanet::Shape::Disk disk(3.0f);
+    //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
+    AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(1000, sphere);
+    AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(10000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
 
@@ -212,12 +213,15 @@ int main(int argc, char *argv[])
            primitives_data.push_back({i});
         }
 
+        //std::vector<vmath::Vector4> normal_data;
+        //gfx::generateNormals(&normal_data, position_data, primitives_data);
+
         gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
 
         gfx::Primitives primitives = gfx::Primitives(primitives_data);
         gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-        vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+        vmath::Vector4 color(0.5f, 0.5f, 0.5f, 1.0f);
         gfx::Material material = gfx::Material(color);
         //material.setWireframe(true);
 
@@ -233,6 +237,9 @@ int main(int argc, char *argv[])
            position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
            position_data.back().setW(1.0f);
         }
+
+        //std::vector<vmath::Vector4> normal_data;
+        //gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
         gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
 
@@ -445,6 +452,28 @@ int main(int argc, char *argv[])
                         case(SDLK_h):
                             planet_sceneobject->toggleVisible();
                             break;
+                        case(SDLK_u):
+                            {
+                                // do an iteration of repulsion
+                                AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
+
+                                // update the scene object geometry
+                                std::vector<vmath::Vector4> position_data;
+                                std::vector<gfx::Point> primitives_data;
+
+                                for (int i = 0; i<alt_planet_points.size(); i++)
+                                {
+                                   position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                                   position_data.back().setW(1.0f);
+                                   primitives_data.push_back({i});
+                                }
+
+                                gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+                                gfx::Primitives primitives = gfx::Primitives(primitives_data);
+
+                                alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                                break;
+                            }
                         case(SDLK_ESCAPE):
                             done = true;
                             break;

@@ -8,155 +8,64 @@ namespace vmath = Vectormath::Aos;
 
 #include <vector>
 #include <cmath>
+#include <limits>
 
 class SpaceHash3D
 {
+public:
+    SpaceHash3D(const std::vector<vmath::Vector3> &points);
+    virtual ~SpaceHash3D();
+
+    void update(const std::vector<vmath::Vector3> &points);
+    void rehash(const std::vector<vmath::Vector3> &points);
+
+    template<class Func>
+    void forEachPointInSphere(vmath::Vector3 center, float radius, Func func) const;
+
+    bool sphereCheckDelaunayGlobal(int tri_pt0, int tri_pt1, int tri_pt2) const;
+
+    /*
+    template<class F>
+    void forEachCellNeighborhood(int neighborhood_size, F func) const;
+    */
+
+    // bool checkDelaunay(int tri_pt0, int tri_pt1, int tri_pt2, const std::vector<int> &neighbors) const;
+
+protected:
+
+
 private:
-    //static const int AV_PTS_PER_CELL_PREF = 8;
+    std::vector<vmath::Vector3> mPoints;
+    std::vector<int> * mGridToPointMap;
+    int mNGrid;
 
-    inline int localToGlobal(int i, int j, int k) const {return i+j*nx+k*nx*ny;}
-    // inline int globalToLocal(int I) {...}
+    vmath::Vector3 mMin;
+    vmath::Vector3 mMax;
 
-    inline int findCell_i(const vmath::Vector3 &point) const {return floor((point[0]-min[0])/(max[0]-min[0])*float(nx));}
-    inline int findCell_j(const vmath::Vector3 &point) const {return floor((point[1]-min[1])/(max[1]-min[1])*float(ny));}
-    inline int findCell_k(const vmath::Vector3 &point) const {return floor((point[2]-min[2])/(max[2]-min[2])*float(nz));}
+    int mNx;
+    int mNy;
+    int mNz;
+
+    float mPointCubeVolDensity;
+    float mPointCubeAreaDensity;
+
+private:
+    static constexpr float AV_PTS_PER_CELL_PREF = 0.2f;
+
+    inline int localToGlobal(int i, int j, int k) const {return i+j*mNx+k*mNx*mNy;}
+
+    inline int findCell_i(const vmath::Vector3 &point) const {return floor((point[0]-mMin[0])/(mMax[0]-mMin[0])*float(mNx));}
+    inline int findCell_j(const vmath::Vector3 &point) const {return floor((point[1]-mMin[1])/(mMax[1]-mMin[1])*float(mNy));}
+    inline int findCell_k(const vmath::Vector3 &point) const {return floor((point[2]-mMin[2])/(mMax[2]-mMin[2])*float(mNz));}
 
     inline int findPointCell(const vmath::Vector3 &point) const {
         int i = findCell_i(point);
         int j = findCell_j(point);
         int k = findCell_k(point);
 
-        //std::cout << "p:"; vmath::print(point);
-        //std::cout << "i:" << i << "j:" << j << ",k:" << k << std::endl;
-
         return localToGlobal(i,j,k);
     }
-
-    inline void updatePoints(const std::vector<vmath::Vector3> &points) // woops grid_to_point_map shoud be cleared!!
-    {
-        for (int i = 0; i<points.size(); i++)
-        {
-            int I = findPointCell(points[i]);
-            grid_to_point_map[I].push_back(i);
-        }
-    }
-
-public:
-    SpaceHash3D(const std::vector<vmath::Vector3> &points,
-                vmath::Vector3 min, vmath::Vector3 max,
-                int nx, int ny, int nz) :
-        min(min), max(max), nx(nx), ny(ny), nz(nz), points(points)
-    {
-        n_grid = nx*ny*nz;
-        grid_to_point_map = new std::vector<int> [n_grid];
-
-        updatePoints(points);
-
-//        int max_cell_size = 0;
-//        for (int i_cell = 0; i_cell<n_grid; i_cell++)
-//        {
-//            if (grid_to_point_map[i_cell].size()>max_cell_size)
-//                max_cell_size = grid_to_point_map[i_cell].size();
-//        }
-//        std::cout << "max cell size: " << max_cell_size << std::endl;
-    }
-
-    virtual ~SpaceHash3D() {delete [] grid_to_point_map;}
-
-    static const int search_width = 2;
-
-    std::vector<int> findNeighbors(int i_p)  const // don't need exactly k nearest
-    {
-        const auto &point = points[i_p];
-        // find cell of 3d point
-        int i_mid = findCell_i(point);
-        int j_mid = findCell_j(point);
-        int k_mid = findCell_k(point);
-
-
-        std::vector<int> out_pts;
-        // search a 3 by 3 grid around middle cell
-        for (int i = std::max(i_mid-search_width, 0);i<std::min(i_mid+search_width,nx);i++)
-        {
-            for (int j = std::max(j_mid-search_width,0);j<std::min(j_mid+search_width,ny);j++)
-            {
-                for (int k = std::max(k_mid-search_width,0);k<std::min(k_mid+search_width,nz);k++)
-                {
-                    int I = localToGlobal(i,j,k);
-                    //std::cout << "i:" << i << "j:" << j << ",k:" << k << std::endl;
-                    for (const auto pt : grid_to_point_map[I])
-                        if (pt!=i_p) out_pts.push_back(pt);
-                }
-            }
-        }
-
-        return out_pts;
-    }
-
-
-    void update(const std::vector<vmath::Vector3> &points)
-    {
-        for (int i = 0; i<n_grid; i++) grid_to_point_map[i].clear();
-
-        updatePoints(points);
-    }
-
-    template<class F>
-    void forEachCellNeighborhood(int neighborhood_size, F func) const;
-
-    bool checkDelaunay(int tri_pt0, int tri_pt1, int tri_pt2, const std::vector<int> &neighbors) const;
-
-private:
-    std::vector<vmath::Vector3> points;
-    std::vector<int> * grid_to_point_map;
-    int n_grid;
-
-    vmath::Vector3 min;
-    vmath::Vector3 max;
-
-    const int nx;
-    const int ny;
-    const int nz;
-
 };
-
-// implement template methods
-template<class F>
-void SpaceHash3D::forEachCellNeighborhood(int neighborhood_size, F func) const
-{
-    assert((neighborhood_size>=0));
-    int sw = neighborhood_size/2;
-
-    std::vector<int> neighbors;
-
-    for (int i_mid = 0; i_mid<nx; i_mid++)
-    {
-        for (int j_mid = 0; j_mid<ny; j_mid++)
-        {
-            for (int k_mid = 0; k_mid<nz; k_mid++)
-            {
-                neighbors.clear();
-                for (int i = std::max(i_mid-sw, 0);i<std::min(i_mid+sw, nx);i++)
-                {
-                    for (int j = std::max(j_mid-sw,0);j<std::min(j_mid+sw, ny);j++)
-                    {
-                        for (int k = std::max(k_mid-sw,0);k<std::min(k_mid+sw, nz);k++)
-                        {
-                            int I = localToGlobal(i,j,k);
-                            for (const auto pt : grid_to_point_map[I])
-                                neighbors.push_back(pt);
-                        }
-                    }
-                }
-
-                // call the supplied lambda on this cell's points and neighborhood points
-                int I = localToGlobal(i_mid,j_mid,k_mid);
-                func(grid_to_point_map[I], neighbors);
-            }
-        }
-    }
-}
-
 
 struct CircumDisk
 {
@@ -168,14 +77,10 @@ struct CircumDisk
 inline CircumDisk getCircumDisk(const vmath::Vector3 &pt1, const vmath::Vector3 &pt2, const vmath::Vector3 &pt3);
 inline bool checkInCircumDisk(const vmath::Vector3 &pt, const CircumDisk &cdisk);
 
+/*
 bool SpaceHash3D::checkDelaunay(int tri_pt0, int tri_pt1, int tri_pt2, const std::vector<int> &neighbors) const
 {
     CircumDisk circum_disk = getCircumDisk(points[tri_pt0], points[tri_pt1], points[tri_pt2]);
-
-//    std::cout << "circum_disk: " << std::endl;
-//    std::cout << "center: "; vmath::print(circum_disk.center);
-//    std::cout << "normal: "; vmath::print(circum_disk.normal);
-//    std::cout << "radius: " << circum_disk.radius << std::endl;
 
     // for all points in neighborhood, check if circumdisk, if any point in circumdisk, then false otherwise true
     for (const auto i_n : neighbors)
@@ -191,6 +96,7 @@ bool SpaceHash3D::checkDelaunay(int tri_pt0, int tri_pt1, int tri_pt2, const std
 
     return true;
 }
+*/
 
 
 inline vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 p1,
@@ -202,7 +108,9 @@ inline vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 
                        vmath::dot(p2,n2)*vmath::cross(n3, n1) +
                        vmath::dot(p3,n3)*vmath::cross(n1, n2);
 
-    return vmath::inverse(n_mat) * b;
+    float det_n = vmath::determinant(n_mat);
+    assert((det_n!=0.0f));
+    return b / det_n;
 }
 
 inline CircumDisk getCircumDisk(const vmath::Vector3 &pt1, const vmath::Vector3 &pt2, const vmath::Vector3 &pt3)
@@ -215,13 +123,13 @@ inline CircumDisk getCircumDisk(const vmath::Vector3 &pt1, const vmath::Vector3 
                                                     v2, 0.5f*(pt3+pt1), // perpendicular bisector plane 2
                                                     tri_norm, pt1); // triangle plane
 
-    float radius = vmath::length(pt1-pt2);
+    float radius = vmath::length(pt1-center);
 
     return {center, tri_norm, radius};
 
 }
 
-vmath::Vector3 projectPointIntoPlane(const vmath::Vector3 &point,
+inline vmath::Vector3 projectPointIntoPlane(const vmath::Vector3 &point,
                                      const vmath::Vector3 &plane_normal,
                                      const vmath::Vector3 &plane_point)
 {
@@ -240,5 +148,64 @@ inline bool checkInCircumDisk(const vmath::Vector3 &pt, const CircumDisk &cdisk)
     return ( vmath::length(pt-cdisk.center) < cdisk.radius );
 }
 
+template<class Func>
+void SpaceHash3D::forEachPointInSphere(vmath::Vector3 center, float radius, Func func) const
+{
+    int i_mid = findCell_i(center);
+    int j_mid = findCell_j(center);
+    int k_mid = findCell_k(center);
+
+    float cell_size_x = (mMax[0]-mMin[0])/(float)(mNx);
+    float cell_size_y = (mMax[1]-mMin[1])/(float)(mNy);
+    float cell_size_z = (mMax[2]-mMin[2])/(float)(mNz);
+
+    int offset_why_needed = 1;
+    int n_half_x = ceil(radius/cell_size_x)+offset_why_needed;
+    int n_half_y = ceil(radius/cell_size_y)+offset_why_needed;
+    int n_half_z = ceil(radius/cell_size_z)+offset_why_needed;
+
+    for (int i = std::max(i_mid-n_half_x, 0);i<std::min(i_mid+n_half_x, mNx);i++)
+    {
+        for (int j = std::max(j_mid-n_half_y,0);j<std::min(j_mid+n_half_y, mNy);j++)
+        {
+            for (int k = std::max(k_mid-n_half_z,0);k<std::min(k_mid+n_half_z, mNz);k++)
+            {
+                // should check aabb sphere intersection here...
+                int I = localToGlobal(i,j,k);
+                for (const auto &pt : mGridToPointMap[I])
+                {
+                    if (vmath::lengthSqr(mPoints[pt]-center)<radius*radius)
+                    {
+                        bool early_return = func(pt);
+                        if (early_return) return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+inline bool SpaceHash3D::sphereCheckDelaunayGlobal(int tri_pt0, int tri_pt1, int tri_pt2) const
+{
+    // create the triangle circumsphere
+    CircumDisk circum_disk = getCircumDisk(mPoints[tri_pt0], mPoints[tri_pt1], mPoints[tri_pt2]);
+    const vmath::Vector3 &csphere_center = circum_disk.center;
+    const float &csphere_radius = circum_disk.radius;
+
+    // check if any points in circumsphere
+    bool is_delaunay = true;
+    forEachPointInSphere(csphere_center, csphere_radius, [&](const int &p) -> bool {
+        // if another point is inside the circumsphere, then it is not a delaunay triangle
+        bool early_return = false;
+        if (p!=tri_pt0 && p!=tri_pt1 && p!=tri_pt2)
+        {
+            is_delaunay = false;
+            early_return = true;
+        }
+        return early_return;
+    });
+
+    return is_delaunay;
+}
 
 #endif // SPACEHASH3D_H

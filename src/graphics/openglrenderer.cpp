@@ -27,6 +27,8 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     glLineWidth(1.2f);
     glPointSize(2.6f);
 
+    glCullFace(GL_BACK);
+
     // set up shaders
     const char * vertex_shader_src =
     "#version 430\n"
