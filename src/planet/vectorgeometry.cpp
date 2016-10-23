@@ -1,5 +1,8 @@
 #include "vectorgeometry.h"
 
+// warning from clang, std::abs
+// #include <cmath>
+
 namespace VectorGeometry {
 
 
@@ -15,10 +18,10 @@ vmath::Vector3 linePlaneIntersection(vmath::Vector3 line_dir, vmath::Vector3 lin
     float discr = vmath::dot(plane_normal, line_dir);
 
     float d = 0.0f;
-    if (discr==0.0f) // could do with less branching
+    if (discr == 0.0f) // could do with less branching
     {
-        std::cerr << "Error in line-plane intersection: line parallel to plane, " <<
-                     "using line point as intersection point" << std::endl;
+        std::cerr << "Error in line-plane intersection: line parallel to plane, "
+                  << "using line point as intersection point" << std::endl;
     }
     else
     {
@@ -31,16 +34,16 @@ vmath::Vector3 linePlaneIntersection(vmath::Vector3 line_dir, vmath::Vector3 lin
 vmath::Vector3 linePlaneIntersectionNormalized(vmath::Vector3 line_dir_normalized, vmath::Vector3 line_point,
                                                vmath::Vector3 plane_normal_normalized, vmath::Vector3 plane_point)
 {
-    assert(abs(vmath::length(line_dir_normalized)-1.f)<0.0001);
-    assert(abs(vmath::length(plane_normal_normalized)-1.f)<0.0001);
+    assert(abs(vmath::length(line_dir_normalized) - 1.0f) < 0.0001f);
+    assert(abs(vmath::length(plane_normal_normalized) - 1.0f) < 0.0001f);
 
     float d = vmath::dot(plane_point-line_point, plane_normal_normalized);
     return line_point + d*line_dir_normalized;
 }
 
 vmath::Vector3 projectPointIntoPlane(vmath::Vector3 point,
-                                    vmath::Vector3 plane_normal,
-                                    vmath::Vector3 plane_point)
+                                     vmath::Vector3 plane_normal,
+                                     vmath::Vector3 plane_point)
 {
     return linePlaneIntersection(plane_normal, point, plane_normal, plane_point);
 }
@@ -59,24 +62,24 @@ inline float areaOfTriangle(const vmath::Vector3 &tp0,
 
 
 
-inline float pointPlaneSquareDistance(  const vmath::Vector3 &point,
-                                        const vmath::Vector3 &plane_normal,
-                                        const vmath::Vector3 &plane_point )
+inline float pointPlaneSquareDistance(const vmath::Vector3 &point,
+                                      const vmath::Vector3 &plane_normal,
+                                      const vmath::Vector3 &plane_point)
 {
-//    float D = -vmath::dot(plane_point, plane_normal);
-//    float n_squared = vmath::dot(plane_normal, plane_normal);
-//    float d_squared = std::pow(vmath::dot(plane_normal, point)+D, 2.0f)/n_squared;
+    // float D = -vmath::dot(plane_point, plane_normal);
+    // float n_squared = vmath::dot(plane_normal, plane_normal);
+    // float d_squared = std::pow(vmath::dot(plane_normal, point)+D, 2.0f)/n_squared;
 
-//    return d_squared;
+    // return d_squared;
 
     // alt
-    return std::pow(vmath::dot(plane_normal, point-plane_point),2.0f)/vmath::dot(plane_normal, plane_normal);;
+    return pow(vmath::dot(plane_normal, point-plane_point), 2.0f)/vmath::dot(plane_normal, plane_normal);
 
 }
 
 inline vmath::Vector3 triangleCross_inl(const vmath::Vector3 &tp0,
-                                     const vmath::Vector3 &tp1,
-                                     const vmath::Vector3 &tp2)
+                                        const vmath::Vector3 &tp1,
+                                        const vmath::Vector3 &tp2)
 {
     vmath::Vector3 vt01 = tp1 - tp0;
     vmath::Vector3 vt02 = tp2 - tp0;
@@ -85,16 +88,16 @@ inline vmath::Vector3 triangleCross_inl(const vmath::Vector3 &tp0,
 }
 
 vmath::Vector3 triangleCross(const vmath::Vector3 &tp0,
-                                     const vmath::Vector3 &tp1,
-                                     const vmath::Vector3 &tp2)
+                             const vmath::Vector3 &tp1,
+                             const vmath::Vector3 &tp2)
 {
     return triangleCross_inl(tp0, tp1, tp2);
 }
 
 
 vmath::Vector3 triangleNormal(const vmath::Vector3 &tp0,
-                             const vmath::Vector3 &tp1,
-                             const vmath::Vector3 &tp2)
+                              const vmath::Vector3 &tp1,
+                              const vmath::Vector3 &tp2)
 {
     return triangleCross_inl(tp0, tp1, tp2);
 }
@@ -128,8 +131,8 @@ vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
                                    const vmath::Vector3 &tri_cross)
 {
     // assert that the point is in triangle
-    assert( (pointPlaneSquareDistance(p, triangleNormal(tp0, tp1, tp2), tp0) <
-             0.01f*(vmath::lengthSqr(tp0-tp1))) );
+    assert((pointPlaneSquareDistance(p, triangleNormal(tp0, tp1, tp2), tp0) <
+            0.01f*(vmath::lengthSqr(tp0 - tp1))));
 
     float ta = areaOfTriangle(tri_cross);
 
@@ -152,20 +155,21 @@ vmath::Vector3 baryPointInTriangle(const vmath::Vector3 &p,
 }
 
 /*Line planePlaneIntersection(vmath::Vector3 p1, vmath::Vector3 n1, vmath::Vector3 p2, vmath::Vector3 n2){
-    vmath::Vector3 dir = vmath::cross(n1, n2);
-    vmath::
-}*/
+  vmath::Vector3 dir = vmath::cross(n1, n2);
+  vmath::
+  }*/
 
 vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 p1,
                                        vmath::Vector3 n2, vmath::Vector3 p2,
                                        vmath::Vector3 n3, vmath::Vector3 p3)
 {
     vmath::Matrix3 n_mat(n1, n2, n3);
-    vmath::Vector3 b = vmath::dot(p1,n1)*vmath::cross(n2, n3) +
-                       vmath::dot(p2,n2)*vmath::cross(n3, n1) +
-                       vmath::dot(p3,n3)*vmath::cross(n1, n2);
+    vmath::Vector3 b =
+            vmath::dot(p1, n1)*vmath::cross(n2, n3) +
+            vmath::dot(p2, n2)*vmath::cross(n3, n1) +
+            vmath::dot(p3, n3)*vmath::cross(n1, n2);
 
-    return vmath::inverse(n_mat) * b;
+    return vmath::inverse(n_mat)*b;
 }
 
 //vmath::Vector3 barycentricCoords(const vmath::Vector3 &pt,
@@ -224,20 +228,19 @@ bool pointInTriangle(const vmath::Vector3 &barycentric_coords)
     //std::cout << "barycentric_coords: "; vmath::print(barycentric_coords);
 
     const vmath::Vector3 &b = barycentric_coords;
-    if (b[0]+b[1]+b[2]>1.0f+T_EPS) return false; else return true;
+    return !(b[0] + b[1] + b[2] > 1.0f + T_EPS);
 }
 
 int multinomialCoefficient2(int i, int j, int k)
 {
-    assert(( (i+j+k==2) ));
+    assert(((i + j + k == 2)));
 
-    return std::max(i,std::max(j,k))==2 ? 1 : 2;
+    return std::max(i, std::max(j, k)) == 2 ? 1 : 2;
 }
 
 inline float bernesteinBarycentric(vmath::Vector3 b, int i, int j, int k)
 {
-
-    return (float)(multinomialCoefficient2(i, j, k)) * pow(b[0], i) * pow(b[1], j) * pow(b[2], k);
+    return (float)(multinomialCoefficient2(i, j, k))*pow(b[0], i)*pow(b[1], j)*pow(b[2], k);
 }
 
 //vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
@@ -255,6 +258,7 @@ inline float bernesteinBarycentric(vmath::Vector3 b, int i, int j, int k)
 //    vmath::Vector3 b = barycentricCoords(pt, tp0, tp1, tp2);
 
 static constexpr float BB_EPS = 0.000001f;
+
 vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
                                    const gfx::Triangle &triangle,
                                    const vmath::Vector3 &barycentric_coords,
@@ -265,14 +269,14 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
     vmath::Vector3 b = barycentric_coords;
 
     //debug
-    if (!(b[0]+b[1]+b[2]<=1.0f+T_EPS))
+    if (!(b[0] + b[1] + b[2] <= 1.0f + T_EPS))
     {
         std::cout << "in findPointInTriangle, b = ";
         vmath::print(b);
-        std::cout << "\nsum = " << b[0]+b[1]+b[2] << std::endl;
+        std::cout << "\nsum = " << b[0] + b[1] + b[2] << std::endl;
     }
 
-    assert((b[0]+b[1]+b[2]<=1.0f+T_EPS));
+    assert((b[0] + b[1] + b[2] <= 1.0f + T_EPS));
 
     // evaluate bernstein basis at barycentric coords (6 polys)
     float bb200 = bernesteinBarycentric(b, 2,0,0); // bary, n = 2, i, j, k -> n is degree of polynomial
@@ -285,31 +289,31 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
 
     // find the... fuark need edge normals for 3 edge planes
     // take the edge normals to be avg of point normals for now...
-    vmath::Vector3 n01 = 0.5f*(point_normals[triangle[0]]+point_normals[triangle[1]]);
-    vmath::Vector3 n02 = 0.5f*(point_normals[triangle[0]]+point_normals[triangle[2]]);
-    vmath::Vector3 n12 = 0.5f*(point_normals[triangle[1]]+point_normals[triangle[2]]);
+    vmath::Vector3 n01 = 0.5f*(point_normals[triangle[0]] + point_normals[triangle[1]]);
+    vmath::Vector3 n02 = 0.5f*(point_normals[triangle[0]] + point_normals[triangle[2]]);
+    vmath::Vector3 n12 = 0.5f*(point_normals[triangle[1]] + point_normals[triangle[2]]);
 
     // find the plane intersections
-    vmath::Vector3 origin = vmath::Vector3(0.f, 0.f, 0.f);
+    vmath::Vector3 origin = vmath::Vector3(0.0f, 0.0f, 0.0f);
     float z_n0 = vmath::length(linePlaneIntersection(pt, origin, point_normals[triangle[0]], points[triangle[0]]));
     float z_n1 = vmath::length(linePlaneIntersection(pt, origin, point_normals[triangle[1]], points[triangle[1]]));
     float z_n2 = vmath::length(linePlaneIntersection(pt, origin, point_normals[triangle[2]], points[triangle[2]]));
 
-    float z_n01 = vmath::length(linePlaneIntersection(pt, origin, n01, 0.5f*(points[triangle[0]]+points[triangle[1]])));
-    float z_n02 = vmath::length(linePlaneIntersection(pt, origin, n02, 0.5f*(points[triangle[0]]+points[triangle[2]])));
-    float z_n12 = vmath::length(linePlaneIntersection(pt, origin, n12, 0.5f*(points[triangle[1]]+points[triangle[2]])));
+    float z_n01 = vmath::length(linePlaneIntersection(pt, origin, n01, 0.5f*(points[triangle[0]] + points[triangle[1]])));
+    float z_n02 = vmath::length(linePlaneIntersection(pt, origin, n02, 0.5f*(points[triangle[0]] + points[triangle[2]])));
+    float z_n12 = vmath::length(linePlaneIntersection(pt, origin, n12, 0.5f*(points[triangle[1]] + points[triangle[2]])));
 
     float z = bb200*z_n0 + bb020*z_n1 + bb002*z_n2 + bb110*z_n01 + bb101*z_n02 + bb011*z_n12;
 
-    //float z = bb002+3.15f;
+    //float z = bb002 + 3.15f;
 
     // prime suspects are the basis functions, happy hunting
-    assert(((bb200 - b[0]*b[0])<BB_EPS));
-    assert(((bb020 - b[1]*b[1])<BB_EPS));
-    assert(((bb002 - b[2]*b[2])<BB_EPS));
-    assert(((bb110 - 2.0f*b[0]*b[1])<BB_EPS));
-    assert(((bb101 - 2.0f*b[0]*b[2])<BB_EPS));
-    assert(((bb011 - 2.0f*b[1]*b[2])<BB_EPS));
+    assert(((bb200 -      b[0]*b[0]) < BB_EPS));
+    assert(((bb020 -      b[1]*b[1]) < BB_EPS));
+    assert(((bb002 -      b[2]*b[2]) < BB_EPS));
+    assert(((bb110 - 2.0f*b[0]*b[1]) < BB_EPS));
+    assert(((bb101 - 2.0f*b[0]*b[2]) < BB_EPS));
+    assert(((bb011 - 2.0f*b[1]*b[2]) < BB_EPS));
 
     return z*pt;
 }
@@ -317,21 +321,22 @@ vmath::Vector3 findPointInTriangle(const vmath::Vector3 &point,
 vmath::Vector3 evalCubicBezierTri(const vmath::Vector3 &b,
                                   const std::vector<vmath::Vector3> &cp) // ten control points
 {
-    //debug
-    if (!(b[0]+b[1]+b[2]<=1.0f+T_EPS))
+    // debug
+    if (!(b[0] + b[1] + b[2] <= 1.0f + T_EPS))
     {
         std::cout << "in findPointInTriangle, b = ";
         vmath::print(b);
-        std::cout << "\nsum = " << b[0]+b[1]+b[2] << std::endl;
+        std::cout << "\nsum = " << b[0] + b[1] + b[2] << std::endl;
     }
 
-    assert((b[0]+b[1]+b[2]<=1.0f+T_EPS));
+    assert((b[0] + b[1] + b[2] <= 1.0f + T_EPS));
 
 
-    vmath::Vector3 out = ( b[0]*b[0]*b[0]*cp[0] + b[1]*b[1]*b[1]*cp[1] + b[2]*b[2]*b[2]*cp[2] ) +  // three corner control points
-    3.0f*(b[0]*b[0]*b[1]*cp[3] + b[0]*b[0]*b[2]*cp[4] + b[1]*b[1]*b[0]*cp[5] +
-          b[1]*b[1]*b[2]*cp[6] + b[2]*b[2]*b[1]*cp[7] + b[2]*b[2]*b[0]*cp[8]) + // six side control points, double check!
-    6.0f*(b[0]*b[1]*b[2]*cp[9]); // middle control points
+    vmath::Vector3 out =
+            1.0f*(b[0]*b[0]*b[0]*cp[0] + b[1]*b[1]*b[1]*cp[1] + b[2]*b[2]*b[2]*cp[2]) + // three corner control points
+            3.0f*(b[0]*b[0]*b[1]*cp[3] + b[0]*b[0]*b[2]*cp[4] + b[1]*b[1]*b[0]*cp[5]  +
+                  b[1]*b[1]*b[2]*cp[6] + b[2]*b[2]*b[1]*cp[7] + b[2]*b[2]*b[0]*cp[8]) + // six side control points, double check!
+            6.0f*(b[0]*b[1]*b[2]*cp[9]);                                                // middle control points
 
     return out;
 }
@@ -345,7 +350,7 @@ inline vmath::Vector3 findSphereTangent(const vmath::Vector3 &at_pt, const vmath
 
 inline float angleBetweenVectors(const vmath::Vector3 &a, const vmath::Vector3 &b)
 {
-    return atan2(vmath::length(vmath::cross(a,b)), vmath::dot(a,b));
+    return atan2(vmath::length(vmath::cross(a, b)), vmath::dot(a, b));
     // return: acos(vmath::dot(a,b)/(vmath::length(a)*vmath::length(b)));
 }
 
@@ -358,7 +363,7 @@ inline float areaTriOnUnitSphere(const vmath::Vector3 &tp0,
                                  const vmath::Vector3 &tp1,
                                  const vmath::Vector3 &tp2)
 {
-    assert(((vmath::length(tp0)-1.0f<T_EPS)&&(vmath::length(tp1)-1.0f<T_EPS)&&(vmath::length(tp2)-1.0f<T_EPS)));
+    assert(((vmath::length(tp0) - 1.0f < T_EPS) && (vmath::length(tp1) - 1.0f < T_EPS) && (vmath::length(tp2) - 1.0f < T_EPS)));
     float angle0 = angleBetweenVectors(findSphereTangent(tp0, tp1), findSphereTangent(tp0, tp2));
     float angle1 = angleBetweenVectors(findSphereTangent(tp1, tp0), findSphereTangent(tp1, tp2));
     float angle2 = angleBetweenVectors(findSphereTangent(tp2, tp1), findSphereTangent(tp2, tp0));
@@ -366,8 +371,8 @@ inline float areaTriOnUnitSphere(const vmath::Vector3 &tp0,
 }
 
 
-vmath::Vector3 findSphereBarycentric(   const vmath::Vector3 &pt,   const vmath::Vector3 &tp0,
-                                        const vmath::Vector3 &tp1,  const vmath::Vector3 &tp2)
+vmath::Vector3 findSphereBarycentric(const vmath::Vector3 &pt,  const vmath::Vector3 &tp0,
+                                     const vmath::Vector3 &tp1, const vmath::Vector3 &tp2)
 {
     // bring all points down to unit sphere
     auto pt_n = vmath::normalize(pt);

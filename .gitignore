@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# mine uvaner
+build/
+
+# macos stuff
+.DS_Store
+.localized
