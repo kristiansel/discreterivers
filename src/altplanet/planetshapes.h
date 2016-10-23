@@ -19,6 +19,7 @@ class BaseShape
 public:
     virtual vmath::Vector3 projectPoint(const vmath::Vector3 &point) const = 0;
     virtual AABB getAABB() const = 0;
+    virtual vmath::Vector3 getGradDir(const vmath::Vector3 &point) const = 0;
 };
 
 /* // need shape to be 3d, reimagine the disk as a squashed sphere (with two sides, exciting)
@@ -54,6 +55,10 @@ public:
         return {2.0f*radius, 2.0f*radius};
     }
 
+    vmath::Vector3 getGradDir(const vmath::Vector3 &point) const
+    {
+        return point;
+    }
 private:
     float radius;
 };
@@ -71,6 +76,12 @@ public:
     AABB getAABB() const
     {
         return {(2.0f*major_radius+2.0f*minor_radius), 2.0f*minor_radius};
+    }
+
+    vmath::Vector3 getGradDir(const vmath::Vector3 &point) const
+    {
+        vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
+        return point-circle_point;
     }
 
 private:

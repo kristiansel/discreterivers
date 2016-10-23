@@ -33,7 +33,7 @@ include_directories(
 
 # aux_source_directory(./src SRC_LIST)
 
-file(GLOB_RECURSE SRCS *.cpp)
+file(GLOB_RECURSE SRCS *.cpp *.h *.c *.hpp)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 

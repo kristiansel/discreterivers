@@ -139,6 +139,7 @@ inline vmath::Vector3 projectPointIntoPlane(const vmath::Vector3 &point,
     return point + d*plane_normal;
 }
 
+/*
 inline bool checkInCircumDisk(const vmath::Vector3 &pt, const CircumDisk &cdisk)
 {
     // project point onto circumdisk plane
@@ -146,7 +147,7 @@ inline bool checkInCircumDisk(const vmath::Vector3 &pt, const CircumDisk &cdisk)
 
     // check if distance less than radius
     return ( vmath::length(pt-cdisk.center) < cdisk.radius );
-}
+}*/
 
 template<class Func>
 void SpaceHash3D::forEachPointInSphere(vmath::Vector3 center, float radius, Func func) const

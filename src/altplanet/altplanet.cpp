@@ -1,7 +1,10 @@
 #include "altplanet.h"
+#include "triangulate.hpp"
 
 #include <iostream>
 #include <vector>
+#include <functional>
+#include <algorithm>
 #include <cstdlib>
 #include <tuple>
 #include <unordered_set>
@@ -16,8 +19,9 @@ inline float frand(float LO, float HI)
 }
 
 
-std::vector<gfx::Triangle> triangulate(const std::vector<vmath::Vector3> &points,
-                                       const SpaceHash3D &spacehash);
+std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
+                                                const SpaceHash3D &spacehash,
+                                                const Shape::BaseShape &planet_shape);
 
 
 Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
@@ -57,7 +61,7 @@ Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
     //float repulse_factor = 0.006f; // repulsive force factor
 
     std::cout << "distributing points evenly..." << std::endl;
-    int n_redistribute_iterations = 10;
+    int n_redistribute_iterations = 25;
     for (int i_red=0; i_red<n_redistribute_iterations; i_red++)
     {
         float it_repulsion_factor = i_red > 2 ? 0.003 : 0.008;
@@ -69,7 +73,7 @@ Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
     // finished distributing them evenly...
 
     // triangulate... :)
-    triangles = triangulate(points, spacehash);
+    triangles = triangulateAndOrient(points, spacehash, planet_shape);
 
     std::cout << "found " << triangles.size() << " triangles" << std::endl;
 
@@ -143,64 +147,81 @@ void pointsRepulse(std::vector<vmath::Vector3> &points, const Shape::BaseShape &
     pointsRepulse(points, spacehash, planet_shape, repulse_factor);
 }
 
-std::vector<gfx::Triangle> triangulate(const std::vector<vmath::Vector3> &points,
-                                       const SpaceHash3D &spacehash)
+//bool custom_tri_equal(gfx::Triangle t1, gfx::Triangle t2)
+//{
+//    std::array<int,3> inds = {t1[0], t1[1], t1[2]};
+//    std::sort(inds.begin(), inds.end());
+//}
+
+inline vmath::Vector3 triangleCross(const gfx::Triangle &triangle, const std::vector<vmath::Vector3> &points)
 {
-    std::vector<gfx::Triangle> tris_out;
-    std::unordered_set<gfx::Triangle> existing_tris;
+    const auto v1 = points[triangle[1]] - points[triangle[0]];
+    const auto v2 = points[triangle[2]] - points[triangle[0]];
+    return vmath::cross(v1,v2);
+}
 
-    float search_sphere_rad = 0.24f;
-    for (int i_p = 0; i_p<points.size(); i_p++)
+inline vmath::Vector3 triangleNormal(const gfx::Triangle &triangle, const std::vector<vmath::Vector3> &points)
+{
+    return vmath::normalize(triangleCross(triangle, points));
+}
+
+void orientTriangles(const std::vector<vmath::Vector3> &points,
+                     std::vector<gfx::Triangle> &triangles,
+                     const Shape::BaseShape &planet_shape)
+{
+    for (int i_t = 0; i_t<triangles.size(); i_t++)
     {
-        std::vector<int> neighbor_pts;
-        spacehash.forEachPointInSphere(points[i_p], search_sphere_rad, [&](const int &p) -> bool
+        gfx::Triangle &tri = triangles[i_t];
+        const auto v1 = points[tri[1]] - points[tri[0]];
+        const auto v2 = points[tri[2]] - points[tri[0]];
+
+        if (vmath::dot(vmath::cross(v1,v2), planet_shape.getGradDir(points[tri[0]])) < 0.0f)
         {
-            neighbor_pts.push_back(p);
-            bool early_return = false;
-            return early_return;
-        });
-
-        //std::cout << "neighbors: " << neighbors.size() << std::endl;
-
-        for (const auto neigh_pt1 : neighbor_pts)
-        {
-            for (const auto neigh_pt2 : neighbor_pts)
-            {
-                //std::cout << "inside loop: " << std::endl;
-                //std::cout << "cell_pt: " << cell_pt << std::endl;
-                //std::cout << "neigh_pt1: " << neigh_pt1 << std::endl;
-                //std::cout << "neigh_pt2: " << neigh_pt2 << std::endl;
-
-                // sort the indices, this is needed for proper hashing and equivalince checking
-                std::array<int,3> inds = {i_p, neigh_pt1, neigh_pt2};
-                std::sort(inds.begin(), inds.end());
-                auto last = std::unique(inds.begin(), inds.end());
-
-                // all three points must be unique for a proper triangle
-                if (last==inds.end())
-                {
-                    gfx::Triangle tri = {inds[0], inds[1], inds[2]};
-
-                    // check if the triangle is already created
-                    if (existing_tris.find(tri) == existing_tris.end())
-                    {
-                        // check if the triangle is delaunay w.r.t neighboring points
-                        if (spacehash.sphereCheckDelaunayGlobal(inds[0], inds[1], inds[2]))
-                        {
-                            tris_out.push_back(tri);
-
-                            existing_tris.insert(tri);
-                        }
-                    }
-                }
-            }
+            // reverse the order of the triangle indices
+            std::swap(tri[0], tri[2]);
         }
     }
+}
 
-    // find the number of edges
+inline void surfaceGradFilterTriangles( const std::vector<vmath::Vector3> &points,
+                                        std::vector<gfx::Triangle> &triangles,
+                                        const Shape::BaseShape &planet_shape)
+{
+    float n_dot_thresh = 0.9f;
+    auto remove_predicate = [&](const gfx::Triangle &tri) -> bool
+    {
+        vmath::Vector3 tri_n = triangleNormal(tri, points);
+        vmath::Vector3 av_pt = 0.33f*(points[tri[0]]+points[tri[1]]+points[tri[2]]);
+        vmath::Vector3 grad_planet_n = vmath::normalize(planet_shape.getGradDir(av_pt));
+        return vmath::dot(tri_n, grad_planet_n)<n_dot_thresh;
+    };
+    triangles.erase(std::remove_if(triangles.begin(), triangles.end(), remove_predicate), triangles.end());
+}
+
+std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
+                                                const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
+{
+    // create a triangulation
+    Triangulate::ReturnType trisandhash = Triangulate::trianglesWithHash(points, 0.27f, spacehash);
+    std::vector<gfx::Triangle> &triangles = trisandhash.triangles;
+    //std::unordered_set<gfx::Triangle> &existing_tris = trisandhash.trianglesHash;
+
+    // orient triangles
+    orientTriangles(points, triangles, planet_shape);
+
+    // filter away triangles with normals different from planet shape normal
+    surfaceGradFilterTriangles(points, triangles, planet_shape);
+
+    // for each points, check if any adjacent (slightly shrunk) triangles intersect
+    // if they do, then remove one...
+
+    // or change to doubles... (for that need to change library... or roll own)
+
+    // analyse edges
     int num_edges = 0;
     std::unordered_set<gfx::Line> existing_edges;
-    for (const auto &tri : tris_out)
+    std::vector<std::vector<int>> point_point_adj(points.size());
+    for (const auto &tri : triangles)
     {
         for (int i=0; i<3; i++)
         {
@@ -214,28 +235,98 @@ std::vector<gfx::Triangle> triangulate(const std::vector<vmath::Vector3> &points
             {
                 existing_edges.insert(line);
                 num_edges++;
+                point_point_adj[inds[0]].push_back(inds[1]);
+                point_point_adj[inds[1]].push_back(inds[0]);
             }
         }
     }
 
+    // if the edges are sorted, should be enough to check if each consecutive edge form a triangle with mid point...
+
+    /*
+    //std::cout << "sorting point connections ccw" << std::endl;
+    // challenge, sort edges counter clockwise...
+    // first create a function that monotonously increases as vectors go ccw around a centerpoint
+    auto ccw_rank = [](const vmath::Vector3 &v, const vmath::Vector3 &v_ref, const vmath::Vector3 &n_ref)
+    {
+        float angle = acos(vmath::dot(v, v_ref)/(vmath::length(v)*vmath::length(v_ref)));
+        float l_cross = vmath::dot(vmath::cross(v,v_ref), n_ref);
+        return (l_cross > 0.0f) ? angle : M_2_PI-angle;
+    };
+
+    // then make a custom comparison function
+    auto ccw_cmp = [&](const vmath::Vector3 &v1, const vmath::Vector3 &v2, const vmath::Vector3 &v_ref, const vmath::Vector3 &n_ref)
+    {
+        return ccw_rank(v1, v_ref, n_ref) < ccw_rank(v2, v_ref, n_ref);
+    };
+
+    // iterate through all adjacency list and sort them in counter clockwise rotation
+    for (int i_p = 0; i_p<point_point_adj.size(); i_p++)
+    {
+        auto adj_list = point_point_adj[i_p];
+
+        auto v1 = points[adj_list[0]]-points[i_p];
+        auto v2 = points[adj_list[1]]-points[i_p];
+
+        auto v_ref = 0.5f*(v1+v2);
+        auto n_ref = vmath::normalize(planet_shape.getGradDir(points[i_p]));
+
+        auto ccw_cmp_indexbased = [&](int i_n1, int i_n2)
+        {
+            return ccw_cmp(points[i_n1]-points[i_p], points[i_n2]-points[i_p], v_ref, n_ref);
+        };
+        std::sort(adj_list.begin(), adj_list.end(), ccw_cmp_indexbased);
+    }
+
+    //std::cout << "finished sorting point connections ccw" << std::endl;
+    */
     // compute the euler characteristic
-    int euler_characteristic = points.size()-num_edges+tris_out.size();
+    int euler_characteristic = points.size()-num_edges+triangles.size();
 
     std::cout << "num points = " << points.size() << std::endl;
-    std::cout << "num triangles = " << tris_out.size() << std::endl;
+    std::cout << "num triangles = " << triangles.size() << std::endl;
     std::cout << "num edges = " << num_edges << std::endl;
     std::cout << "euler characteristic = " << euler_characteristic << std::endl;
 
+    /*
     // compare it with what it should be for a closed surface of the same topology as the planet shape
+    // complicated...
 
+    // check if the surface is closed..
+    //  for all points
+    //      go to a (first) neighbor
+    //        go to next neighbor,
+    //          check if it also has first pt as neighbor and
+    //          find out if the two neighbors and pt share a triangle...
+    //              if either false, then we have a hole...
+    //      next neighbor now becomes first neighbor,
+    //          find new next neighbor etc
+    //      until back at first neighbor
 
-    return tris_out;
+    for (int i_p=0; i_p<points.size(); i_p++)
+    {
+        const auto &p_adj = point_point_adj[i_p];
+        int n_adj = p_adj.size();
+
+        for (int i_n1=0; i_n1<n_adj; i_n1++)
+        {
+            int i_n2 = (i_n1+1)%n_adj;
+            std::array<int,3> inds = {i_p, i_n1, i_n2};
+            std::sort(inds.begin(), inds.end());
+
+            gfx::Triangle tri{inds[0], inds[1], inds[2]};
+            if (existing_tris.find(tri) == existing_tris.end())
+            {
+                std::cout << "found a hole" << std::endl;
+            }
+        }
+    }
+
+    */
+
+    return triangles;
 }
 
-void orientTriangles(Geometry &geometry, const Shape::BaseShape &planet_shape)
-{
-
-}
 
 
 

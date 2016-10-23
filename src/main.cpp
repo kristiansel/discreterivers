@@ -27,10 +27,10 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        5,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        6,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
         1.0f,   // terrain roughness
         0.70f,  // fraction of planet covered by ocean
-        40,     // number of freshwater springs
+        150,     // number of freshwater springs
         5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(10000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
+
 
     // think a bit about the usage
 
@@ -213,19 +214,22 @@ int main(int argc, char *argv[])
            primitives_data.push_back({i});
         }
 
-        //std::vector<vmath::Vector4> normal_data;
-        //gfx::generateNormals(&normal_data, position_data, primitives_data);
+        std::vector<vmath::Vector4> normal_data;
+        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
-        gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
         gfx::Primitives primitives = gfx::Primitives(primitives_data);
         gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-        vmath::Vector4 color(0.5f, 0.5f, 0.5f, 1.0f);
+        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
         gfx::Material material = gfx::Material(color);
         //material.setWireframe(true);
 
-        alt_planet_points_so = planet_scene_node->addSceneObject(geometry, material);
+        gfx::Transform transform;
+        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
+
+        alt_planet_points_so = planet_scene_node->addSceneObject(geometry, material, transform);
     }
 
     gfx::SceneObjectHandle alt_planet_triangles_so;
@@ -238,17 +242,17 @@ int main(int argc, char *argv[])
            position_data.back().setW(1.0f);
         }
 
-        //std::vector<vmath::Vector4> normal_data;
-        //gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
+        std::vector<vmath::Vector4> normal_data;
+        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
-        gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
         gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
         gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
         vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
         gfx::Material material = gfx::Material(color);
-        material.setWireframe(true);
+        material.setWireframe(false);
 
         alt_planet_triangles_so = planet_scene_node->addSceneObject(geometry, material);
     }
