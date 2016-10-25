@@ -28,7 +28,16 @@
 *.out
 *.app
 
+# mine uvaner
+build/
+
+# macos stuff
+.DS_Store
+.localized
+
 # YouCompleteMe
 .ycm_extra_conf.py
 compile_commands.json
 __pycache__
+
+compile_commands.json
