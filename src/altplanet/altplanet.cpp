@@ -210,13 +210,9 @@ namespace AltPlanet
 	inline bool checkIfTrianglesIntersect(const std::vector<vmath::Vector3> &points,
 										  const gfx::Triangle &tri1, const gfx::Triangle &tri2)
 	{
-		// complex code stuff
-		//
-		// Project one triangle onto the other
-		//
-		// do the separated axis thing
-		
-		return false;
+		std::array<vmath::Vector3, 3> triangle1 = {points[tri1[0]], points[tri1[1]], points[tri1[2]]};	
+		std::array<vmath::Vector3, 3> triangle2 = {points[tri2[0]], points[tri2[1]], points[tri2[2]]};	
+		return Projection::trianglesOverlap(triangle1, triangle2);
 	}
 
 	inline void overlapFilterTriangles( const std::vector<vmath::Vector3> &points,
@@ -241,16 +237,22 @@ namespace AltPlanet
 		
 		// for each points, check if any adjacent (slightly shrunk) triangles intersect
 		// if they do, then remove one...
+		int found_intersecting_tris = 0;
 		for (int i_p = 0; i_p < points.size(); i_p++)
 		{
 			// for all triangles connected to that point
 			// check if they intersect each other
 			for (const auto &i_t1 : p2triAdj[i_p]) {
 				for (const auto &i_t2 : p2triAdj[i_p]) {
-					checkIfTrianglesIntersect(points, triangles[i_t1], triangles[i_t2]);	
+					bool intersected = checkIfTrianglesIntersect(points, triangles[i_t1], triangles[i_t2]);	
+					if (intersected)
+					{
+						found_intersecting_tris++;
+					}
 				}	
 			}	
 		}	
+		std::cout << "found_intersecting_tris: " << found_intersecting_tris << std::endl;
 	}
 
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
