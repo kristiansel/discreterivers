@@ -100,8 +100,7 @@ void pointsRepulse(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, 
         pt_force[i_p] = {0.0f, 0.0f, 0.0f};
         //std::vector<int> neighbors = spacehash.findNeighbors(i_p);
         //for (const auto &i_n : neighbors)
-        spacehash.forEachPointInSphere(points[i_p], 0.5f,
-                                       [&](const int &i_n) -> bool
+        spacehash.forEachPointInSphere(points[i_p], 0.5f, [&](const int &i_n) -> bool
                                        {
                                            const auto diff_vector = points[i_p] - points[i_n];
                                            float diff_length = vmath::length(diff_vector);
