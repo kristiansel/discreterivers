@@ -1,6 +1,7 @@
 #ifndef TRIANGULATE_HPP
 #define TRIANGULATE_HPP
 
+#include <array>
 #include <vector>
 #include <unordered_set>
 
