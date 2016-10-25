@@ -34,7 +34,7 @@ include_directories(
 # Create compilation database
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
-file(GLOB_RECURSE SRCS *.cpp *.h *.c *.hpp)
+file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 

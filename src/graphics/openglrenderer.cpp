@@ -8,6 +8,7 @@ namespace gfx
 OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
 {
     // GLEW
+    // glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -31,7 +32,7 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
 
     // set up shaders
     const char * vertex_shader_src =
-    "#version 430\n"
+    "#version 410\n"
 
     "layout(location = 0) in vec4 vertex_position;"
     "layout(location = 1) in vec4 vertex_normal;"
@@ -50,7 +51,7 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     "}";
 
     const char * fragment_shader_src =
-    "#version 430\n"
+    "#version 410\n"
 
     "in vec4 position;"
     "in vec4 normal;"
@@ -243,23 +244,23 @@ Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
 
     const GLfloat *points = (GLfloat *)&position_data[0];
     GLsizeiptr num_points = num_vertices;
-    GLsizeiptr point_buffer_size = num_points * sizeof(vmath::Vector4);
+    GLsizeiptr point_buffer_size = num_points*sizeof(vmath::Vector4);
 
     // create position buffer
     mPositionArrayBuffer = 0;
-    glGenBuffers (1, &mPositionArrayBuffer);
-    glBindBuffer (GL_ARRAY_BUFFER, mPositionArrayBuffer);
-    glBufferData (GL_ARRAY_BUFFER, point_buffer_size, points, GL_STATIC_DRAW);
-    glEnableVertexAttribArray (0);
-    glVertexAttribPointer (0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    glGenBuffers(1, &mPositionArrayBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mPositionArrayBuffer);
+    glBufferData(GL_ARRAY_BUFFER, point_buffer_size, points, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
     // create normal buffer
     mNormalArrayBuffer = 0;
-    glGenBuffers (1, &mNormalArrayBuffer);
-    glBindBuffer (GL_ARRAY_BUFFER, mNormalArrayBuffer);
-    glBufferData (GL_ARRAY_BUFFER, normal_data.size()*sizeof(vmath::Vector4), &normal_data[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray (1);
-    glVertexAttribPointer (1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    glGenBuffers(1, &mNormalArrayBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mNormalArrayBuffer);
+    glBufferData(GL_ARRAY_BUFFER, normal_data.size()*sizeof(vmath::Vector4), &normal_data[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
     glBindVertexArray(0);
 

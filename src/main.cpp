@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     //int width = 3000;
     //int height = 1600;
 
-    int width = 1920;
-    int height = 1080;
+    int width = 800;
+    int height = 600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
                                   SDL_WINDOWPOS_UNDEFINED, // windowpos x
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
                                   width, height, flags);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
