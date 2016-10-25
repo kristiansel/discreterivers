@@ -31,7 +31,8 @@ include_directories(
     ${GLEW_INCLUDE_DIRS}
 )
 
-# aux_source_directory(./src SRC_LIST)
+# Create compilation database
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 

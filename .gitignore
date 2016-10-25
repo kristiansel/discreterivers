@@ -34,3 +34,8 @@ build/
 # macos stuff
 .DS_Store
 .localized
+
+# YouCompleteMe
+.ycm_extra_conf.py
+compile_commands.json
+__pycache__
