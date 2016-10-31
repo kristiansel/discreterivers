@@ -9,6 +9,7 @@
 #include <iostream>
 #include <tuple>
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 
@@ -254,6 +255,50 @@ namespace AltPlanet
 		}	
 		std::cout << "found_intersecting_tris: " << found_intersecting_tris << std::endl;
 	}
+	
+	inline void tripleEdgeFilterTriangles(std::vector<gfx::Triangle> &triangles)
+	{
+		// build edge-triangle adjacency and triangle-edge adjacency
+		std::unordered_map<gfx::Line, std::vector<int>> edge_tri_adj;
+
+		for (int i_tri = 0; i_tri < triangles.size(); ++i_tri) 
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				const gfx::Triangle &tri = triangles[i_tri];
+				gfx::Line line = { tri[j%3], tri[(j+1)%3] };
+				if (line.indices[1] > line.indices[0]) std::swap(line.indices[0], line.indices[1]);
+
+				auto it = edge_tri_adj.find(line);
+				if (it == edge_tri_adj.end())
+				{
+					edge_tri_adj.insert(std::make_pair(line, std::vector<int>()));
+				}
+				edge_tri_adj[line].push_back(i_tri);
+			}	
+		}
+
+		// for each triangle
+		//   count the number of edges with more than 2 triangles adjacent
+		//     if more than two edges has 2 triangles adjacent, then mark this triangle for removal
+
+		auto rogue_tri = [&](const gfx::Triangle &tri) -> bool
+		{
+			int triple_edge_count = 0; // number of edges with three or more triangles
+			for (int j = 0; j < 3; j++)
+			{
+				gfx::Line line = { tri[j%3], tri[(j+1)%3] };
+				if (line.indices[1] > line.indices[0]) std::swap(line.indices[0], line.indices[1]);
+				if (edge_tri_adj[line].size() > 2) ++triple_edge_count;
+			}
+			return triple_edge_count > 1;
+		};
+
+		// actually remove the marked triangles
+		triangles.erase(std::remove_if(triangles.begin(), triangles.end(), rogue_tri), triangles.end());
+
+		// might have removed too many triangles...
+	}
 
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
 													const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
@@ -269,7 +314,9 @@ namespace AltPlanet
 		// filter away triangles with normals different from planet shape normal
 		surfaceGradFilterTriangles(points, triangles, planet_shape);
 
-		overlapFilterTriangles(points, triangles, planet_shape);
+		tripleEdgeFilterTriangles(triangles);
+
+		//overlapFilterTriangles(points, triangles, planet_shape);
 
 		// for each points, check if any adjacent (slightly shrunk) triangles intersect
 		// if they do, then remove one...
