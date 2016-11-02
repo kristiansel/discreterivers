@@ -68,11 +68,11 @@ int main(int argc, char *argv[])
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
-    //int width = 3000;
-    //int height = 1600;
+    int width = 1800;
+    int height = 900;
 
-    int width = 2800;
-    int height = 1600;
+    //int width = 2800;
+    //int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
                                   SDL_WINDOWPOS_UNDEFINED, // windowpos x
@@ -437,51 +437,55 @@ int main(int argc, char *argv[])
     float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
 
+    int x = 0;
     while(!done)
     {
-        while(SDL_PollEvent(&event))
+        ++x;
+        while( SDL_PollEvent(&event) )
         {
             switch(event.type)
             {
-                case SDL_KEYDOWN:
-                    switch(event.key.keysym.sym)
+                case(SDL_KEYDOWN):
+                    if (event.key.repeat == 0)
                     {
-                        case(SDLK_f):
-                            opengl_renderer.toggleWireframe();
-                            break;
-
-                        case(SDLK_q):
-                            done = true;
-                            break;
-                        case(SDLK_h):
-                            planet_sceneobject->toggleVisible();
-                            break;
-                        case(SDLK_u):
-                            {
-                                // do an iteration of repulsion
-                                AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
-
-                                // update the scene object geometry
-                                std::vector<vmath::Vector4> position_data;
-                                std::vector<gfx::Point> primitives_data;
-
-                                for (int i = 0; i<alt_planet_points.size(); i++)
-                                {
-                                   position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                   position_data.back().setW(1.0f);
-                                   primitives_data.push_back({i});
-                                }
-
-                                gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
-                                gfx::Primitives primitives = gfx::Primitives(primitives_data);
-
-                                alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                        switch(event.key.keysym.sym)
+                        {
+                            case(SDLK_f):
+                                opengl_renderer.toggleWireframe();
                                 break;
-                            }
-                        case(SDLK_ESCAPE):
-                            done = true;
-                            break;
+                            case(SDLK_q):
+                                done = true;
+                                break;
+                            case(SDLK_h):
+                                planet_sceneobject->toggleVisible(); // segfault
+                                break;
+                            case(SDLK_u):
+                                {
+                                    // do an iteration of repulsion
+                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
 
+                                    // update the scene object geometry
+                                    std::vector<vmath::Vector4> position_data;
+                                    std::vector<gfx::Point> primitives_data;
+
+                                    for (int i = 0; i<alt_planet_points.size(); i++)
+                                    {
+                                       position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                                       position_data.back().setW(1.0f);
+                                       primitives_data.push_back({i});
+                                    }
+
+                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
+
+                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                                    break;
+                                }
+                            case(SDLK_ESCAPE):
+                                done = true;
+                                break;
+
+                        }
                     }
                     break; // without this, it quits...
 
@@ -515,7 +519,7 @@ int main(int argc, char *argv[])
         // sleep as to not consume 100% CPU
         std::this_thread::sleep_for (dt_fixed);
 
-    }   // End while
+    }   // End while(!done)
 
     // after drawing finished
     GLenum gl_err = GL_NO_ERROR;

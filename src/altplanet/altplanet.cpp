@@ -97,19 +97,20 @@ namespace AltPlanet
 		std::vector<vmath::Vector3> pt_force;
 		pt_force.resize(points.size());
 
+        float forceRadius = 1.8f*cbrt(1.0f/spacehash.getPointDensity());
+        float repulse_factor_scaled = 2.0f*forceRadius*repulse_factor;
+
 		for (int i_p = 0; i_p<points.size(); i_p++)
 		{
 			pt_force[i_p] = {0.0f, 0.0f, 0.0f};
-			//std::vector<int> neighbors = spacehash.findNeighbors(i_p);
-			//for (const auto &i_n : neighbors)
-			spacehash.forEachPointInSphere(points[i_p], 0.5f,
+            spacehash.forEachPointInSphere(points[i_p], forceRadius,
 										   [&](const int &i_n) -> bool
 										   {
 											   const auto diff_vector = points[i_p] - points[i_n];
 											   float diff_length = vmath::length(diff_vector);
 											   if (diff_length > 0.0f)
 											   {
-												   pt_force[i_p] += repulse_factor * vmath::normalize(diff_vector)/(diff_length);
+                                                   pt_force[i_p] += repulse_factor_scaled * vmath::normalize(diff_vector)/(diff_length);
 											   }
 											   return false;
 										   });
@@ -256,7 +257,7 @@ namespace AltPlanet
 		std::cout << "found_intersecting_tris: " << found_intersecting_tris << std::endl;
 	}
 	
-	inline void tripleEdgeFilterTriangles(std::vector<gfx::Triangle> &triangles)
+    inline void tripleEdgeFilterTriangles(std::vector<gfx::Triangle> &triangles)
 	{
 		// build edge-triangle adjacency and triangle-edge adjacency
 		std::unordered_map<gfx::Line, std::vector<int>> edge_tri_adj;
@@ -281,7 +282,6 @@ namespace AltPlanet
 		// for each triangle
 		//   count the number of edges with more than 2 triangles adjacent
 		//     if more than two edges has 2 triangles adjacent, then mark this triangle for removal
-
 		auto rogue_tri = [&](const gfx::Triangle &tri) -> bool
 		{
 			int triple_edge_count = 0; // number of edges with three or more triangles
@@ -293,13 +293,8 @@ namespace AltPlanet
 			}
 			return triple_edge_count > 1;
 		};
-		/*
-		// actually remove the marked triangles
-		triangles.erase(std::remove_if(triangles.begin(), triangles.end(), rogue_tri), triangles.end());
 
-		// might have removed too many triangles...
-		*/
-		
+        // remove triangles
 		int w = 0;
 		for (int r = 0; r < triangles.size(); r++)
 	   	{
@@ -333,8 +328,11 @@ namespace AltPlanet
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
 													const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
 	{
+        float triangulationRadius = 0.78f*cbrt(1.0f/spacehash.getPointDensity());
+        std::cout << "n_points = " << points.size() << ", rad = " << triangulationRadius << std::endl;
+
 		// create a triangulation
-		Triangulate::ReturnType trisandhash = Triangulate::trianglesWithHash(points, 0.27f, spacehash);
+        Triangulate::ReturnType trisandhash = Triangulate::trianglesWithHash(points, triangulationRadius, spacehash);
 		std::vector<gfx::Triangle> &triangles = trisandhash.triangles;
 		//std::unordered_set<gfx::Triangle> &existing_tris = trisandhash.trianglesHash;
 
@@ -344,123 +342,43 @@ namespace AltPlanet
 		// filter away triangles with normals different from planet shape normal
 		surfaceGradFilterTriangles(points, triangles, planet_shape);
 
-		tripleEdgeFilterTriangles(triangles);
+        // Filter away triangles with more than two edges that border three triangles
+        // an edge should strictly be between two triangles for "manifoldness"
+        tripleEdgeFilterTriangles(triangles);
 
-		//overlapFilterTriangles(points, triangles, planet_shape);
 
-		// for each points, check if any adjacent (slightly shrunk) triangles intersect
-		// if they do, then remove one...
-		for (int i = 0; i<points.size(); i++)
-		{
-			// for all triangles connected to that point
-			// check if they intersect each other
-		}	
-		// or change to doubles... (for that need to change library... or roll own)
+        // analyse edges
+        int num_edges = 0;
+        std::unordered_set<gfx::Line> existing_edges;
+        std::vector<std::vector<int>> point_point_adj(points.size());
+        for (const auto &tri : triangles)
+        {
+            for (int i=0; i<3; i++)
+            {
+                int i_next =(i+1)%3;
+                std::array<int,2> inds = {tri[i], tri[i_next]};
+                std::sort(inds.begin(), inds.end());
 
-		// analyse edges
-		int num_edges = 0;
-		std::unordered_set<gfx::Line> existing_edges;
-		std::vector<std::vector<int>> point_point_adj(points.size());
-		for (const auto &tri : triangles)
-		{
-			for (int i=0; i<3; i++)
-			{
-				int i_next =(i+1)%3;
-				std::array<int,2> inds = {tri[i], tri[i_next]};
-				std::sort(inds.begin(), inds.end());
+                gfx::Line line = {inds[0], inds[1]};
 
-				gfx::Line line = {inds[0], inds[1]};
+                if (existing_edges.find(line) == existing_edges.end())
+                {
+                    existing_edges.insert(line);
+                    num_edges++;
+                    point_point_adj[inds[0]].push_back(inds[1]);
+                    point_point_adj[inds[1]].push_back(inds[0]);
+                }
+            }
+        }
 
-				if (existing_edges.find(line) == existing_edges.end())
-				{
-					existing_edges.insert(line);
-					num_edges++;
-					point_point_adj[inds[0]].push_back(inds[1]);
-					point_point_adj[inds[1]].push_back(inds[0]);
-				}
-			}
-		}
-
-		// if the edges are sorted, should be enough to check if each consecutive edge form a triangle with mid point...
-
-		/*
-		//std::cout << "sorting point connections ccw" << std::endl;
-		// challenge, sort edges counter clockwise...
-		// first create a function that monotonously increases as vectors go ccw around a centerpoint
-		auto ccw_rank = [](const vmath::Vector3 &v, const vmath::Vector3 &v_ref, const vmath::Vector3 &n_ref)
-		{
-			float angle = acos(vmath::dot(v, v_ref)/(vmath::length(v)*vmath::length(v_ref)));
-			float l_cross = vmath::dot(vmath::cross(v,v_ref), n_ref);
-			return (l_cross > 0.0f) ? angle : M_2_PI-angle;
-		};
-
-		// then make a custom comparison function
-		auto ccw_cmp = [&](const vmath::Vector3 &v1, const vmath::Vector3 &v2, const vmath::Vector3 &v_ref, const vmath::Vector3 &n_ref)
-		{
-			return ccw_rank(v1, v_ref, n_ref) < ccw_rank(v2, v_ref, n_ref);
-		};
-
-		// iterate through all adjacency list and sort them in counter clockwise rotation
-		for (int i_p = 0; i_p<point_point_adj.size(); i_p++)
-		{
-			auto adj_list = point_point_adj[i_p];
-
-			auto v1 = points[adj_list[0]]-points[i_p];
-			auto v2 = points[adj_list[1]]-points[i_p];
-
-			auto v_ref = 0.5f*(v1+v2);
-			auto n_ref = vmath::normalize(planet_shape.getGradDir(points[i_p]));
-
-			auto ccw_cmp_indexbased = [&](int i_n1, int i_n2)
-			{
-				return ccw_cmp(points[i_n1]-points[i_p], points[i_n2]-points[i_p], v_ref, n_ref);
-			};
-			std::sort(adj_list.begin(), adj_list.end(), ccw_cmp_indexbased);
-		}
-
-		//std::cout << "finished sorting point connections ccw" << std::endl;
-		*/
-		// compute the euler characteristic
-		int euler_characteristic = points.size()-num_edges+triangles.size();
+        // compute the euler characteristic
+        int euler_characteristic = points.size()-num_edges+triangles.size();
 
 		std::cout << "num points = " << points.size() << std::endl;
 		std::cout << "num triangles = " << triangles.size() << std::endl;
 		std::cout << "num edges = " << num_edges << std::endl;
 		std::cout << "euler characteristic = " << euler_characteristic << std::endl;
 
-		// compare it with what it should be for a closed surface of the same topology as the planet shape
-		// complicated...
-
-		// check if the surface is closed..
-		//  for all points
-		//      go to a (first) neighbor
-		//        go to next neighbor,
-		//          check if it also has first pt as neighbor and
-		//          find out if the two neighbors and pt share a triangle...
-		//              if either false, then we have a hole...
-		//      next neighbor now becomes first neighbor,
-		//          find new next neighbor etc
-		//      until back at first neighbor
-
-		/*for (int i_p=0; i_p<points.size(); i_p++)
-		{
-			const auto &p_adj = point_point_adj[i_p];
-			int n_adj = p_adj.size();
-
-			for (int i_n1=0; i_n1<n_adj; i_n1++)
-			{
-				int i_n2 = (i_n1+1)%n_adj;
-				std::array<int,3> inds = {i_p, i_n1, i_n2};
-				std::sort(inds.begin(), inds.end());
-
-				gfx::Triangle tri{inds[0], inds[1], inds[2]};
-				if (existing_tris.find(tri) == existing_tris.end())
-				{
-					std::cout << "found a hole" << std::endl;
-				}
-			}
-			points[i] = planet_shape.projectPoint(points[i]);
-		}*/
 		return triangles;
 	}
 

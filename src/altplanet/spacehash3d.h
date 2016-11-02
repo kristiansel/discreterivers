@@ -24,6 +24,7 @@ public:
 
     bool sphereCheckDelaunayGlobal(int tri_pt0, int tri_pt1, int tri_pt2) const;
 
+    float getPointDensity() const;
     /*
     template<class F>
     void forEachCellNeighborhood(int neighborhood_size, F func) const;

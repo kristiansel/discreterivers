@@ -68,3 +68,8 @@ void SpaceHash3D::rehash(const std::vector<vmath::Vector3> &points)
         mGridToPointMap[I].push_back(i);
     }
 }
+
+float SpaceHash3D::getPointDensity() const
+{
+    return mPointCubeVolDensity;
+}
