@@ -263,9 +263,9 @@ namespace AltPlanet
 
 		for (int i_tri = 0; i_tri < triangles.size(); ++i_tri) 
 		{
+			const gfx::Triangle &tri = triangles[i_tri];
 			for (int j = 0; j < 3; j++)
 			{
-				const gfx::Triangle &tri = triangles[i_tri];
 				gfx::Line line = { tri[j%3], tri[(j+1)%3] };
 				if (line.indices[1] > line.indices[0]) std::swap(line.indices[0], line.indices[1]);
 
@@ -293,11 +293,41 @@ namespace AltPlanet
 			}
 			return triple_edge_count > 1;
 		};
-
+		/*
 		// actually remove the marked triangles
 		triangles.erase(std::remove_if(triangles.begin(), triangles.end(), rogue_tri), triangles.end());
 
 		// might have removed too many triangles...
+		*/
+		
+		int w = 0;
+		for (int r = 0; r < triangles.size(); r++)
+	   	{
+			const gfx::Triangle &tri = triangles[r];
+
+			// read from r, write to index w	
+			if (rogue_tri(tri))
+			{
+				// remove it from the edge vector
+				for (int j = 0; j < 3; j++)
+				{
+					gfx::Line line = { tri[j%3], tri[(j+1)%3] };
+					if (line.indices[1] > line.indices[0]) std::swap(line.indices[0], line.indices[1]);
+
+					auto &v = edge_tri_adj[line];
+					v.erase(std::remove(v.begin(), v.end(), r), v.end());
+				}
+			}
+			else 
+			{
+				// copy the read triangle to the writing position and increment the write index
+				triangles[w] = triangles[r];
+				++w;
+			}
+		}
+
+		// resize the vector to its final size (w)
+		triangles.resize(w);
 	}
 
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
