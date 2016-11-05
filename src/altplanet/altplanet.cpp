@@ -1,6 +1,8 @@
 #include "altplanet.h"
 #include "triangulate.hpp"
+#include "../common/procedural/noise3d.h"
 #include "../common/collision/projection.h"
+#include "../common/mathext.h"
 
 #include <algorithm>
 #include <array>
@@ -13,23 +15,15 @@
 #include <vector>
 
 
+using namespace MathExt;
+
 namespace AltPlanet
 {
-
-	inline float frand(float LO, float HI)
-	{
-		return LO + static_cast <float> (rand())/( static_cast <float> (RAND_MAX/(HI-LO)));
-	}
-
-	bool isnan_lame(float x)
-	{
-		return x != x;
-	}
-
-
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
 													const SpaceHash3D &spacehash,
 													const Shape::BaseShape &planet_shape);
+
+    void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);
 
 
 	Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
@@ -85,7 +79,7 @@ namespace AltPlanet
 
 		std::cout << "found " << triangles.size() << " triangles" << std::endl;
 
-		//auto dummy = triangulate2(points, spacehash, planet_shape);
+        perturbHeightNoise3D(points, planet_shape);
 
 		return geometry;
 	}
@@ -382,4 +376,16 @@ namespace AltPlanet
 		return triangles;
 	}
 
+    void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape)
+    {
+        Shape::AABB aabb = planet_shape.getAABB();
+        float smallest_noise_scale = 0.2f; // TODO: meters....
+        Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale);
+
+        for (auto &point : points)
+        {
+            float noise_sample = 0.2f*noise3d.sample(point);
+            planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
+        }
+    }
 }

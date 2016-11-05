@@ -17,9 +17,58 @@ struct AABB {float width; float height;};
 class BaseShape
 {
 public:
-    virtual vmath::Vector3 projectPoint(const vmath::Vector3 &point) const = 0;
+    /**
+     * @brief shapeFunction: Override this function to define planet shape.
+     * @param point: Input point to transform to planet shape surface
+     * @param projected_point: Output transformed point on shape surface
+     * @return: The "Height" equivalent of the implemented shape. For example:
+     *         for a sphere this would be the distance to the center
+     */
+    //virtual float shapeFunction(const vmath::Vector3 &point, vmath::Vector3 &projected_point) const = 0;
+
+    struct SurfaceLine
+    {
+        vmath::Vector3 zeroHeightPt;
+        vmath::Vector3 surfNormal;
+        float refHeight;
+
+        vmath::Vector3 evalRefHeight() const { return zeroHeightPt + surfNormal * refHeight; }
+        vmath::Vector3 evalHeight(float height) const { return zeroHeightPt + surfNormal * height; }
+    };
+
+    virtual SurfaceLine shapeFunction(const vmath::Vector3 &point) const = 0;
+
+
+    /**
+     * @brief getAABB: Axis-aligned bounding box
+     * @return: The AABB struct contains the width and height of the
+     *          (origin-centered) axis-aligned bounding box for the shape
+     */
     virtual AABB getAABB() const = 0;
+
+    /**
+     * @brief getAABB: Get the direction of the gradient to the surface
+     *          at an arbitrary point.
+     * @return: The direction of the gradient is not normalized.
+     */
     virtual vmath::Vector3 getGradDir(const vmath::Vector3 &point) const = 0;
+
+    //////////////////////////////////////////////////
+    // Functions that utilize the virtual functions //
+    //////////////////////////////////////////////////
+    vmath::Vector3 projectPoint(const vmath::Vector3 &point) const
+    {
+        SurfaceLine surface_line = shapeFunction(point);
+        return surface_line.evalRefHeight();
+    }
+
+    void scalePointHeight(vmath::Vector3 &point, float scale_factor) const
+    {
+        SurfaceLine surface_line = shapeFunction(point);
+        float newHeight = surface_line.refHeight*scale_factor;
+        point = surface_line.evalHeight(newHeight);
+    }
+
 };
 
 /* // need shape to be 3d, reimagine the disk as a squashed sphere (with two sides, exciting)
@@ -45,9 +94,9 @@ class Sphere : public BaseShape
 {
 public:
     Sphere(float radius) : radius(radius) {}
-    vmath::Vector3 projectPoint(const vmath::Vector3 &point) const
+    SurfaceLine shapeFunction(const vmath::Vector3 &point) const
     {
-        return radius*vmath::normalize(point); // simply remove the y-component
+        return {vmath::Vector3(0.f, 0.f, 0.f), vmath::normalize(point), radius};
     }
 
     AABB getAABB() const
@@ -67,10 +116,12 @@ class Torus : public BaseShape
 {
 public:
     Torus(float major_radius, float minor_radius) : major_radius(major_radius), minor_radius(minor_radius) {}
-    vmath::Vector3 projectPoint(const vmath::Vector3 &point) const
+    SurfaceLine shapeFunction(const vmath::Vector3 &point) const
     {
         vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
-        return circle_point + minor_radius*vmath::normalize(point-circle_point);
+        vmath::Vector3 pt_diff = point - circle_point;
+
+        return {circle_point, vmath::normalize(pt_diff), minor_radius};
     }
 
     AABB getAABB() const
