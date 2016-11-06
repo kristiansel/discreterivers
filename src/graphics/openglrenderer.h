@@ -225,6 +225,9 @@ private:
 
 struct SceneNodeHandle
 {
+    SceneNodeHandle(SceneNodeHandle&& o) :
+        mOpenGLRenderer(std::move(o.mOpenGLRenderer)), mID(std::move(o.mID)) {}
+
     SceneNodeHandle(OpenGLRenderer * const opengl_renderer, scenenode_id id) :
         mOpenGLRenderer(opengl_renderer), mID(id) {}
 
@@ -271,11 +274,11 @@ private:
 
 struct SceneObjectHandle
 {
-    SceneObjectHandle() :
-        mSceneNode(nullptr), mID(0) {}
-
     SceneObjectHandle(const SceneObjectHandle &so) :
         mSceneNode(so.mSceneNode), mID(so.mID) {}
+
+    SceneObjectHandle(SceneObjectHandle&& so) :
+        mSceneNode(std::move(so.mSceneNode)), mID(std::move(so.mID)) {}
 
     SceneObjectHandle(SceneNode * const scene_node, sceneobject_id id) :
         mSceneNode(scene_node), mID(id) {}
@@ -289,6 +292,7 @@ struct SceneObjectHandle
     sceneobject_id getSceneObjectID() const {return mID;}
 
 private:
+    SceneObjectHandle();
 
     SceneNode * mSceneNode;
     sceneobject_id mID;

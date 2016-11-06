@@ -17,6 +17,8 @@
 
 #include "altplanet/altplanet.h"
 
+#include "common/serialize.h"
+
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 //namespace oglr = OpenGLRenderer;
@@ -44,9 +46,15 @@ int main(int argc, char *argv[])
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(10000, planet_shape);
+    AltPlanet::Geometry temp_geom = AltPlanet::generate(5000, planet_shape);
+    Serial::StreamType res;
+    Serial::serialize(temp_geom, res);
+    auto alt_planet_geometry = Serial::deserialize<AltPlanet::Geometry>(res);
+
+    //AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(5000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
+
 
 
     // think a bit about the usage
@@ -121,7 +129,7 @@ int main(int argc, char *argv[])
 
 
     // create some scene objects using/sharing geometry
-    gfx::SceneObjectHandle planet_sceneobject;
+    gfx::SceneObjectHandle planet_sceneobject = ([&]()
     {
 
         gfx::Primitives primitives = gfx::Primitives(planet_primitives_data);
@@ -133,9 +141,9 @@ int main(int argc, char *argv[])
         gfx::Material material = gfx::Material(color);
         // material.setWireframe(false);
 
-        //planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
-    }
-
+        return planet_scene_node->addSceneObject(geometry, material);
+    })(); // immediately invoked lambda!
+    planet_sceneobject->toggleVisible(); // hide by default
 
 //    // create some scene objects using/sharing geometry
 //    gfx::SceneObjectHandle subd_planet_sceneobject;
@@ -200,7 +208,7 @@ int main(int argc, char *argv[])
 //        planet_sceneobject_lod = planet_scene_node->addSceneObject(geometry, material);
 //    }
 
-    gfx::SceneObjectHandle alt_planet_points_so;
+    gfx::SceneObjectHandle alt_planet_points_so = ([&]()
     {
 
 
@@ -229,10 +237,10 @@ int main(int argc, char *argv[])
         gfx::Transform transform;
         transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
 
-        alt_planet_points_so = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
+        return planet_scene_node->addSceneObject(geometry, material, transform);
+    })(); // immediately invoked lambda!
 
-    gfx::SceneObjectHandle alt_planet_triangles_so;
+    gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
         std::vector<vmath::Vector4> position_data;
 
@@ -254,9 +262,10 @@ int main(int argc, char *argv[])
         gfx::Material material = gfx::Material(color);
         material.setWireframe(false);
 
-        alt_planet_triangles_so = planet_scene_node->addSceneObject(geometry, material);
-    }
+        return planet_scene_node->addSceneObject(geometry, material);
+    })(); // immediately invoked lambda!
 
+    /*
     gfx::SceneObjectHandle lambda_flowdown_sceneobject;
     {
         auto is_flowdown = []() { return true; };
@@ -380,53 +389,54 @@ int main(int argc, char *argv[])
         transform.scale = vmath::Vector3(1.005f, 1.005f, 1.005f);
 
         //split_flow_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
+    }*/
 
-    gfx::SceneObjectHandle ocean_sceneobject;
-    {
-        const std::vector<vmath::Vector4> &ocean_position_data = *(planet.getOceanVerticesPtr());
-        const std::vector<gfx::Triangle> &ocean_primitives_data = *(planet.getOceanTrianglesPtr());
 
-        std::vector<vmath::Vector4> ocean_normal_data;
-        gfx::generateNormals(&ocean_normal_data, ocean_position_data, ocean_primitives_data);
+//    gfx::SceneObjectHandle ocean_sceneobject;
+//    {
+//        const std::vector<vmath::Vector4> &ocean_position_data = *(planet.getOceanVerticesPtr());
+//        const std::vector<gfx::Triangle> &ocean_primitives_data = *(planet.getOceanTrianglesPtr());
 
-        gfx::Vertices ocean_vertices = gfx::Vertices(ocean_position_data, ocean_normal_data /*, texcoords*/);
-        gfx::Primitives primitives = gfx::Primitives( ocean_primitives_data );
+//        std::vector<vmath::Vector4> ocean_normal_data;
+//        gfx::generateNormals(&ocean_normal_data, ocean_position_data, ocean_primitives_data);
 
-        gfx::Geometry geometry = gfx::Geometry( ocean_vertices, primitives );
+//        gfx::Vertices ocean_vertices = gfx::Vertices(ocean_position_data, ocean_normal_data /*, texcoords*/);
+//        gfx::Primitives primitives = gfx::Primitives( ocean_primitives_data );
 
-        vmath::Vector4 color = salt_water_color;
-        gfx::Material material = gfx::Material(color);
+//        gfx::Geometry geometry = gfx::Geometry( ocean_vertices, primitives );
 
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        //transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
+//        vmath::Vector4 color = salt_water_color;
+//        gfx::Material material = gfx::Material(color);
 
-        //ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
+//        gfx::Transform transform;
+//        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+//        //transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
 
-    gfx::SceneObjectHandle lakes_sceneobject;
-    {
-        const std::vector<vmath::Vector4> &lakes_position_data = *(planet.getLakeVerticesPtr());
-        const std::vector<gfx::Triangle> &lakes_primitives_data = *(planet.getLakeTrianglesPtr());
+//        //ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+//    }
 
-        std::vector<vmath::Vector4> lakes_normal_data;
-        gfx::generateNormals(&lakes_normal_data, lakes_position_data, lakes_primitives_data);
+//    gfx::SceneObjectHandle lakes_sceneobject;
+//    {
+//        const std::vector<vmath::Vector4> &lakes_position_data = *(planet.getLakeVerticesPtr());
+//        const std::vector<gfx::Triangle> &lakes_primitives_data = *(planet.getLakeTrianglesPtr());
 
-        gfx::Vertices lakes_vertices = gfx::Vertices(lakes_position_data, lakes_normal_data /*, texcoords*/);
-        gfx::Primitives primitives = gfx::Primitives( lakes_primitives_data );
+//        std::vector<vmath::Vector4> lakes_normal_data;
+//        gfx::generateNormals(&lakes_normal_data, lakes_position_data, lakes_primitives_data);
 
-        gfx::Geometry geometry = gfx::Geometry( lakes_vertices, primitives );
+//        gfx::Vertices lakes_vertices = gfx::Vertices(lakes_position_data, lakes_normal_data /*, texcoords*/);
+//        gfx::Primitives primitives = gfx::Primitives( lakes_primitives_data );
 
-        vmath::Vector4 color = fresh_water_color;
-        gfx::Material material = gfx::Material(color);
+//        gfx::Geometry geometry = gfx::Geometry( lakes_vertices, primitives );
 
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
+//        vmath::Vector4 color = fresh_water_color;
+//        gfx::Material material = gfx::Material(color);
 
-        //lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
+//        gfx::Transform transform;
+//        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+//        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
+
+//        //lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
+//    }
 
     // SDL event loop
     SDL_Event event;
@@ -457,7 +467,7 @@ int main(int argc, char *argv[])
                                 done = true;
                                 break;
                             case(SDLK_h):
-                                planet_sceneobject->toggleVisible(); // segfault
+                                planet_sceneobject->toggleVisible();
                                 break;
                             case(SDLK_u):
                                 {
