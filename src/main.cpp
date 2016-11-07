@@ -129,20 +129,21 @@ int main(int argc, char *argv[])
 
 
     // create some scene objects using/sharing geometry
-    gfx::SceneObjectHandle planet_sceneobject = ([&]()
-                                                 {
+    gfx::SceneObjectHandle planet_sceneobject =
+            ([&]()
+             {
 
-                                                     gfx::Primitives primitives = gfx::Primitives(planet_primitives_data);
-                                                     gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
+                 gfx::Primitives primitives = gfx::Primitives(planet_primitives_data);
+                 gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
 
-                                                     vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
-                                                     //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-                                                     //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-                                                     gfx::Material material = gfx::Material(color);
-                                                     // material.setWireframe(false);
+                 vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
+                 //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
+                 //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
+                 gfx::Material material = gfx::Material(color);
+                 // material.setWireframe(false);
 
-                                                     return planet_scene_node->addSceneObject(geometry, material);
-                                                 })(); // immediately invoked lambda!
+                 return planet_scene_node->addSceneObject(geometry, material);
+             })(); // immediately invoked lambda!
     planet_sceneobject->toggleVisible(); // hide by default
 
     //    // create some scene objects using/sharing geometry
@@ -208,62 +209,64 @@ int main(int argc, char *argv[])
     //        planet_sceneobject_lod = planet_scene_node->addSceneObject(geometry, material);
     //    }
 
-    gfx::SceneObjectHandle alt_planet_points_so = ([&]()
-                                                   {
+    gfx::SceneObjectHandle alt_planet_points_so =
+            ([&]()
+             {
 
 
-                                                       std::vector<vmath::Vector4> position_data;
-                                                       std::vector<gfx::Point> primitives_data;
+                 std::vector<vmath::Vector4> position_data;
+                 std::vector<gfx::Point> primitives_data;
 
-                                                       for (int i = 0; i<alt_planet_points.size(); i++)
-                                                       {
-                                                           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                                           position_data.back().setW(1.0f);
-                                                           primitives_data.push_back({i});
-                                                       }
+                 for (int i = 0; i<alt_planet_points.size(); i++)
+                 {
+                     position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                     position_data.back().setW(1.0f);
+                     primitives_data.push_back({i});
+                 }
 
-                                                       std::vector<vmath::Vector4> normal_data;
-                                                       gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
+                 std::vector<vmath::Vector4> normal_data;
+                 gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
-                                                       gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+                 gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-                                                       gfx::Primitives primitives = gfx::Primitives(primitives_data);
-                                                       gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+                 gfx::Primitives primitives = gfx::Primitives(primitives_data);
+                 gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-                                                       vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-                                                       gfx::Material material = gfx::Material(color);
-                                                       //material.setWireframe(true);
+                 vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
+                 gfx::Material material = gfx::Material(color);
+                 //material.setWireframe(true);
 
-                                                       gfx::Transform transform;
-                                                       transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
+                 gfx::Transform transform;
+                 transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
 
-                                                       return planet_scene_node->addSceneObject(geometry, material, transform);
-                                                   })(); // immediately invoked lambda!
+                 return planet_scene_node->addSceneObject(geometry, material, transform);
+             })(); // immediately invoked lambda!
 
-    gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
-                                                      {
-                                                          std::vector<vmath::Vector4> position_data;
+    gfx::SceneObjectHandle alt_planet_triangles_so =
+            ([&]()
+             {
+                 std::vector<vmath::Vector4> position_data;
 
-                                                          for (int i = 0; i < alt_planet_points.size(); i++)
-                                                          {
-                                                              position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                                              position_data.back().setW(1.0f);
-                                                          }
+                 for (int i = 0; i < alt_planet_points.size(); i++)
+                 {
+                     position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                     position_data.back().setW(1.0f);
+                 }
 
-                                                          std::vector<vmath::Vector4> normal_data;
-                                                          gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
+                 std::vector<vmath::Vector4> normal_data;
+                 gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
-                                                          gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+                 gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-                                                          gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
-                                                          gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+                 gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
+                 gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-                                                          vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
-                                                          gfx::Material material = gfx::Material(color);
-                                                          material.setWireframe(false);
+                 vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+                 gfx::Material material = gfx::Material(color);
+                 material.setWireframe(false);
 
-                                                          return planet_scene_node->addSceneObject(geometry, material);
-                                                      })(); // immediately invoked lambda!
+                 return planet_scene_node->addSceneObject(geometry, material);
+             })(); // immediately invoked lambda!
 
     /*
       gfx::SceneObjectHandle lambda_flowdown_sceneobject;
