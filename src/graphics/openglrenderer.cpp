@@ -218,7 +218,7 @@ SceneObject * SceneNode::getSceneObjectPtr(sceneobject_id id)
 
 
 LightHandle SceneNode::addLight(const vmath::Vector4 &color,
-                     const Transform &transform)
+                                const Transform &transform)
 {
     light_id id_out(mLights.size());
     mLights.emplace_back(transform, color);

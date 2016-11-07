@@ -28,6 +28,11 @@ void pointsRepulse(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, 
 
 void pointsRepulse(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape, float repulse_factor);
 
+void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);
+
+std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
+                                                const SpaceHash3D &spacehash,
+                                                const Shape::BaseShape &planet_shape);
 }
 
 namespace Serial

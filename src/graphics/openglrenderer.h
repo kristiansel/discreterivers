@@ -121,7 +121,7 @@ struct Transform
 struct sceneobject_tag{};
 typedef ID<sceneobject_tag, int, -1> sceneobject_id;
 
-struct light_tag{};
+struct light_tag {};
 typedef ID<light_tag, int, -1> light_id;
 
 struct scenenode_tag{};
