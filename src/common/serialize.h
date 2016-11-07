@@ -31,6 +31,9 @@
 #include <string>
 #include <tuple>
 #include <numeric>
+#include <fstream>
+#include <istream>
+#include <iterator>
 
 #include <cassert>
 
@@ -308,6 +311,51 @@ inline T deserialize(const StreamType& res) {
 
     StreamType::const_iterator it = res.begin();
     return deserialize<T>(it, res.end());
+}
+
+inline void write_to_file(const StreamType& res, const std::string &filename)
+{
+    // write file
+    std::ofstream output_file(filename, std::ios::out | std::ios::binary);
+    output_file.write((char*)&res[0], res.size() * sizeof(uint8_t));
+    output_file.close();
+}
+
+template <class T>
+inline void serialize_to_file(const T &obj, const std::string &filename)
+{
+    StreamType res;
+    serialize(obj, res);
+
+    write_to_file(res, filename);
+}
+
+
+inline StreamType read_from_file(const std::string &filename)
+{
+    // read file
+    std::ifstream file(filename, std::ios::binary);
+
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
+
+    // get its size:
+    std::streampos fileSize;
+
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // reserve capacity
+    StreamType res;
+    res.reserve(fileSize);
+
+    // read the data:
+    res.insert(res.begin(),
+               std::istream_iterator<uint8_t>(file),
+               std::istream_iterator<uint8_t>());
+
+    return res;
 }
 
 } // namespace Serial

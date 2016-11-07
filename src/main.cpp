@@ -3,21 +3,17 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <vector>
-
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
 #define _VECTORMATH_DEBUG
 
-#include "planet/planet.h"
-#include "common/gfx_primitives.h"
-#include "graphics/openglrenderer.h"
-
-#include "planet/topology.h" // for testing
-
 #include "altplanet/altplanet.h"
-
+#include "common/gfx_primitives.h"
 #include "common/serialize.h"
+#include "graphics/openglrenderer.h"
+#include "planet/planet.h"
+#include "planet/topology.h" // for testing
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
@@ -41,15 +37,26 @@ int main(int argc, char *argv[])
     Topology::Test::multinomialCoefficient();
 
 
+    // Alt planet
+    std::string filename = "data.dat";
+
+
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    AltPlanet::Geometry temp_geom = AltPlanet::generate(5000, planet_shape);
-    Serial::StreamType res;
-    Serial::serialize(temp_geom, res);
-    auto alt_planet_geometry = Serial::deserialize<AltPlanet::Geometry>(res);
+    /*
+    // uncomment to make a new planet (takes some time)
+    AltPlanet::Geometry temp_geom = AltPlanet::generate(15000, planet_shape);
+
+    // Serialize it
+    Serial::serialize_to_file(temp_geom, filename);
+    */
+
+    Serial::StreamType resin = Serial::read_from_file(filename);
+
+    auto alt_planet_geometry = Serial::deserialize<AltPlanet::Geometry>(resin);
 
     //AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(5000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
