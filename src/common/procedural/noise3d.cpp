@@ -41,7 +41,7 @@ Noise3D::Noise3D(float width, float height, float min_noise_scale) :
         float inf = -0.2f;
         float sup =  0.2f;
 
-        float noise_lvl_scalefactor = i_lvl == 0 ? 1.0f : 1.0f/static_cast<float>(i_lvl);
+        float noise_lvl_scalefactor = i_lvl == 0 ? 0.0f : 1.0f/static_cast<float>(i_lvl);
         // assign the grid points random value
         for (int i_pts = 0; i_pts < num_grid_pts; i_pts++)
         {
