@@ -384,7 +384,7 @@ void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::Base
     for (auto &point : points)
     {
         float noise_sample = 0.2f*noise3d.sample(point);
-        planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
+        planet_shape.scalePointHeight(point, std::max(1.0f + noise_sample, 0.5f)); 
     }
 }
 }

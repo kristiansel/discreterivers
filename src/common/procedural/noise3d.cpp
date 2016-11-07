@@ -31,24 +31,29 @@ Noise3D::Noise3D(float width, float height, float min_noise_scale) :
 
     std::cout << "mNumGridLevels: " << mNumGridLevels << std::endl;
 
-    for (int i_lvl = 0; i_lvl<mNumGridLevels; i_lvl++)
+    for (int i_lvl = 0; i_lvl < mNumGridLevels; i_lvl++)
     {
         float* &gridPts = mGridLevels[i_lvl];
         int num_grid_pts = getNumGridPts(i_lvl);
         gridPts = new float [num_grid_pts];
 
-        float noise_lvl_scalefactor = i_lvl == 0 ? 0.0f : 1.0f/static_cast<float>(i_lvl);
+        // debug
+        float inf = -0.2f;
+        float sup =  0.2f;
+
+        float noise_lvl_scalefactor = i_lvl == 0 ? 1.0f : 1.0f/static_cast<float>(i_lvl);
         // assign the grid points random value
-        for (int i_pts = 0; i_pts<num_grid_pts; i_pts++)
+        for (int i_pts = 0; i_pts < num_grid_pts; i_pts++)
         {
-            gridPts[i_pts] = frand(-noise_lvl_scalefactor, noise_lvl_scalefactor);
+            gridPts[i_pts] = frand(std::min(-noise_lvl_scalefactor, inf),
+                                   std::min( noise_lvl_scalefactor, sup));
         }
     }
 }
 
 Noise3D::~Noise3D()
 {
-    for (int i_gridlvl = 0; i_gridlvl<mNumGridLevels; i_gridlvl++)
+    for (int i_gridlvl = 0; i_gridlvl < mNumGridLevels; i_gridlvl++)
     {
         delete [] mGridLevels[i_gridlvl];
     }
