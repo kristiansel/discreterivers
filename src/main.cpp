@@ -25,10 +25,10 @@ int main(int argc, char *argv[])
     // Generate planet
     Planet planet(
         3.15f,  // radius
-        6,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
+        2,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
         1.0f,   // terrain roughness
         0.70f,  // fraction of planet covered by ocean
-        150,     // number of freshwater springs
+        4,     // number of freshwater springs
         5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
     );
 
@@ -38,25 +38,51 @@ int main(int argc, char *argv[])
 
 
     // Alt planet
-    std::string filename = "data.dat";
-
+    std::string planet_filename = "data.dat";
 
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    /*
-    // uncomment to make a new planet (takes some time)
-    AltPlanet::Geometry temp_geom = AltPlanet::generate(15000, planet_shape);
+    AltPlanet::PlanetGeometry alt_planet_geometry;
 
-    // Serialize it
-    Serial::serialize_to_file(temp_geom, filename);
-    */
+    // try to open planet file
+    std::ifstream file(planet_filename, std::ios::binary);
+    bool loading_went_bad = false;
+    if (file.is_open()) {
+        // load planet from file
+        try {
+            std::cout << "loading planet file: " << planet_filename << std::endl;
+            Serial::StreamType resin = Serial::read_from_file(planet_filename);
+            alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
+        } catch (...) {
+            loading_went_bad = true;
+            std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "could not open file " << planet_filename << std::endl;
+        loading_went_bad = true;
+    }
 
-    Serial::StreamType resin = Serial::read_from_file(filename);
+    if (loading_went_bad)
+    {
+        std::cout << "generating planet geometry" << std::endl;
+        // create the planet
 
-    auto alt_planet_geometry = Serial::deserialize<AltPlanet::Geometry>(resin);
+        // Generate geometry
+        alt_planet_geometry = AltPlanet::generate(15000, planet_shape);
+
+        // Serialize it
+        try {
+            Serial::serialize_to_file(alt_planet_geometry, planet_filename);
+        } catch (...) {
+            std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
+        }
+    }
+
 
     //AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(5000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;

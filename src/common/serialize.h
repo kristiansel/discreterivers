@@ -200,7 +200,11 @@ inline void serialize(const T& obj, StreamType& res) {
 
     StreamType::iterator it = res.begin()+offset;
     detail::serializer(obj,it);
-    assert(res.begin() + offset + size == it);
+
+    if (res.begin() + offset + size != it)
+        throw "serialization failure, corrupt stream?";
+
+    //assert(res.begin() + offset + size == it);
 }
 
 namespace detail {
@@ -214,7 +218,11 @@ struct deserialize_helper {
     static T apply(StreamType::const_iterator& begin,
                    StreamType::const_iterator end) {
 
-        assert(begin+sizeof(T)<=end);
+        //assert(begin+sizeof(T)<=end);
+
+        if (!(begin+sizeof(T)<=end))
+            throw "serialization failure, corrupt stream?";
+
         T val;
         uint8_t* ptr = reinterpret_cast<uint8_t*>(&val);
         std::copy(begin, begin+sizeof(T), ptr);
@@ -330,12 +338,8 @@ inline void serialize_to_file(const T &obj, const std::string &filename)
     write_to_file(res, filename);
 }
 
-
-inline StreamType read_from_file(const std::string &filename)
+inline StreamType read_from_file_stream(std::ifstream &file)
 {
-    // read file
-    std::ifstream file(filename, std::ios::binary);
-
     // Stop eating new lines in binary mode!!!
     file.unsetf(std::ios::skipws);
 
@@ -357,6 +361,16 @@ inline StreamType read_from_file(const std::string &filename)
 
     return res;
 }
+
+inline StreamType read_from_file(const std::string &filename)
+{
+    // read file
+    std::ifstream file(filename, std::ios::binary);
+
+    return read_from_file_stream(file);
+}
+
+
 
 } // namespace Serial
 

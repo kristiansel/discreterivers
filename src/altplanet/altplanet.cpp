@@ -26,11 +26,11 @@ namespace AltPlanet
     void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);
 
 
-	Geometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
+    PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
 		std::cout << "testing testing..." << std::endl;
 
-		Geometry geometry;
+        PlanetGeometry geometry;
 		std::vector<vmath::Vector3> &points = geometry.points;
 		std::vector<gfx::Triangle> &triangles = geometry.triangles;
 
