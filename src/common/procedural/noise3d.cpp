@@ -29,7 +29,7 @@ Noise3D::Noise3D(float width, float height, float min_noise_scale) :
     mNumGridLevels = ceil(log2(mMaxDim/min_noise_scale));
     mGridLevels = new float* [mNumGridLevels];
 
-    std::cout << "mNumGridLevels: " << mNumGridLevels << std::endl;
+    //std::cout << "mNumGridLevels: " << mNumGridLevels << std::endl;
 
     for (int i_lvl = 0; i_lvl<mNumGridLevels; i_lvl++)
     {

@@ -478,11 +478,11 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
     {
         auto &point_edges = (*edges)[i_point];
 
-        //std::cout << "point: " << i_point << std::endl;
+        std::cout << "point: " << i_point << std::endl;
 
         for (int i_edge = 0; i_edge<point_edges.size()-1; i_edge++)
         {
-            //std::cout << "  i_edge = " << i_edge << std::endl;
+            std::cout << "  i_edge = " << i_edge << std::endl;
 
             float smallest_angle = std::numeric_limits<float>::max();
             int i_edge_smallest_angle = -1; // be set;
@@ -490,16 +490,16 @@ void createAdjacencyList(std::vector<ConnectionList> * const edges,
             {
                 float edge_angle = angle_between_edges(point_edges[i_edge], point_edges[i_edge_lookahead], i_point);
                 float cross_prod_out = cross_prod_outwards(point_edges[i_edge], point_edges[i_edge_lookahead], i_point);
-                //std::cout << "    theta: " << edge_angle*180.0f/M_PI << "/" << max_allowed_angle*180.0f/M_PI << " deg"
-                //          << ", cpo: " << cross_prod_out << std::endl;
+                std::cout << "    theta: " << edge_angle*180.0f/M_PI /*<< "/" << max_allowed_angle*180.0f/M_PI << " deg" */
+                          << ", cpo: " << cross_prod_out << std::endl;
                 if (  edge_angle < smallest_angle && cross_prod_out > 0.0f )
                 {
                     smallest_angle = edge_angle;
                     i_edge_smallest_angle = i_edge_lookahead;
-                    //std::cout << "     best so far!" << std::endl;
+                    std::cout << "     best so far!" << std::endl;
                 }
             }
-            assert(i_edge_smallest_angle!=-1);
+            assert(i_edge_smallest_angle!=-1); // This doesn\t seem to work...
             std::swap(point_edges[i_edge_smallest_angle], point_edges[i_edge+1]);
         }
     }

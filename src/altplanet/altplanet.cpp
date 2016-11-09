@@ -28,7 +28,7 @@ namespace AltPlanet
 
     PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
-		std::cout << "testing testing..." << std::endl;
+        //std::cout << "testing testing..." << std::endl;
 
         PlanetGeometry geometry;
 		std::vector<vmath::Vector3> &points = geometry.points;
@@ -62,22 +62,25 @@ namespace AltPlanet
 		//int k_nn = 5; // nearest neighbors
 		//float repulse_factor = 0.006f; // repulsive force factor
 
-		std::cout << "distributing points evenly..." << std::endl;
+        //std::cout << "distributing points evenly... ";
 		int n_redistribute_iterations = 25;
 		for (int i_red = 0; i_red < n_redistribute_iterations; i_red++)
 		{
 			float it_repulsion_factor = i_red > 2 ? 0.003f : 0.008f;
-			std::cout << i_red << "/" << n_redistribute_iterations << std::endl;
+            //std::cout << i_red << "/" << n_redistribute_iterations << std::endl;
 			//float it_repulse_factor = repulse_factor/(sqrt(float(i_red)));
 			pointsRepulse(points, spacehash, planet_shape, it_repulsion_factor);
 		}
+        //std::cout << "done!" << std::endl;
 
 		// finished distributing them evenly...
 
 		// triangulate... :)
+        //std::cout << "triangulating points" << std::endl;
 		triangles = triangulateAndOrient(points, spacehash, planet_shape);
+        //std::cout << "done!" << std::endl;
 
-		std::cout << "found " << triangles.size() << " triangles" << std::endl;
+        //std::cout << "found " << triangles.size() << " triangles" << std::endl;
 
         perturbHeightNoise3D(points, planet_shape);
 
@@ -323,7 +326,7 @@ namespace AltPlanet
 													const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
 	{
         float triangulationRadius = 0.78f*cbrt(1.0f/spacehash.getPointDensity());
-        std::cout << "n_points = " << points.size() << ", rad = " << triangulationRadius << std::endl;
+        //std::cout << "n_points = " << points.size() << ", rad = " << triangulationRadius << std::endl;
 
 		// create a triangulation
         Triangulate::ReturnType trisandhash = Triangulate::trianglesWithHash(points, triangulationRadius, spacehash);
@@ -368,9 +371,9 @@ namespace AltPlanet
         // compute the euler characteristic
         int euler_characteristic = points.size()-num_edges+triangles.size();
 
-		std::cout << "num points = " << points.size() << std::endl;
+        /*std::cout << "num points = " << points.size() << std::endl;
 		std::cout << "num triangles = " << triangles.size() << std::endl;
-		std::cout << "num edges = " << num_edges << std::endl;
+        std::cout << "num edges = " << num_edges << std::endl;*/
 		std::cout << "euler characteristic = " << euler_characteristic << std::endl;
 
 		return triangles;
@@ -384,7 +387,7 @@ namespace AltPlanet
 
         for (auto &point : points)
         {
-            float noise_sample = 0.2f*noise3d.sample(point);
+            float noise_sample = 0.1f*noise3d.sample(point);
             planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
         }
     }

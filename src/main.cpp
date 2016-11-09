@@ -9,6 +9,7 @@
 #define _VECTORMATH_DEBUG
 
 #include "altplanet/altplanet.h"
+#include "altplanet/watersystem.h"
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
@@ -36,14 +37,28 @@ int main(int argc, char *argv[])
     Topology::Test::barycentricCoords();
     Topology::Test::multinomialCoefficient();
 
-
-    // Alt planet
-    std::string planet_filename = "data.dat";
-
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
+
+    /*// profile
+    for (int num_pts = 500; num_pts<4000; num_pts+=500)
+    {
+        std::cout << "generating with " << num_pts << " points" << std::endl;
+        using milli = std::chrono::milliseconds;
+        auto start = std::chrono::high_resolution_clock::now();
+
+        auto dummy = AltPlanet::generate(num_pts, planet_shape);
+
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::cout << "AltPlanet::generate( " << num_pts << ") "
+                  << std::chrono::duration_cast<milli>(finish - start).count()
+                  << " milliseconds\n";
+    }*/
+
+    // Alt planet
+    std::string planet_filename = "torus_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
 
@@ -83,11 +98,12 @@ int main(int argc, char *argv[])
         }
     }
 
-
-    //AltPlanet::Geometry alt_planet_geometry = AltPlanet::generate(5000, planet_shape);
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
 
+    AltPlanet::WaterSystem::WaterGeometry water_geometry = AltPlanet::WaterSystem::generateWaterSystem(alt_planet_geometry, planet_shape, 0.55f);
+    std::vector<vmath::Vector3> &alt_ocean_points = water_geometry.ocean.points;
+    std::vector<gfx::Triangle> &alt_ocean_triangles = water_geometry.ocean.triangles;
 
 
     // think a bit about the usage
@@ -241,37 +257,37 @@ int main(int argc, char *argv[])
 //        planet_sceneobject_lod = planet_scene_node->addSceneObject(geometry, material);
 //    }
 
-    gfx::SceneObjectHandle alt_planet_points_so = ([&]()
-    {
+//    gfx::SceneObjectHandle alt_planet_points_so = ([&]()
+//    {
 
 
-        std::vector<vmath::Vector4> position_data;
-        std::vector<gfx::Point> primitives_data;
+//        std::vector<vmath::Vector4> position_data;
+//        std::vector<gfx::Point> primitives_data;
 
-        for (int i = 0; i<alt_planet_points.size(); i++)
-        {
-           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-           position_data.back().setW(1.0f);
-           primitives_data.push_back({i});
-        }
+//        for (int i = 0; i<alt_planet_points.size(); i++)
+//        {
+//           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+//           position_data.back().setW(1.0f);
+//           primitives_data.push_back({i});
+//        }
 
-        std::vector<vmath::Vector4> normal_data;
-        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
+//        std::vector<vmath::Vector4> normal_data;
+//        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
 
-        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+//        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+//        gfx::Primitives primitives = gfx::Primitives(primitives_data);
+//        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-        //material.setWireframe(true);
+//        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
+//        gfx::Material material = gfx::Material(color);
+//        //material.setWireframe(true);
 
-        gfx::Transform transform;
-        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
+//        gfx::Transform transform;
+//        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
 
-        return planet_scene_node->addSceneObject(geometry, material, transform);
-    })(); // immediately invoked lambda!
+//        return planet_scene_node->addSceneObject(geometry, material, transform);
+//    })(); // immediately invoked lambda!
 
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
@@ -297,6 +313,32 @@ int main(int argc, char *argv[])
 
         return planet_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!
+
+    gfx::SceneObjectHandle alt_ocean_so = ([&]()
+    {
+        std::vector<vmath::Vector4> position_data;
+
+        for (int i = 0; i<alt_ocean_points.size(); i++)
+        {
+           position_data.push_back((const vmath::Vector4&)(alt_ocean_points[i]));
+           position_data.back().setW(1.0f);
+        }
+
+        std::vector<vmath::Vector4> normal_data;
+        gfx::generateNormals(&normal_data, position_data, alt_ocean_triangles);
+
+        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+
+        gfx::Primitives primitives = gfx::Primitives(alt_ocean_triangles);
+        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+
+        vmath::Vector4 color(0.6f, 0.6f, 0.7f, 1.0f);
+        gfx::Material material = gfx::Material(color);
+        material.setWireframe(false);
+
+        return planet_scene_node->addSceneObject(geometry, material);
+    })(); // immediately invoked lambda!
+
 
     /*
     gfx::SceneObjectHandle lambda_flowdown_sceneobject;
@@ -504,24 +546,24 @@ int main(int argc, char *argv[])
                                 break;
                             case(SDLK_u):
                                 {
-                                    // do an iteration of repulsion
-                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
+//                                    // do an iteration of repulsion
+//                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
 
-                                    // update the scene object geometry
-                                    std::vector<vmath::Vector4> position_data;
-                                    std::vector<gfx::Point> primitives_data;
+//                                    // update the scene object geometry
+//                                    std::vector<vmath::Vector4> position_data;
+//                                    std::vector<gfx::Point> primitives_data;
 
-                                    for (int i = 0; i<alt_planet_points.size(); i++)
-                                    {
-                                       position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                       position_data.back().setW(1.0f);
-                                       primitives_data.push_back({i});
-                                    }
+//                                    for (int i = 0; i<alt_planet_points.size(); i++)
+//                                    {
+//                                       position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+//                                       position_data.back().setW(1.0f);
+//                                       primitives_data.push_back({i});
+//                                    }
 
-                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
-                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
+//                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+//                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
 
-                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+//                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
                                     break;
                                 }
                             case(SDLK_ESCAPE):

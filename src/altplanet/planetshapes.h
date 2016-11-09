@@ -56,17 +56,35 @@ public:
     //////////////////////////////////////////////////
     // Functions that utilize the virtual functions //
     //////////////////////////////////////////////////
-    vmath::Vector3 projectPoint(const vmath::Vector3 &point) const
+    inline vmath::Vector3 projectPoint(const vmath::Vector3 &point) const
     {
         SurfaceLine surface_line = shapeFunction(point);
         return surface_line.evalRefHeight();
     }
 
-    void scalePointHeight(vmath::Vector3 &point, float scale_factor) const
+    inline void scalePointHeight(vmath::Vector3 &point, float scale_factor) const
     {
         SurfaceLine surface_line = shapeFunction(point);
         float newHeight = surface_line.refHeight*scale_factor;
         point = surface_line.evalHeight(newHeight);
+    }
+
+    inline void setHeight(vmath::Vector3 &point, float new_height) const
+    {
+        SurfaceLine surface_line = shapeFunction(point);
+        point = surface_line.evalHeight(new_height);
+    }
+
+    inline float getHeight(const vmath::Vector3 &point) const
+    {
+        SurfaceLine surface_line = shapeFunction(point);
+        return (vmath::length(point - surface_line.zeroHeightPt));
+    }
+
+    inline float getHeightSqr(const vmath::Vector3 &point) const
+    {
+        SurfaceLine surface_line = shapeFunction(point);
+        return (vmath::lengthSqr(point - surface_line.zeroHeightPt));
     }
 
 };

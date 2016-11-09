@@ -7,7 +7,7 @@
 #include "../common/gfx_primitives.h"
 #include "planetshapes.h"
 #include "altplanet.h"
-#include "../planet/topology.h" // TODO: Remove dependency
+#include "adjacency.h"
 
 namespace AltPlanet
 {
@@ -64,9 +64,10 @@ private:
 
     static GenOceanResult generateOcean(const std::vector<gfx::Triangle> &triangles,
                                             const std::vector<vmath::Vector3> &points,
-                                            const std::vector<std::vector<tri_index>> &point_tri_adjacency,
+                                            const std::vector<std::vector<int>> &point_tri_adjacency,
                                             const std::vector<std::vector<int>> &point_to_point_adjacency,
-                                            float ocean_fraction);
+                                            float ocean_fraction,
+                                            const Shape::BaseShape &planet_shape);
 
     static WaterGeometry::Freshwater generateFreshwater();
 

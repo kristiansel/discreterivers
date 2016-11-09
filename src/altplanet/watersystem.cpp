@@ -3,7 +3,7 @@
 using namespace graphtools;
 typedef vmath::Vector3 Vector3; // Why not "using vmath::Vector3 as Vector 3", or something obvious?
 using namespace gfx;
-using namespace std;
+using namespace std; // should really be using just vector
 
 namespace AltPlanet
 {
@@ -31,24 +31,29 @@ WaterSystem::WaterGeometry WaterSystem::generateWaterSystem(const AltPlanet::Pla
                                                             const Shape::BaseShape &planet_shape,
                                                             float ocean_fraction)
 {
+    // Deconstruct input
+    const vector<Vector3> &points = planet_geometry.points;
+    const vector<Triangle> &triangles = planet_geometry.triangles;
+
     // Initialize and deconstruct output
     WaterSystem::WaterGeometry water_geometry;
     WaterSystem::WaterGeometry::Ocean &ocean = water_geometry.ocean;
     WaterSystem::WaterGeometry::Freshwater &freshwater = water_geometry.freshwater;
 
-    // generate adjacency
-    // TODO: Dislodge the dependency on "topology" source files
-    vector<vector<int>> point_to_point_adjacency;  // Lack of typesafety for these
-    vector<vector<tri_index>> point_tri_adjacency;       // indices really shine
-    vector<vector<tri_index>> tri_to_tri_adjacency;      // through here
 
-    Topology::createAdjacencyList(&point_to_point_adjacency, planet_geometry.points, planet_geometry.triangles);
-    Topology::createPointToTriAdjacency(&point_tri_adjacency, planet_geometry.triangles, planet_geometry.points);
-    Topology::createTriToTriAdjacency(&tri_to_tri_adjacency, planet_geometry.triangles, planet_geometry.points, point_tri_adjacency);
+    // generate adjacency
+    // TODO: Fix lack of typesafety for these point and triangle indices
+    // TODO: Dislodge the dependency on "topology" source files
+    vector<vector<int>> point_to_point_adjacency = Adjacancy::createAdjacencyList(points, triangles);
+    vector<vector<int>> point_tri_adjacency = Adjacancy::createPointToTriAdjacency(points, triangles);
+    vector<vector<int>> tri_to_tri_adjacency = Adjacancy::createTriToTriAdjacency(triangles, point_tri_adjacency);
 
     // generate ocean
     WaterSystem::GenOceanResult ocean_result = generateOcean(planet_geometry.triangles, planet_geometry.points,
-                                                             point_tri_adjacency, point_to_point_adjacency, ocean_fraction);
+                                                             point_tri_adjacency, point_to_point_adjacency, ocean_fraction,
+                                                             planet_shape);
+
+    ocean = ocean_result.ocean;
 
     // generate lakes and rivers
 
@@ -62,17 +67,17 @@ const float min_ocean_fraction = 0.00f;
 
 WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &triangles,
                                                 const vector<Vector3> &points,
-                                                const vector<vector<tri_index>> &point_tri_adjacency,
+                                                const vector<vector<int>> &point_tri_adjacency,
                                                 const vector<vector<int>> &point_to_point_adjacency,
-                                                float ocean_fraction)
+                                                float ocean_fraction,
+                                                const Shape::BaseShape &planet_shape)
 {
     WaterSystem::GenOceanResult result_out;
     std::vector<vmath::Vector3> &ocean_points = result_out.ocean.points;
     std::vector<gfx::Triangle> &ocean_triangles = result_out.ocean.triangles;
     std::vector<LandWaterType>  &point_land_water_types = result_out.landWaterTypes;
     float &sealevel_radius = result_out.seaLevel;
-    // TODO: Remove these ugly pointers
-    // TODO: Generalize to a potential function not equal to sphere radius, but one reflecting the planet in question
+    // TODO: Generalize to a potential function not equal to sphere radius, but one reflecting the planet in question (in progress)
 
     // sanitize input
     if (ocean_fraction < min_ocean_fraction|| ocean_fraction >= max_ocean_fraction)
@@ -87,8 +92,8 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     float smallest_length = numeric_limits<float>::max();
     for (int i = 0 ; i<points.size(); i++)
     {
-        float length = vmath::length(points[i]);
-        if (length<smallest_length) {start_point=i; smallest_length=length;}
+        float length = planet_shape.getHeight(points[i]);
+        if (length < smallest_length) { start_point = i; smallest_length = length; }
     }
 
     // do a search to certain depth, TODO: change to % triangle cover
@@ -96,7 +101,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
 
     auto heuristic = [&](const int &i)
     {
-        return vmath::length(points[i]);
+        return planet_shape.getHeight(points[i]);
     };
 
     auto it = flow_graph.search(start_point, heuristic);
@@ -109,7 +114,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     search_sequence.push_back(it.get_index());
 
     // save list of triangle indices
-    vector<tri_index> search_tris;
+    vector<int> search_tris;
 
     //float current_sea_level = length(points[it.get_index()]);
     //while (current_sea_level < sealevel_radius && !it.search_end())
@@ -134,7 +139,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
         num_ocean_points++;
         current_sea_coverage = (float)(num_ocean_points)/(float)(points.size());
 
-        latest_ocean_lvl = vmath::length(points[this_index]);
+        latest_ocean_lvl = planet_shape.getHeight(points[this_index]);
         if (latest_ocean_lvl > highest_ocean_lvl)
         {
             rising_global_sealevel = true;
@@ -166,7 +171,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
 
     for (int i = 0 ; i<search_tris.size(); i++)
     {
-        tri_index i_triangle = search_tris[i];
+        int i_triangle = search_tris[i];
         for (int j = 0; j<3; j++)
         {
             int i_p_unmapped = triangles[int(i_triangle)][j];
@@ -186,7 +191,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     // normalise the ocean points length to sea level
     for (int i = 0 ; i<ocean_points.size(); i++)
     {
-        ocean_points[i] = highest_ocean_lvl * normalize(ocean_points[i]);
+        planet_shape.setHeight(ocean_points[i], highest_ocean_lvl);
     }
 
     return result_out;

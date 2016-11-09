@@ -53,11 +53,11 @@ void SpaceHash3D::rehash(const std::vector<vmath::Vector3> &points)
     mNy = std::max(int(xy_aspect*(mNx)), 1);
     mNz = std::max(int(xz_aspect*(mNx)), 1);
 
-    std::cout << "min = "; vmath::print(mMin);
+    /*std::cout << "min = "; vmath::print(mMin);
     std::cout << "max = "; vmath::print(mMax);
     std::cout << "nx = " << mNx << std::endl;
     std::cout << "ny = " << mNy << std::endl;
-    std::cout << "nz = " << mNz << std::endl;
+    std::cout << "nz = " << mNz << std::endl;*/
 
     mNGrid = mNx*mNy*mNz;
     mGridToPointMap = new std::vector<int> [mNGrid];
