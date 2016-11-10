@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
-    AltPlanet::Shape::BaseShape &planet_shape = sphere;
+    AltPlanet::Shape::BaseShape &planet_shape = torus;
 
     /*// profile
     for (int num_pts = 500; num_pts<4000; num_pts+=500)
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     }*/
 
     // Alt planet
-    std::string planet_filename = "sphere_planet.dat";
+    std::string planet_filename = "torus_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
 
