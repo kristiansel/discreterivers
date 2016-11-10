@@ -17,9 +17,12 @@ inline int getNumGridPts(int grid_lvl)
     return num_side * num_side * num_side;
 }
 
-Noise3D::Noise3D(float width, float height, float min_noise_scale) :
+Noise3D::Noise3D(float width, float height, float min_noise_scale, int seed) :
     mMaxDim(std::max(width, height))
 {
+    // Seed the pseudo-random number generator
+    srand(seed);
+
     // find min and max points
     float half_max_dim = mMaxDim/2.0f;
     mMax = vmath::Vector3(half_max_dim, half_max_dim, half_max_dim);

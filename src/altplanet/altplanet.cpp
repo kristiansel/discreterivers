@@ -383,7 +383,7 @@ namespace AltPlanet
     {
         Shape::AABB aabb = planet_shape.getAABB();
         float smallest_noise_scale = 0.2f; // TODO: meters....
-        Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale);
+        Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale, 198327);
 
         for (auto &point : points)
         {

@@ -27,4 +27,5 @@ private:
         impl m_val;
 };
 
+
 #endif // TYPETAG_H

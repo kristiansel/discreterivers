@@ -5,6 +5,7 @@
 #define _VECTORMATH_DEBUG
 #include "../dep/vecmath/vectormath_aos.h"
 #include "../common/gfx_primitives.h"
+#include "../common/typetag.h"
 #include "planetshapes.h"
 #include "altplanet.h"
 #include "adjacency.h"
@@ -12,7 +13,7 @@
 namespace AltPlanet
 {
 
-class WaterSystem
+class WaterSystem final
 {
 public:
 
@@ -42,11 +43,20 @@ public:
 
 
 private:
-    WaterSystem(); // non instantiable class
+    WaterSystem();
+
+    // TODO: Proliferate the use of typesafe indices
+    // typesafe tag type tags
+    struct triangle_tag{};
+    typedef ID<triangle_tag, int, -1> tri_index;
+
+    typedef int point_index;
+    /*struct point_tag{};
+    typedef ID<point_tag, int, -1> point_index;*/
 
     struct AdjacencyInfo {
-        std::vector<std::vector<int>> &pointTriAdjacency;
-        std::vector<std::vector<int>> &pointPointAdjacency;
+        std::vector<std::vector<tri_index>> &pointTriAdjacency;
+        std::vector<std::vector<point_index>> &pointPointAdjacency;
     };
 
     enum class LandWaterType

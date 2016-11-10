@@ -7,10 +7,12 @@ namespace vmath = Vectormath::Aos;
 
 #include <vector>
 
+// TODO: Template this on dimension size NoiseND<int N>
+
 class Noise3D
 {
 public:
-    Noise3D(float width, float height, float min_noise_scale);
+    Noise3D(float width, float height, float min_noise_scale, int seed);
     ~Noise3D();
 
     float sample(const vmath::Vector3 &point);

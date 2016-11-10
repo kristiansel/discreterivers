@@ -5,6 +5,11 @@
 #include <iostream>
 #include <assert.h>
 
+// TODO: Test n_cubic
+// TODO: Templetize on interpolation order O:1 = Linear, O:2 = Quadratic, O:3 = Cubic etc.
+//       interpolate<N, O>::eval(...)
+// TODO: Combine with noise generator to create som funky 4d noise for effects/clouds etc...
+
 class interpolate
 {
 public:

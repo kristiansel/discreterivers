@@ -13,8 +13,6 @@
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
-#include "planet/planet.h"
-#include "planet/topology.h" // for testing
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
@@ -22,20 +20,6 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-
-    // Generate planet
-    Planet planet(
-        3.15f,  // radius
-        2,      // subdivision_level, 6 for close-up, 7 for detail+speed, 8+ slow but complex
-        1.0f,   // terrain roughness
-        0.70f,  // fraction of planet covered by ocean
-        4,     // number of freshwater springs
-        5782    // seed, 832576, 236234 ocean, 234435 nice water, 6 nice ocean and lake, 5723 nice continents and islands
-    );
-
-
-    Topology::Test::barycentricCoords();
-    Topology::Test::multinomialCoefficient();
 
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
@@ -121,38 +105,6 @@ int main(int argc, char *argv[])
     std::cout << "found " << alt_lake_triangles.size() << "lake_triangles" << std::endl;
     std::cout << "found " << alt_river_lines.size() << "river_lines" << std::endl;
 
-    // set up alt planet vertex data to share
-    /*std::vector<vmath::Vector4> alt_planet_position_data;
-
-    for (int i = 0; i<alt_planet_points.size(); i++)
-    {
-       alt_planet_position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-       alt_planet_position_data.back().setW(1.0f);
-    }
-
-    std::vector<vmath::Vector4> alt_planet_normal_data;
-    gfx::generateNormals(&alt_planet_normal_data, alt_planet_position_data, alt_planet_triangles);
-
-    gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data);
-    */
-
-
-    // think a bit about the usage
-
-    // world creation
-
-    // need to get planet geometry at detail levels
-    // get rivers geometry at max detail (render with z-offset closer to cam)
-    // get lakes geometry at max detail (render with z-offset closer to cam)
-
-    // get height (radius) and triangle/with info using various inputs
-    // getPoint3Projected<WhateverYouWant>(Point3 p);
-    // getLatLong<WhateverYouWant>(LatLong ll);
-
-    // various traversals
-
-    // various modifiers
-    // cities/roads
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
@@ -192,133 +144,7 @@ int main(int argc, char *argv[])
         light = light_scene_node->addLight(color, transform);
     }
 
-    // create some geometry
-    const std::vector<vmath::Vector4> &planet_position_data = *(planet.getPointsPtr());
-    const std::vector<gfx::Triangle> &planet_primitives_data = *(planet.getTrianglesPtr());
-
-    std::vector<vmath::Vector4> planet_normal_data;
-    gfx::generateNormals(&planet_normal_data, planet_position_data, planet_primitives_data);
-
-    gfx::Vertices planet_vertices = gfx::Vertices(planet_position_data, planet_normal_data /*, texcoords*/);
-
-    // create a scene graph node for the planet
     gfx::SceneNodeHandle planet_scene_node = opengl_renderer.addSceneNode();
-
-    vmath::Vector4 fresh_water_color(0.3f, 0.6f, 1.0f, 1.0f);
-    vmath::Vector4 salt_water_color(0.00f, 0.0f, 0.55f, 1.0f);
-
-
-    // create some scene objects using/sharing geometry
-    gfx::SceneObjectHandle planet_sceneobject = ([&]()
-    {
-
-        gfx::Primitives primitives = gfx::Primitives(planet_primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
-        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-        // material.setWireframe(false);
-
-        return planet_scene_node->addSceneObject(geometry, material);
-    })(); // immediately invoked lambda!
-    planet_sceneobject->toggleVisible(); // hide by default
-
-//    // create some scene objects using/sharing geometry
-//    gfx::SceneObjectHandle subd_planet_sceneobject;
-//    {
-//        std::vector<vmath::Vector4> subd_planet_position_data;
-//        std::vector<gfx::Triangle> subd_planet_primitive_data;
-
-//        planet.getCubicBezierGeometry(&subd_planet_position_data, &subd_planet_primitive_data, 4);
-
-//        std::vector<vmath::Vector4> subd_planet_normal_data;
-//        gfx::generateNormals(&subd_planet_normal_data, subd_planet_position_data, subd_planet_primitive_data);
-
-//        gfx::Vertices subd_planet_vertices = gfx::Vertices(subd_planet_position_data, subd_planet_normal_data /*, texcoords*/);
-
-//        gfx::Primitives primitives = gfx::Primitives(subd_planet_primitive_data);
-//        gfx::Geometry geometry = gfx::Geometry(subd_planet_vertices, primitives);
-
-//        vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
-//        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-//        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-//        gfx::Material material = gfx::Material(color);
-//        //material.setWireframe(true);
-
-//        subd_planet_sceneobject = planet_scene_node->addSceneObject(geometry, material);
-//    }
-
-//    gfx::SceneObjectHandle subd_control_points_sceneobject;
-//    {
-//        std::vector<vmath::Vector4> controlpt_position_data;
-//        std::vector<gfx::Point> controlpt_primitive_data;
-
-//        planet.getBezierControlPtPrimitives(&controlpt_position_data, &controlpt_primitive_data);
-
-//        gfx::Vertices vertices = gfx::Vertices(controlpt_position_data, controlpt_position_data /*, texcoords*/);
-
-//        gfx::Primitives primitives = gfx::Primitives(controlpt_primitive_data);
-//        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
-
-//        vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
-//        //vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-//        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-//        gfx::Material material = gfx::Material(color);
-//        //material.setWireframe(true);
-
-//        //subd_control_points_sceneobject = planet_scene_node->addSceneObject(geometry, material);
-//    }
-
-
-
-//    gfx::SceneObjectHandle planet_sceneobject_lod;
-//    {
-//        const std::vector<gfx::Triangle> &planet_primitives_data_lod = *(planet.getSubdTrianglesPtr(3));
-//        gfx::Primitives primitives = gfx::Primitives(planet_primitives_data_lod);
-//        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-//        //vmath::Vector4 color(0.07f, 0.4f, 0.15f, 1.0f);
-//        vmath::Vector4 color(0.4f, 0.3f, 0.2f, 1.0f);
-//        //vmath::Vector4 color(0.4f, 0.4f, 0.4f, 1.0f);
-//        gfx::Material material = gfx::Material(color);
-//        material.setWireframe(true);
-
-//        planet_sceneobject_lod = planet_scene_node->addSceneObject(geometry, material);
-//    }
-
-//    gfx::SceneObjectHandle alt_planet_points_so = ([&]()
-//    {
-
-
-//        std::vector<vmath::Vector4> position_data;
-//        std::vector<gfx::Point> primitives_data;
-
-//        for (int i = 0; i<alt_planet_points.size(); i++)
-//        {
-//           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-//           position_data.back().setW(1.0f);
-//           primitives_data.push_back({i});
-//        }
-
-//        std::vector<vmath::Vector4> normal_data;
-//        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
-
-//        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
-
-//        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-//        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
-
-//        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-//        gfx::Material material = gfx::Material(color);
-//        //material.setWireframe(true);
-
-//        gfx::Transform transform;
-//        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-
-//        return planet_scene_node->addSceneObject(geometry, material, transform);
-//    })(); // immediately invoked lambda!
 
     // Create some alt planet vertex data to share
     std::vector<vmath::Vector4> alt_planet_position_data;
@@ -334,6 +160,9 @@ int main(int argc, char *argv[])
 
     gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data);
 
+    // Planet point data?
+
+    // Add planet triangle scene object
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
 
@@ -377,12 +206,15 @@ int main(int argc, char *argv[])
         return scene_node->addSceneObject(geometry, material, transform);
     };
 
+    // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(alt_ocean_points, alt_ocean_triangles,
                                                              vmath::Vector4(0.5f, 0.5f, 0.6f, 1.0f), planet_scene_node);
 
+    // Add planet lakes scene object
     gfx::SceneObjectHandle alt_lakes_so = add_trivial_object(alt_lake_points, alt_lake_triangles,
                                                              vmath::Vector4(0.7f, 0.7f, 0.8f, 1.0f), planet_scene_node);
 
+    // Add planet rivers scene object
     gfx::SceneObjectHandle rivers_sceneobject = ([&]()
     {
         const std::vector<gfx::Line> &rivers_primitives_data = alt_river_lines;
@@ -400,181 +232,6 @@ int main(int argc, char *argv[])
         return planet_scene_node->addSceneObject(geometry, material, transform);
     })();
 
-
-
-    /*
-    gfx::SceneObjectHandle lambda_flowdown_sceneobject;
-    {
-        auto is_flowdown = []() { return true; };
-
-        std::vector<gfx::Line> primitives_data;
-        planet.getLinePrimitives(&primitives_data, planet.getFlowDownAdjacency(), is_flowdown);
-
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(0.0f, 0.3f, 0.8f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-
-        //lambda_flowdown_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
-
-
-
-    gfx::SceneObjectHandle lambda_ridges_sceneobject;
-    {
-        auto is_ridge = [](const std::vector<int> &adj_list) { return adj_list.size()>=2; };
-
-        std::vector<gfx::Line> primitives_data;
-        planet.getLinePrimitives(&primitives_data, planet.getAdjacency(), is_ridge, planet.getFlowDownAdjacency());
-
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.0005f, 1.0005f, 1.0005f);
-
-        //lambda_ridges_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
-
-    gfx::SceneObjectHandle rivers_sceneobject;
-    {
-        const std::vector<gfx::Line> &rivers_primitives_data = *(planet.getRiverLinesPtr());
-
-        gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color = fresh_water_color;
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
-
-        //rivers_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
-
-    gfx::SceneObjectHandle lambda_valleys_sceneobject;
-    {
-        auto is_valley = [](const std::vector<int> &adj_list) { return adj_list.size()>=2; };
-
-        std::vector<gfx::Line> primitives_data;
-        planet.getLinePrimitives(&primitives_data, planet.getAdjacency(), is_valley, planet.getFlowUpAdjacency());
-
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(0.35f, 0.0f, 0.7f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.002f, 1.002f, 1.002f);
-
-        //lambda_valleys_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
-
-    gfx::SceneObjectHandle lambda_minima_sceneobject;
-    {
-        auto is_minimum = [](std::vector<int> &adj_list) { return adj_list.size()==0; };
-
-        std::vector<gfx::Point> primitives_data;
-        planet.getPointPrimitives(&primitives_data, planet.getAdjacency(), is_minimum, planet.getFlowDownAdjacency());
-
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(0.0f, 0.0f, 1.0f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.003f, 1.003f, 1.003f);
-
-        //lambda_minima_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }
-
-    gfx::SceneObjectHandle split_flow_sceneobject;
-    {
-        auto split_flow = [](const std::vector<int> &down_list, const std::vector<int> &up_list)
-        {
-            return down_list.size()>1 && up_list.size()>0;
-        };
-
-        std::vector<gfx::Point> primitives_data;
-        planet.getPointPrimitives(&primitives_data, planet.getAdjacency(),
-                         split_flow,
-                         planet.getFlowDownAdjacency(),
-                         planet.getFlowUpAdjacency());
-
-        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(planet_vertices, primitives);
-
-        vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.005f, 1.005f, 1.005f);
-
-        //split_flow_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-    }*/
-
-
-//    gfx::SceneObjectHandle ocean_sceneobject;
-//    {
-//        const std::vector<vmath::Vector4> &ocean_position_data = *(planet.getOceanVerticesPtr());
-//        const std::vector<gfx::Triangle> &ocean_primitives_data = *(planet.getOceanTrianglesPtr());
-
-//        std::vector<vmath::Vector4> ocean_normal_data;
-//        gfx::generateNormals(&ocean_normal_data, ocean_position_data, ocean_primitives_data);
-
-//        gfx::Vertices ocean_vertices = gfx::Vertices(ocean_position_data, ocean_normal_data /*, texcoords*/);
-//        gfx::Primitives primitives = gfx::Primitives( ocean_primitives_data );
-
-//        gfx::Geometry geometry = gfx::Geometry( ocean_vertices, primitives );
-
-//        vmath::Vector4 color = salt_water_color;
-//        gfx::Material material = gfx::Material(color);
-
-//        gfx::Transform transform;
-//        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-//        //transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
-
-//        //ocean_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-//    }
-
-//    gfx::SceneObjectHandle lakes_sceneobject;
-//    {
-//        const std::vector<vmath::Vector4> &lakes_position_data = *(planet.getLakeVerticesPtr());
-//        const std::vector<gfx::Triangle> &lakes_primitives_data = *(planet.getLakeTrianglesPtr());
-
-//        std::vector<vmath::Vector4> lakes_normal_data;
-//        gfx::generateNormals(&lakes_normal_data, lakes_position_data, lakes_primitives_data);
-
-//        gfx::Vertices lakes_vertices = gfx::Vertices(lakes_position_data, lakes_normal_data /*, texcoords*/);
-//        gfx::Primitives primitives = gfx::Primitives( lakes_primitives_data );
-
-//        gfx::Geometry geometry = gfx::Geometry( lakes_vertices, primitives );
-
-//        vmath::Vector4 color = fresh_water_color;
-//        gfx::Material material = gfx::Material(color);
-
-//        gfx::Transform transform;
-//        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-//        transform.scale = vmath::Vector3(1.001f, 1.001f, 1.001f);
-
-//        //lakes_sceneobject = planet_scene_node->addSceneObject(geometry, material, transform);
-//    }
-
     // SDL event loop
     SDL_Event event;
     bool done = false;
@@ -584,10 +241,10 @@ int main(int argc, char *argv[])
     float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
 
-    int x = 0;
+    int frame_counter = 0;
     while(!done)
     {
-        ++x;
+        ++frame_counter;
         while( SDL_PollEvent(&event) )
         {
             switch(event.type)
@@ -604,7 +261,7 @@ int main(int argc, char *argv[])
                                 done = true;
                                 break;
                             case(SDLK_h):
-                                planet_sceneobject->toggleVisible();
+                                alt_planet_triangles_so->toggleVisible();
                                 break;
                             case(SDLK_u):
                                 {

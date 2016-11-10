@@ -2,13 +2,19 @@
 #include "../common/graph_tools.h"
 #include <functional>
 
-using namespace graphtools;
-typedef vmath::Vector3 Vector3; // Why not "using vmath::Vector3 as Vector 3", or something obvious?
 using namespace gfx;
-using namespace std; // should really be using just vector
+typedef vmath::Vector3 Vector3; // Why not "using vmath::Vector3 as Vector 3", or something obvious?
+template<typename T> using vector = std::vector<T, std::allocator<T>>; // using vector as...
 
-typedef int point_index;
-typedef int triangle_index;
+//typedef int point_index;
+
+//class point_index : public ID<point_index, int, -1> {};
+//struct point_tag{};
+//typedef ID<point_tag, int, -1> point_index;
+
+//typedef int triangle_index;
+
+
 
 namespace AltPlanet
 {
@@ -33,7 +39,6 @@ WaterSystem::WaterGeometry WaterSystem::generateWaterSystem(const AltPlanet::Pla
     // TODO: Dislodge the dependency on "topology" source files
     vector<vector<int>> point_to_point_adjacency = Adjacancy::createAdjacencyList(points, triangles);
     vector<vector<int>> point_tri_adjacency = Adjacancy::createPointToTriAdjacency(points, triangles);
-    vector<vector<int>> tri_to_tri_adjacency = Adjacancy::createTriToTriAdjacency(triangles, point_tri_adjacency);
 
     // generate ocean
     WaterSystem::GenOceanResult ocean_result = generateOcean(planet_geometry.triangles, planet_geometry.points,
@@ -62,23 +67,23 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
                                                 const Shape::BaseShape &planet_shape)
 {
     WaterSystem::GenOceanResult result_out;
-    std::vector<vmath::Vector3> &ocean_points = result_out.ocean.points;
-    std::vector<gfx::Triangle> &ocean_triangles = result_out.ocean.triangles;
-    std::vector<LandWaterType>  &point_land_water_types = result_out.landWaterTypes;
+    vector<Vector3> &ocean_points = result_out.ocean.points;
+    vector<Triangle> &ocean_triangles = result_out.ocean.triangles;
+    vector<LandWaterType>  &point_land_water_types = result_out.landWaterTypes;
     float &sealevel_radius = result_out.seaLevel;
     // TODO: Generalize to a potential function not equal to sphere radius, but one reflecting the planet in question (in progress)
 
     // sanitize input
     if (ocean_fraction < min_ocean_fraction|| ocean_fraction >= max_ocean_fraction)
     {
-        cerr << "ocean fraction " << ocean_fraction << " out of bounds (" << min_ocean_fraction << ", " << max_ocean_fraction << ")" << endl;
+        std::cerr << "ocean fraction " << ocean_fraction << " out of bounds (" << min_ocean_fraction << ", " << max_ocean_fraction << ")" << std::endl;
         ocean_fraction = 0.5f;
-        cerr << "setting ocean fraction to " << ocean_fraction << endl;
+        std::cerr << "setting ocean fraction to " << ocean_fraction << std::endl;
     }
 
     // find the deepest point on the planet as starting point
     int start_point = -1;
-    float smallest_length = numeric_limits<float>::max();
+    float smallest_length = std::numeric_limits<float>::max();
     for (int i = 0 ; i<points.size(); i++)
     {
         float length = planet_shape.getHeight(points[i]);
@@ -86,7 +91,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     }
 
     // do a search to certain depth, TODO: change to % triangle cover
-    auto flow_graph = make_graph(points, point_to_point_adjacency);
+    auto flow_graph = graphtools::make_graph(points, point_to_point_adjacency);
 
     auto heuristic = [&](const int &i)
     {
@@ -103,7 +108,7 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     search_sequence.push_back(it.get_index());
 
     // save list of triangle indices
-    vector<int> search_tris;
+    vector<tri_index> search_tris;
 
     //float current_sea_level = length(points[it.get_index()]);
     //while (current_sea_level < sealevel_radius && !it.search_end())
@@ -141,12 +146,12 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
 
         // save triangles (contains duplicates)
         for (const auto &i_t : point_tri_adjacency[int(this_index)])
-            search_tris.push_back( i_t );
+            search_tris.push_back( tri_index(i_t) );
     }
     sealevel_radius = latest_ocean_lvl;
 
-    cout << "final ocean level: " << latest_ocean_lvl << endl;
-    cout << "final ocean coverage: " << current_sea_coverage << endl;
+    std::cout << "final ocean level: " << latest_ocean_lvl << std::endl;
+    std::cout << "final ocean coverage: " << current_sea_coverage << std::endl;
 
     // remove duplicate triangles
     sort(search_tris.begin(), search_tris.end());
@@ -160,10 +165,10 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
 
     for (int i = 0 ; i<search_tris.size(); i++)
     {
-        int i_triangle = search_tris[i];
+        tri_index i_triangle = search_tris[i];
         for (int j = 0; j<3; j++)
         {
-            int i_p_unmapped = triangles[int(i_triangle)][j];
+            point_index i_p_unmapped = triangles[int(i_triangle)][j];
 
             // map the point index
             if (point_ocean_map[i_p_unmapped] == -1)
@@ -187,24 +192,24 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
 }
 
 template<class T>
-void push_back_if_unique(std::vector<T> &v, const T &e)
+void push_back_if_unique(vector<T> &v, const T &e)
 {
     if (std::find(v.begin(), v.end(), e) == v.end()) v.push_back(e);
 }
 
 
-WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vector<WaterSystem::LandWaterType>  * const point_land_water_types,
-                                                                       const std::vector<gfx::Triangle> &triangles,
-                                                                       const std::vector<vmath::Vector3> &points,
-                                                                       const std::vector<std::vector<int>> &point_to_point_adjacency,
-                                                                       const std::vector<std::vector<int>> &point_tri_adjacency,
+WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(vector<WaterSystem::LandWaterType>  * const point_land_water_types,
+                                                                       const vector<Triangle> &triangles,
+                                                                       const vector<Vector3> &points,
+                                                                       const vector<vector<int>> &point_to_point_adjacency,
+                                                                       const vector<vector<int>> &point_tri_adjacency,
                                                                        const unsigned int n_springs,
                                                                        const Shape::BaseShape &planet_shape)
 {
     WaterGeometry::Freshwater freshwater;
-    std::vector<vmath::Vector3> &lake_points = freshwater.lakes.points;
-    std::vector<gfx::Triangle> &lake_triangles = freshwater.lakes.triangles;
-    std::vector<gfx::Line> &river_lines = freshwater.rivers.lines;
+    vector<Vector3> &lake_points = freshwater.lakes.points;
+    vector<Triangle> &lake_triangles = freshwater.lakes.triangles;
+    vector<gfx::Line> &river_lines = freshwater.rivers.lines;
 
     for (int i_springs = 0; i_springs<n_springs; i_springs++)
     {
@@ -215,22 +220,22 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vect
         } while ((*point_land_water_types)[int(start_point)] != LandWaterType::Land);
         // The start_point should be guaranteed to be on land
 
-        auto flow_graph = make_graph(points, point_to_point_adjacency);
+        auto flow_graph = graphtools::make_graph(points, point_to_point_adjacency);
 
         auto heuristic = [&](const point_index &i)
         {
-            return planet_shape.getHeight(points[i]);
+            return planet_shape.getHeight(points[int(i)]);
         };
 
         auto it = flow_graph.search(start_point, heuristic);
 
         // save the search sequence
-        std::vector<point_index> search_sequence;
+        vector<point_index> search_sequence;
         search_sequence.push_back(it.get_index());
 
         // save the search result bi-directional graph
-        std::vector<optional<point_index>> search_parents(points.size());
-        std::vector<std::vector<point_index>> search_children(points.size());
+        vector<optional<point_index>> search_parents(points.size());
+        vector<vector<point_index>> search_children(points.size());
 
         while ((*point_land_water_types)[it.get_index()] == LandWaterType::Land && !it.search_end())
         {
@@ -245,7 +250,7 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vect
         }
 
         // reverse the search and set the height to water height
-        std::vector<optional<float>> water_height(points.size());
+        vector<optional<float>> water_height(points.size());
 
         { // separate scope for safety
 
@@ -268,7 +273,7 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vect
         // all drainage system points should now have a water level
 
         // store resulting triangles
-        std::vector<gfx::Triangle> this_lake_triangles;
+        vector<Triangle> this_lake_triangles;
 
         { // separate scope for safety
 
@@ -320,7 +325,7 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vect
         }
 
         // remap the triangles/points to create a sparse point/triangle representation for just the lakes
-        std::vector<point_index> point_lake_map(points.size(), -1);
+        vector<point_index> point_lake_map(points.size(), -1);
 
         for (int i = 0 ; i<this_lake_triangles.size(); i++)
         {
@@ -348,8 +353,8 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(std::vect
                 {
                     point_lake_map[i_p_unmapped] = lake_points.size();
 
-                    //vmath::Vector3 lake_point = lake_height * vmath::normalize(points[i_p_unmapped]);
-                    vmath::Vector3 lake_point = points[i_p_unmapped];
+                    //Vector3 lake_point = lake_height * normalize(points[i_p_unmapped]);
+                    Vector3 lake_point = points[i_p_unmapped];
                     planet_shape.setHeight(lake_point, lake_height);
                     lake_points.push_back(lake_point);
                 }
