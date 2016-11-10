@@ -22,11 +22,11 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     glDepthFunc(GL_LESS); // Is this necessary?
 
     // Hi DPI
-    //glLineWidth(2.2f*1.2f);
-    //glPointSize(2.2f*2.6f);
+    glLineWidth(2.2f*1.2f);
+    glPointSize(2.2f*2.6f);
 
-    glLineWidth(1.2f);
-    glPointSize(2.6f);
+    //glLineWidth(1.2f);
+    //glPointSize(2.6f);
 
     glCullFace(GL_BACK);
 

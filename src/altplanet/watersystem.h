@@ -29,7 +29,7 @@ public:
                 std::vector<gfx::Triangle> triangles;
             } lakes;
             struct Rivers {
-                std::vector<vmath::Vector3> points;
+                //std::vector<vmath::Vector3> points;
                 std::vector<gfx::Line> lines;
             } rivers;
         } freshwater;
@@ -37,7 +37,8 @@ public:
 
     static WaterGeometry generateWaterSystem(const AltPlanet::PlanetGeometry &planet_geometry,
                                              const Shape::BaseShape &planet_shape,
-                                             float ocean_fraction);
+                                             float ocean_fraction,
+                                             int num_river_springs);
 
 
 private:
@@ -63,13 +64,19 @@ private:
     };
 
     static GenOceanResult generateOcean(const std::vector<gfx::Triangle> &triangles,
-                                            const std::vector<vmath::Vector3> &points,
-                                            const std::vector<std::vector<int>> &point_tri_adjacency,
-                                            const std::vector<std::vector<int>> &point_to_point_adjacency,
-                                            float ocean_fraction,
-                                            const Shape::BaseShape &planet_shape);
+                                        const std::vector<vmath::Vector3> &points,
+                                        const std::vector<std::vector<int>> &point_tri_adjacency,
+                                        const std::vector<std::vector<int>> &point_to_point_adjacency,
+                                        float ocean_fraction,
+                                        const Shape::BaseShape &planet_shape);
 
-    static WaterGeometry::Freshwater generateFreshwater();
+    static WaterGeometry::Freshwater generateFreshwater(std::vector<LandWaterType>  * const point_land_water_types,
+                                                        const std::vector<gfx::Triangle> &triangles,
+                                                        const std::vector<vmath::Vector3> &points,
+                                                        const std::vector<std::vector<int>> &point_point_adjacency,
+                                                        const std::vector<std::vector<int>> &point_tri_adjacency,
+                                                        const unsigned int n_springs,
+                                                        const Shape::BaseShape &planet_shape);
 
 };
 

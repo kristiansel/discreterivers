@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
-    AltPlanet::Shape::BaseShape &planet_shape = torus;
+    AltPlanet::Shape::BaseShape &planet_shape = sphere;
 
     /*// profile
     for (int num_pts = 500; num_pts<4000; num_pts+=500)
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     }*/
 
     // Alt planet
-    std::string planet_filename = "torus_planet.dat";
+    std::string planet_filename = "sphere_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
 
@@ -101,9 +101,40 @@ int main(int argc, char *argv[])
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
 
-    AltPlanet::WaterSystem::WaterGeometry water_geometry = AltPlanet::WaterSystem::generateWaterSystem(alt_planet_geometry, planet_shape, 0.55f);
+    // Generate the planet water system
+    float planet_ocean_fraction = 0.55f;
+    int num_river_springs = 150;
+    auto water_geometry = AltPlanet::WaterSystem::generateWaterSystem(alt_planet_geometry, planet_shape,
+                                                                      planet_ocean_fraction,
+                                                                      num_river_springs);
+
+    // Deconstruct the ocean geometry
     std::vector<vmath::Vector3> &alt_ocean_points = water_geometry.ocean.points;
     std::vector<gfx::Triangle> &alt_ocean_triangles = water_geometry.ocean.triangles;
+
+    // Deconstruct freshwater geometry
+    std::vector<vmath::Vector3> &alt_lake_points = water_geometry.freshwater.lakes.points;
+    std::vector<gfx::Triangle> &alt_lake_triangles = water_geometry.freshwater.lakes.triangles;
+    std::vector<gfx::Line> &alt_river_lines = water_geometry.freshwater.rivers.lines;
+
+    std::cout << "found " << alt_lake_points.size() << "lake_points" << std::endl;
+    std::cout << "found " << alt_lake_triangles.size() << "lake_triangles" << std::endl;
+    std::cout << "found " << alt_river_lines.size() << "river_lines" << std::endl;
+
+    // set up alt planet vertex data to share
+    /*std::vector<vmath::Vector4> alt_planet_position_data;
+
+    for (int i = 0; i<alt_planet_points.size(); i++)
+    {
+       alt_planet_position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+       alt_planet_position_data.back().setW(1.0f);
+    }
+
+    std::vector<vmath::Vector4> alt_planet_normal_data;
+    gfx::generateNormals(&alt_planet_normal_data, alt_planet_position_data, alt_planet_triangles);
+
+    gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data);
+    */
 
 
     // think a bit about the usage
@@ -289,23 +320,25 @@ int main(int argc, char *argv[])
 //        return planet_scene_node->addSceneObject(geometry, material, transform);
 //    })(); // immediately invoked lambda!
 
+    // Create some alt planet vertex data to share
+    std::vector<vmath::Vector4> alt_planet_position_data;
+
+    for (int i = 0; i<alt_planet_points.size(); i++)
+    {
+       alt_planet_position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+       alt_planet_position_data.back().setW(1.0f);
+    }
+
+    std::vector<vmath::Vector4> alt_planet_normal_data;
+    gfx::generateNormals(&alt_planet_normal_data, alt_planet_position_data, alt_planet_triangles);
+
+    gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data);
+
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
-        std::vector<vmath::Vector4> position_data;
-
-        for (int i = 0; i<alt_planet_points.size(); i++)
-        {
-           position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-           position_data.back().setW(1.0f);
-        }
-
-        std::vector<vmath::Vector4> normal_data;
-        gfx::generateNormals(&normal_data, position_data, alt_planet_triangles);
-
-        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
         gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
-        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
         vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
         gfx::Material material = gfx::Material(color);
@@ -314,30 +347,59 @@ int main(int argc, char *argv[])
         return planet_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!
 
-    gfx::SceneObjectHandle alt_ocean_so = ([&]()
+    auto add_trivial_object = [](const std::vector<vmath::Vector3> points,
+                               const std::vector<gfx::Triangle> triangles,
+                               const vmath::Vector4 &color,
+                               gfx::SceneNodeHandle &scene_node)
     {
         std::vector<vmath::Vector4> position_data;
 
-        for (int i = 0; i<alt_ocean_points.size(); i++)
+        for (int i = 0; i<points.size(); i++)
         {
-           position_data.push_back((const vmath::Vector4&)(alt_ocean_points[i]));
-           position_data.back().setW(1.0f);
+        position_data.push_back((const vmath::Vector4&)(points[i]));
+        position_data.back().setW(1.0f);
         }
 
         std::vector<vmath::Vector4> normal_data;
-        gfx::generateNormals(&normal_data, position_data, alt_ocean_triangles);
+        gfx::generateNormals(&normal_data, position_data, triangles);
 
         gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-        gfx::Primitives primitives = gfx::Primitives(alt_ocean_triangles);
+        gfx::Primitives primitives = gfx::Primitives(triangles);
         gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-        vmath::Vector4 color(0.6f, 0.6f, 0.7f, 1.0f);
         gfx::Material material = gfx::Material(color);
-        material.setWireframe(false);
 
-        return planet_scene_node->addSceneObject(geometry, material);
-    })(); // immediately invoked lambda!
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
+
+        return scene_node->addSceneObject(geometry, material, transform);
+    };
+
+    gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(alt_ocean_points, alt_ocean_triangles,
+                                                             vmath::Vector4(0.5f, 0.5f, 0.6f, 1.0f), planet_scene_node);
+
+    gfx::SceneObjectHandle alt_lakes_so = add_trivial_object(alt_lake_points, alt_lake_triangles,
+                                                             vmath::Vector4(0.7f, 0.7f, 0.8f, 1.0f), planet_scene_node);
+
+    gfx::SceneObjectHandle rivers_sceneobject = ([&]()
+    {
+        const std::vector<gfx::Line> &rivers_primitives_data = alt_river_lines;
+
+        gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
+
+        vmath::Vector4 color(0.7f, 0.7f, 0.8f, 1.0f);
+        gfx::Material material = gfx::Material(color);
+
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
+
+        return planet_scene_node->addSceneObject(geometry, material, transform);
+    })();
+
 
 
     /*

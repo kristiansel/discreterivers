@@ -8,7 +8,7 @@
 #include "planetshapes.h"
 #include "spacehash3d.h"
 #include "../common/serialize.h"
-
+#include "../common/macro/macroserialize.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -29,26 +29,6 @@ void pointsRepulse(std::vector<vmath::Vector3> &points, const Shape::BaseShape &
 
 } // namespace AltPlanet
 
-namespace Serial
-{
-
-template<>
-inline void serialize<AltPlanet::PlanetGeometry>(const AltPlanet::PlanetGeometry &obj, StreamType &res)
-{
-    serialize(obj.points, res);
-    serialize(obj.triangles, res);
-}
-
-template<>
-inline AltPlanet::PlanetGeometry deserialize<AltPlanet::PlanetGeometry>(const StreamType &res)
-{
-    StreamType::const_iterator it = res.cbegin();
-    AltPlanet::PlanetGeometry obj;
-    obj.points = deserialize<std::vector<vmath::Vector3>>(it, res.cend());
-    obj.triangles = deserialize<std::vector<gfx::Triangle>>(it, res.cend());
-    return obj;
-}
-
-} // namespace Serial
+IMPL_SERIALIZABLE(AltPlanet::PlanetGeometry, points, triangles)
 
 #endif // ALTPLANET_H
