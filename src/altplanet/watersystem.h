@@ -13,7 +13,7 @@
 namespace AltPlanet
 {
 
-class WaterSystem final
+class WaterSystem final // where is C#'s static class or private namespace when you need it???
 {
 public:
 

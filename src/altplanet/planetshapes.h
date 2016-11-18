@@ -53,6 +53,14 @@ public:
      */
     virtual vmath::Vector3 getGradDir(const vmath::Vector3 &point) const = 0;
 
+    /**
+     * @brief getEulerCharacteristic: This function is used in the triangulation
+     *          step to verify that the triangulation has the same topology as the
+     *          desired shape
+     * @return: The euler characteristic of the shape
+     */
+    //virtual int getEulerCharacteristic() const = 0;
+
     //////////////////////////////////////////////////
     // Functions that utilize the virtual functions //
     //////////////////////////////////////////////////

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     std::string planet_filename = "torus_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
-
+/*
     // try to open planet file
     std::ifstream file(planet_filename, std::ios::binary);
     bool loading_went_bad = false;
@@ -70,17 +70,17 @@ int main(int argc, char *argv[])
     {
         std::cout << "generating planet geometry" << std::endl;
         // create the planet
-
+*/
         // Generate geometry
-        alt_planet_geometry = AltPlanet::generate(15000, planet_shape);
-
+        alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
+/*
         // Serialize it
         try {
             Serial::serialize_to_file(alt_planet_geometry, planet_filename);
         } catch (...) {
             std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
         }
-    }
+    }*/
 
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
@@ -101,9 +101,9 @@ int main(int argc, char *argv[])
     std::vector<gfx::Triangle> &alt_lake_triangles = water_geometry.freshwater.lakes.triangles;
     std::vector<gfx::Line> &alt_river_lines = water_geometry.freshwater.rivers.lines;
 
-    std::cout << "found " << alt_lake_points.size() << "lake_points" << std::endl;
+    /*std::cout << "found " << alt_lake_points.size() << "lake_points" << std::endl;
     std::cout << "found " << alt_lake_triangles.size() << "lake_triangles" << std::endl;
-    std::cout << "found " << alt_river_lines.size() << "river_lines" << std::endl;
+    std::cout << "found " << alt_river_lines.size() << "river_lines" << std::endl;*/
 
 
     // SDL2 window code:
