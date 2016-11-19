@@ -1,5 +1,6 @@
 #include "altplanet.h"
 #include "triangulate.hpp"
+#include "../common/macro/macroprofile.h"
 #include "../common/procedural/noise3d.h"
 #include "../common/collision/projection.h"
 #include "../common/mathext.h"
@@ -28,7 +29,8 @@ namespace AltPlanet
 
     PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
-        //std::cout << "testing testing..." << std::endl;
+        PROFILE_BEGIN();
+        std::cout << "generating planet... " << std::endl;
 
         PlanetGeometry geometry;
 		std::vector<vmath::Vector3> &points = geometry.points;
@@ -83,6 +85,10 @@ namespace AltPlanet
         //std::cout << "found " << triangles.size() << " triangles" << std::endl;
 
         perturbHeightNoise3D(points, planet_shape);
+
+        std::cout << "done!" << std::endl;
+
+        PROFILE_END(AltPlanet::generate(n_points)); 
 
 		return geometry;
 	}

@@ -4,12 +4,12 @@
 #include <SDL2/SDL_opengl.h>
 #include <vector>
 #include <thread>         // std::this_thread::sleep_for
-#include <chrono>         // std::chrono::seconds
 
 #define _VECTORMATH_DEBUG
 
 #include "altplanet/altplanet.h"
 #include "altplanet/watersystem.h"
+#include "common/macro/macroprofile.h"
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
@@ -20,25 +20,20 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    /*// profile
-    for (int num_pts = 500; num_pts<4000; num_pts+=500)
+    // profile
+    /*for (int num_pts = 500; num_pts<4000; num_pts+=500)
     {
         std::cout << "generating with " << num_pts << " points" << std::endl;
-        using milli = std::chrono::milliseconds;
-        auto start = std::chrono::high_resolution_clock::now();
+        PROFILE_BEGIN()
 
         auto dummy = AltPlanet::generate(num_pts, planet_shape);
-
-        auto finish = std::chrono::high_resolution_clock::now();
-        std::cout << "AltPlanet::generate( " << num_pts << ") "
-                  << std::chrono::duration_cast<milli>(finish - start).count()
-                  << " milliseconds\n";
+        
+        PROFILE_END(altplanet_generate)
     }*/
 
     // Alt planet
