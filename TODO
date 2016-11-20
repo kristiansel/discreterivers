@@ -1,7 +1,0 @@
-FUN:
-    Find interpolated positions on the surface
-    
-
-NECESSITY:
-    Fix the 3000 line file that is "planet.cpp"
-    Fix and cut down the discraceful "lake and river" algorithm
