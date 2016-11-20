@@ -39,3 +39,6 @@ build/
 # macos stuff
 .DS_Store
 .localized
+
+# qtcreator files
+CMakeLists.txt.user*
