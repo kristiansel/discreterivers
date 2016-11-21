@@ -1,6 +1,7 @@
 #include "openglrenderer.h"
 
 #include <iostream>
+#include "gfxcommon.h"
 
 namespace gfx
 {
@@ -125,7 +126,7 @@ OpenGLRenderer::OpenGLRenderer(int width, int height) : mGlobalWireframe(false)
     mCamera.mCamMatrixInverse = vmath::inverse(camera_matrix);
 
     // Check for errors:
-    checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
+    common:checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
 
 }
 
@@ -153,15 +154,6 @@ bool OpenGLRenderer::checkShaderCompiled(GLuint shader)
     else
     {
         return true;
-    }
-}
-
-void checkOpenGLErrors(const std::string &error_check_label)
-{
-    GLenum gl_err = GL_NO_ERROR;
-    while((gl_err = glGetError()) != GL_NO_ERROR)
-    {
-        std::cerr << "OpenGL Error (" << error_check_label << "): " << gl_err << std::endl;
     }
 }
 
@@ -227,49 +219,6 @@ LightHandle SceneNode::addLight(const vmath::Vector4 &color,
 
 }
 
-Vertices::Vertices(const std::vector<vmath::Vector4> &position_data,
-                   const std::vector<vmath::Vector4> &normal_data)
-{
-    // potentially more optimizations:
-    /*
-     * http://stackoverflow.com/questions/27027602/glvertexattribpointer-gl-invalid-operation-invalid-vao-vbo-pointer-usage
-     */
-
-    // Vertex Array Object
-    glGenVertexArrays(1, &mVertexArrayObject);
-    glBindVertexArray(mVertexArrayObject);
-
-    // Prepare buffer data
-    GLsizeiptr num_vertices = position_data.size();
-
-    const GLfloat *points = (GLfloat *)&position_data[0];
-    GLsizeiptr num_points = num_vertices;
-    GLsizeiptr point_buffer_size = num_points*sizeof(vmath::Vector4);
-
-    // create position buffer
-    mPositionArrayBuffer = 0;
-    glGenBuffers(1, &mPositionArrayBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mPositionArrayBuffer);
-    glBufferData(GL_ARRAY_BUFFER, point_buffer_size, points, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    // create normal buffer
-    mNormalArrayBuffer = 0;
-    glGenBuffers(1, &mNormalArrayBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mNormalArrayBuffer);
-    glBufferData(GL_ARRAY_BUFFER, normal_data.size()*sizeof(vmath::Vector4), &normal_data[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glBindVertexArray(0);
-
-
-    checkOpenGLErrors("Vertices::Vertices");
-}
-
-Geometry::Geometry(const Vertices &vertices, const Primitives &primitives) :
-    mVertices(vertices), mPrimitives(primitives) {}
 
 inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe)
 {
@@ -343,7 +292,7 @@ void OpenGLRenderer::draw() const
             vmath::Vector4 light_world_pos = scene_node.transform.getTransformMatrix() * light.mTransform.position;
             mLightObjectsVector.emplace_back(
 
-                LightObject(light_world_pos, light.mColor)
+                LightObject{light_world_pos, light.mColor}
             );
         }
     }
@@ -378,7 +327,7 @@ void OpenGLRenderer::draw() const
                 vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix() * scene_object.mTransform.getTransformMatrix();
                 mDrawObjectsVector.emplace_back(
 
-                    DrawObject(world_matrix, scene_object.mMaterial, scene_object.mGeometry)
+                    DrawObject{world_matrix, scene_object.mMaterial, scene_object.mGeometry}
                 );
             }
         }

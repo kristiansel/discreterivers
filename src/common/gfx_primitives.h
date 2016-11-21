@@ -14,7 +14,7 @@ namespace gfx
 {
     struct Triangle
     {
-        int indices[3];//should this be padded?
+        int indices[3]; //should this be padded?
 
     public:
         inline int& operator[] (const int index)
