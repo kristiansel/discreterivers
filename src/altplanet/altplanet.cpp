@@ -4,6 +4,7 @@
 #include "../common/procedural/noise3d.h"
 #include "../common/collision/projection.h"
 #include "../common/mathext.h"
+#include "../common/stdext.h"
 
 #include <algorithm>
 #include <array>
@@ -26,6 +27,7 @@ namespace AltPlanet
 
     void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);
 
+    void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance);
 
     PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
@@ -76,6 +78,9 @@ namespace AltPlanet
         //std::cout << "done!" << std::endl;
 
 		// finished distributing them evenly...
+
+        float min_distance = 0.01f; // size dependent
+        removePointsTooClose(points, spacehash, min_distance);
 
 		// triangulate... :)
         //std::cout << "triangulating points" << std::endl;
@@ -211,7 +216,7 @@ namespace AltPlanet
 		triangles.erase(std::remove_if(triangles.begin(), triangles.end(), remove_predicate), triangles.end());
 	}
 
-
+    /*
 	inline bool checkIfTrianglesIntersect(const std::vector<vmath::Vector3> &points,
 										  const gfx::Triangle &tri1, const gfx::Triangle &tri2)
 	{
@@ -220,45 +225,46 @@ namespace AltPlanet
 		return Projection::trianglesOverlap(triangle1, triangle2);
 	}
 
-	inline void overlapFilterTriangles( const std::vector<vmath::Vector3> &points,
-										std::vector<gfx::Triangle> &triangles,
-										const Shape::BaseShape &planet_shape)
 
-	{
-		// First create a point to tri association
-		std::vector<std::vector<int>> p2triAdj(points.size());
-		for (int i_tri = 0; i_tri < triangles.size(); i_tri++)
-		{
-			for (int i_ind = 0; i_ind < 3; i_ind++)
-			{
-				int i_p = triangles[i_tri][i_ind];
-				auto f_it = std::find(p2triAdj[i_p].begin(), p2triAdj[i_p].end(), i_tri);
-				if (f_it != p2triAdj[i_p].end())
-				{
-					p2triAdj[i_p].push_back(i_tri);
-				}
-			}
-		}
-		
-		// for each points, check if any adjacent (slightly shrunk) triangles intersect
-		// if they do, then remove one...
-		int found_intersecting_tris = 0;
-		for (int i_p = 0; i_p < points.size(); i_p++)
-		{
-			// for all triangles connected to that point
-			// check if they intersect each other
-			for (const auto &i_t1 : p2triAdj[i_p]) {
-				for (const auto &i_t2 : p2triAdj[i_p]) {
-					bool intersected = checkIfTrianglesIntersect(points, triangles[i_t1], triangles[i_t2]);	
-					if (intersected)
-					{
-						found_intersecting_tris++;
-					}
-				}	
-			}	
-		}	
-		std::cout << "found_intersecting_tris: " << found_intersecting_tris << std::endl;
-	}
+    inline void overlapFilterTriangles( const std::vector<vmath::Vector3> &points,
+                                        std::vector<gfx::Triangle> &triangles,
+                                        const Shape::BaseShape &planet_shape)
+
+    {
+        // First create a point to tri association
+        std::vector<std::vector<int>> p2triAdj(points.size());
+        for (int i_tri = 0; i_tri < triangles.size(); i_tri++)
+        {
+            for (int i_ind = 0; i_ind < 3; i_ind++)
+            {
+                int i_p = triangles[i_tri][i_ind];
+                auto f_it = std::find(p2triAdj[i_p].begin(), p2triAdj[i_p].end(), i_tri);
+                if (f_it != p2triAdj[i_p].end())
+                {
+                    p2triAdj[i_p].push_back(i_tri);
+                }
+            }
+        }
+
+        // for each points, check if any adjacent (slightly shrunk) triangles intersect
+        // if they do, then remove one...
+        int found_intersecting_tris = 0;
+        for (int i_p = 0; i_p < points.size(); i_p++)
+        {
+            // for all triangles connected to that point
+            // check if they intersect each other
+            for (const auto &i_t1 : p2triAdj[i_p]) {
+                for (const auto &i_t2 : p2triAdj[i_p]) {
+                    bool intersected = checkIfTrianglesIntersect(points, triangles[i_t1], triangles[i_t2]);
+                    if (intersected)
+                    {
+                        found_intersecting_tris++;
+                    }
+                }
+            }
+        }
+        std::cout << "found_intersecting_tris: " << found_intersecting_tris << std::endl;
+    }*/
 	
     inline void tripleEdgeFilterTriangles(std::vector<gfx::Triangle> &triangles)
 	{
@@ -396,5 +402,44 @@ namespace AltPlanet
             float noise_sample = 0.1f*noise3d.sample(point);
             planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
         }
+    }
+
+    void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance)
+    {
+        std::vector<std::pair<int, int>> pairs_too_close;
+
+        for (int i_p = 0; i_p<points.size(); i_p++)
+        {
+            spacehash.forEachPointInSphere(points[i_p], min_distance,
+                                           [&](const int &i_n) -> bool // early return
+                                           {
+                                                auto i_pair = (i_p > i_n) ?
+                                                            std::make_pair(i_n, i_p) : std::make_pair(i_p, i_n);
+                                                pairs_too_close.push_back(i_pair);
+                                                return false;
+                                           });
+        } // adds two copies of each pair that is too close
+
+        std::sort( pairs_too_close.begin(), pairs_too_close.end() );
+        pairs_too_close.erase( std::unique( pairs_too_close.begin(), pairs_too_close.end() ), pairs_too_close.end() );
+        // now should be only one copy of each pair which is too close
+
+        auto filter = [](const std::pair<int, int> &pair) -> int {return pair.first;};
+        std::vector<int> to_del_inds = StdExt::vector_map<std::pair<int,int>, int>(pairs_too_close, filter);
+        // why cannot the template arguments be deduced?
+
+        /*
+
+        StdExt::remove_index(points, to_del_inds);
+
+        std::cout << "num points " << points.size() << std::endl;
+
+        spacehash.rehash(points);
+
+        */
+
+        // This code removes all points
+        // It also proves that the spacehash crashes the program when there are no points...
+
     }
 }

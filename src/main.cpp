@@ -197,8 +197,8 @@ int main(int argc, char *argv[])
 
         for (int i = 0; i<points.size(); i++)
         {
-        position_data.push_back((const vmath::Vector4&)(points[i]));
-        position_data.back().setW(1.0f);
+            position_data.push_back((const vmath::Vector4&)(points[i]));
+            position_data.back().setW(1.0f);
         }
 
         std::vector<vmath::Vector4> normal_data;
@@ -297,13 +297,17 @@ int main(int argc, char *argv[])
                                     alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
                                     break;
                                 }
+                            case(SDLK_t):
+                                {
+
+                                }
                             case(SDLK_ESCAPE):
                                 done = true;
                                 break;
 
                         }
                     }
-                    break; // without this, it quits...
+                    break;
 
                 case SDL_QUIT:
                     done = true;
@@ -318,6 +322,7 @@ int main(int argc, char *argv[])
         planet_rotation += std::chrono::duration<float>(dt_fixed).count()*planet_rotation_speed;
         vmath::Vector3 rotation_axis1 = vmath::normalize(vmath::Vector3(1.0f, -1.0f, 0.0f));
         vmath::Vector3 rotation_axis2 = vmath::normalize(vmath::Vector3(-1.0f, -1.0f, 0.0f));
+
 
         planet_scene_node->transform.rotation = vmath::Quat::rotation(planet_rotation, rotation_axis1)
                                                *vmath::Quat::rotation(planet_rotation/3.0f, rotation_axis2);

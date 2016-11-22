@@ -24,7 +24,7 @@ struct Primitives
 private:
     Primitives();
 
-    GLuint mElementArrayBuffer; // element array buffer
+    GLuint mElementArrayBuffer; // Pointer type, Primitives is not a POD
     GLsizeiptr mNumIndices;
     gl_primitive_type mPrimitiveType;
 };
@@ -38,6 +38,8 @@ Primitives::Primitives(const std::vector<PrimitiveType> &primitives_data)
     glGenBuffers(1, &mElementArrayBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementArrayBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumIndices, indices, GL_STATIC_DRAW);
+
+    std::cout << "generating primitives: mElementArrayBuffer = " << mElementArrayBuffer << std::endl;
 
     gl_primitive_type gl_primitive =
         std::is_same<PrimitiveType, gfx::Line>::value   ?       // if
