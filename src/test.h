@@ -34,7 +34,7 @@
 // updateSortedByObjID(physTransforms, gfxTransforms);
 
 // When a new game object is added:
-GameObjectHandle // just an ID
-createGameObject(PosCompt,)
+// GameObjectHandle // just an ID
+// createGameObject(PosCompt,)
 
 #endif // TEST_H

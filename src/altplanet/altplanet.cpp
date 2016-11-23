@@ -29,6 +29,8 @@ namespace AltPlanet
 
     void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance);
 
+    float scaleByPointDensity(const SpaceHash3D &spacehash) {return cbrt(1.0f/spacehash.getPointDensity());}
+
     PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
         PROFILE_BEGIN();
@@ -79,8 +81,10 @@ namespace AltPlanet
 
 		// finished distributing them evenly...
 
-        float min_distance = 0.01f; // size dependent
+        float degenerate_point_sensitivity = 0.2480/2.0f;
+        float min_distance = degenerate_point_sensitivity*scaleByPointDensity(spacehash); // size dependent
         removePointsTooClose(points, spacehash, min_distance);
+
 
 		// triangulate... :)
         //std::cout << "triangulating points" << std::endl;
@@ -93,7 +97,7 @@ namespace AltPlanet
 
         std::cout << "done!" << std::endl;
 
-        PROFILE_END(AltPlanet::generate(n_points)); 
+        PROFILE_END(AltPlanet::generate);
 
 		return geometry;
 	}
@@ -105,7 +109,7 @@ namespace AltPlanet
 		std::vector<vmath::Vector3> pt_force;
 		pt_force.resize(points.size());
 
-        float forceRadius = 1.8f*cbrt(1.0f/spacehash.getPointDensity());
+        float forceRadius = 1.8f*scaleByPointDensity(spacehash);
         float repulse_factor_scaled = 2.0f*forceRadius*repulse_factor;
 
 		for (int i_p = 0; i_p<points.size(); i_p++)
@@ -337,7 +341,7 @@ namespace AltPlanet
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
 													const SpaceHash3D &spacehash, const Shape::BaseShape &planet_shape)
 	{
-        float triangulationRadius = 0.78f*cbrt(1.0f/spacehash.getPointDensity());
+        float triangulationRadius = 0.78f*scaleByPointDensity(spacehash);
         //std::cout << "n_points = " << points.size() << ", rad = " << triangulationRadius << std::endl;
 
 		// create a triangulation
@@ -406,40 +410,55 @@ namespace AltPlanet
 
     void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance)
     {
-        std::vector<std::pair<int, int>> pairs_too_close;
-
-        for (int i_p = 0; i_p<points.size(); i_p++)
+        int total_points_filtered = 0;
+        bool found_none_tooclose = false;
+        while (!found_none_tooclose)
         {
-            spacehash.forEachPointInSphere(points[i_p], min_distance,
-                                           [&](const int &i_n) -> bool // early return
-                                           {
-                                                auto i_pair = (i_p > i_n) ?
-                                                            std::make_pair(i_n, i_p) : std::make_pair(i_p, i_n);
-                                                pairs_too_close.push_back(i_pair);
-                                                return false;
-                                           });
-        } // adds two copies of each pair that is too close
+            found_none_tooclose = true; // assume everything is ok until proven otherwise
 
-        std::sort( pairs_too_close.begin(), pairs_too_close.end() );
-        pairs_too_close.erase( std::unique( pairs_too_close.begin(), pairs_too_close.end() ), pairs_too_close.end() );
-        // now should be only one copy of each pair which is too close
+            std::vector<std::pair<int, int>> pairs_too_close;
 
-        auto filter = [](const std::pair<int, int> &pair) -> int {return pair.first;};
-        std::vector<int> to_del_inds = StdExt::vector_map<std::pair<int,int>, int>(pairs_too_close, filter);
-        // why cannot the template arguments be deduced?
+            // search in a sphere around each point
+            for (int i_p = 0; i_p<points.size(); i_p++)
+            {
+                std::vector<int> neighbors;
+                spacehash.forEachPointInSphere(points[i_p], min_distance,
+                                               [&](const int &i_n) -> bool // stop sphere search after first found
+                                               {
+                                                    if (i_n != i_p) neighbors.push_back(i_n);
+                                                    return false;
+                                               });
 
-        /*
+                if (neighbors.size() > 0)
+                {
+                    found_none_tooclose = false;
+                    // pick only the closest one
+                    std::sort(neighbors.begin(), neighbors.end(), [&](int i0, int i1)
+                    {
+                        return vmath::length(points[i0]-points[i_p]) < vmath::length(points[i1]-points[i_p]);
+                    });
+                    int i_n = neighbors[0];
 
-        StdExt::remove_index(points, to_del_inds);
+                    auto pn_pair = (i_n > i_p) ? std::make_pair(i_p, i_n) : std::make_pair(i_n, i_p);
+                    pairs_too_close.push_back(pn_pair);
+                }
+            }
+            // at this point two copies might exist of a closest point pair, need to remove duplicates
+            std::sort( pairs_too_close.begin(), pairs_too_close.end() );
+            pairs_too_close.erase( std::unique( pairs_too_close.begin(), pairs_too_close.end() ), pairs_too_close.end() );
 
-        std::cout << "num points " << points.size() << std::endl;
+            // Only one of a "too close pair" needs to be deleted, arbitrarily pick the first one
+            auto filter = [](const std::pair<int, int> &pair) -> int {return pair.first;};
+            std::vector<int> to_del_inds = StdExt::vector_map<std::pair<int,int>, int>(pairs_too_close, filter);
+            // why cannot the template arguments be deduced?
 
-        spacehash.rehash(points);
+            StdExt::remove_index(points, to_del_inds);
 
-        */
+            total_points_filtered += to_del_inds.size();
 
-        // This code removes all points
-        // It also proves that the spacehash crashes the program when there are no points...
+            spacehash.rehash(points);
+        } // while found_none_tooclose
 
+        std::cout << "filtered out " << total_points_filtered << " degenerate points" << std::endl;
     }
 }
