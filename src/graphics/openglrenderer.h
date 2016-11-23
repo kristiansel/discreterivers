@@ -36,10 +36,19 @@ struct Light;
 struct SceneNodeHandle;
 struct LightHandle;
 
+struct Camera
+{
+    Camera(int width, int height);
+    vmath::Matrix4 mProjectionMatrix;
+    vmath::Matrix4 mCamMatrixInverse;
+
+    Transform mTransform;
+};
+
 class OpenGLRenderer
 {
 public:
-    OpenGLRenderer(int width, int height);
+    OpenGLRenderer();
 
     SceneNodeHandle addSceneNode();
 
@@ -47,7 +56,7 @@ public:
 
     void toggleWireframe() { mGlobalWireframe = mGlobalWireframe ? false : true; }
 
-    void draw() const;
+    void draw(const Camera &camera) const;
 
 
 private:
@@ -69,12 +78,6 @@ private:
     static bool checkProgramLinked(GLuint program);
 
     bool mGlobalWireframe;
-
-    struct Camera
-    {
-        vmath::Matrix4 mProjectionMatrix;
-        vmath::Matrix4 mCamMatrixInverse;
-    } mCamera;
 
     struct DrawObject
     {
@@ -99,11 +102,10 @@ private:
 struct SceneObject
 {
     SceneObject(const Transform &transform, const Material &material, const Geometry &geometry)
-        : mTransform(transform), mMaterial(material), mGeometry(geometry) {}
+        : mMaterial(material), mGeometry(geometry) {}
 
     void toggleVisible() {if(mMaterial.getVisible()) mMaterial.setVisible(false); else mMaterial.setVisible(true);}
 
-    Transform mTransform;
     Material mMaterial;
     Geometry mGeometry;
 };

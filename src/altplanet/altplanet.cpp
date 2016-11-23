@@ -1,5 +1,6 @@
 #include "altplanet.h"
 #include "triangulate.hpp"
+#include "incrtriangulate.hpp"
 #include "../common/macro/macroprofile.h"
 #include "../common/procedural/noise3d.h"
 #include "../common/collision/projection.h"
@@ -346,6 +347,7 @@ namespace AltPlanet
 
 		// create a triangulation
         Triangulate::ReturnType trisandhash = Triangulate::trianglesWithHash(points, triangulationRadius, spacehash);
+//        Triangulate::ReturnType trisandhash = Triangulate::incrTriangulate(points, triangulationRadius, spacehash); // need to look more into this
 		std::vector<gfx::Triangle> &triangles = trisandhash.triangles;
 		//std::unordered_set<gfx::Triangle> &existing_tris = trisandhash.trianglesHash;
 

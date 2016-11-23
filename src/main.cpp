@@ -125,9 +125,11 @@ int main(int argc, char *argv[])
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
 
+    // Camera
+    gfx::Camera camera(width, height);
 
     // Opengl renderer
-    gfx::OpenGLRenderer opengl_renderer(width, height);
+    gfx::OpenGLRenderer opengl_renderer;
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -253,6 +255,10 @@ int main(int argc, char *argv[])
     float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
 
+    // test mouse
+    bool lmb_down = false;
+    bool rmb_down = false;
+
     int frame_counter = 0;
     while(!done)
     {
@@ -261,60 +267,75 @@ int main(int argc, char *argv[])
         {
             switch(event.type)
             {
-                case(SDL_KEYDOWN):
-                    if (event.key.repeat == 0)
+            case SDL_KEYDOWN:
+                if (event.key.repeat == 0)
+                {
+                    switch(event.key.keysym.sym)
                     {
-                        switch(event.key.keysym.sym)
+                    case(SDLK_f):
+                        opengl_renderer.toggleWireframe();
+                        break;
+                    case(SDLK_q):
+                        done = true;
+                        break;
+                    case(SDLK_h):
+                        alt_planet_triangles_so->toggleVisible();
+                        break;
+                    case(SDLK_u):
+                    {
+                        // do an iteration of repulsion
+                        AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
+
+                        // update the scene object geometry
+                        std::vector<vmath::Vector4> position_data;
+                        std::vector<gfx::Point> primitives_data;
+
+                        for (int i = 0; i<alt_planet_points.size(); i++)
                         {
-                            case(SDLK_f):
-                                opengl_renderer.toggleWireframe();
-                                break;
-                            case(SDLK_q):
-                                done = true;
-                                break;
-                            case(SDLK_h):
-                                alt_planet_triangles_so->toggleVisible();
-                                break;
-                            case(SDLK_u):
-                                {
-                                    // do an iteration of repulsion
-                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
-
-                                    // update the scene object geometry
-                                    std::vector<vmath::Vector4> position_data;
-                                    std::vector<gfx::Point> primitives_data;
-
-                                    for (int i = 0; i<alt_planet_points.size(); i++)
-                                    {
-                                       position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                       position_data.back().setW(1.0f);
-                                       primitives_data.push_back({i});
-                                    }
-
-                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
-                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
-
-                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
-                                    break;
-                                }
-                            case(SDLK_t):
-                                {
-
-                                }
-                            case(SDLK_ESCAPE):
-                                done = true;
-                                break;
-
+                            position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                            position_data.back().setW(1.0f);
+                            primitives_data.push_back({i});
                         }
+
+                        gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+                        gfx::Primitives primitives = gfx::Primitives(primitives_data);
+
+                        alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                        break;
                     }
-                    break;
+                    case(SDLK_t):
+                    {
 
-                case SDL_QUIT:
-                    done = true;
-                    break;
-
-                default:
-                    break;
+                    }
+                    case(SDLK_ESCAPE):
+                        done = true;
+                        break;
+                    }
+                }
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+            {
+                lmb_down = event.button.button == SDL_BUTTON_LEFT;
+                rmb_down = event.button.button == SDL_BUTTON_RIGHT;
+                break;
+            }
+            case SDL_MOUSEBUTTONUP:
+            {
+                lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
+                rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
+                break;
+            }
+            case SDL_MOUSEMOTION:
+            {
+                if (lmb_down || rmb_down)
+                    std::cout << "Mouse = (" << event.motion.x << ", " << event.motion.y << ")" << std::endl;
+                break;
+            }
+            case SDL_QUIT:
+                done = true;
+                break;
+            default:
+                break;
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
@@ -332,7 +353,7 @@ int main(int argc, char *argv[])
 //            vmath::Vector4(0.5f*sin(100.0f*planet_rotation)+0.5f, 0.0f, 0.5f, 1.0f);
 
         // draw
-        opengl_renderer.draw();
+        opengl_renderer.draw(camera);
 
         // goes in drawing code:
         SDL_GL_SwapWindow(mainWindow);
