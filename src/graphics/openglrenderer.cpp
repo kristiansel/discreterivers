@@ -28,8 +28,8 @@ Camera::Camera(int width, int height)
 
 
 
-    vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 10.0f));
-    mCamMatrixInverse = vmath::inverse(camera_matrix);
+    /*vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 10.0f));
+    mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
 OpenGLRenderer::OpenGLRenderer() : mGlobalWireframe(false)
@@ -155,7 +155,7 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
     const auto &vertices = geometry.getVertices();
     const auto &primitives = geometry.getPrimitives();
 
-    vmath::Matrix4 mv = camera.mCamMatrixInverse * model_matrix;
+    vmath::Matrix4 mv = camera.getCamMatrixInverse() * model_matrix;
 
 #ifdef _VECTORMATH_DEBUG
     //vmath::print(model_matrix, ("model_matrix"+std::to_string(debug_counter)).c_str());
@@ -241,7 +241,78 @@ void OpenGLRenderer::draw(const Camera &camera) const
         light_position_world = vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
         light_color = vmath::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     }
-    vmath::Matrix4 vp_matrix = camera.mCamMatrixInverse;
+    vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
+    vmath::Vector4 light_position = vp_matrix * light_position_world;
+
+    glUniform4fv(mShaderProgram.getUniforms().light_position, 1, (const GLfloat*)&light_position);
+    glUniform4fv(mShaderProgram.getUniforms().light_color, 1, (const GLfloat*)&light_color);
+
+    // prepare the drawobjects
+    mDrawObjectsVector.clear(); // could/does this need to be optimized?
+    for (const auto &scene_node : mSceneNodesVector)
+    {
+        for (const auto &scene_object : scene_node.getSceneObjects())
+        {
+            if (scene_object.mMaterial.getVisible()) // woops branching in tight loop, optimize me please!
+            {
+                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix()/* * scene_object.mTransform.getTransformMatrix()*/;
+                mDrawObjectsVector.emplace_back(
+
+                    DrawObject{world_matrix, scene_object.mMaterial, scene_object.mGeometry}
+                );
+            }
+        }
+    }
+
+    // actually draw the batched draw objects
+    for (const auto &draw_object : mDrawObjectsVector)
+    {
+        drawDrawObject(draw_object, camera, mShaderProgram.getUniforms(), mGlobalWireframe);
+    }
+}
+
+void OpenGLRenderer::drawAlt(const Camera &camera) const
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // update mutable global uniforms.
+    // blabla... update etc...
+    // like camera
+    // lights (forward renderer)
+    // wind direction
+    // all that stuff that can be shared by shader programs...
+
+    // switch shader, (might be done later at material stage...)
+    glUseProgram (mShaderProgram.getProgramID());
+
+    // prepare lights
+    mLightObjectsVector.clear();
+    for (const auto &scene_node : mSceneNodesVector)
+    {
+        for (const auto &light : scene_node.getLights())
+        {
+            vmath::Vector4 light_world_pos = scene_node.transform.getTransformMatrix() * light.mTransform.position;
+            mLightObjectsVector.emplace_back(
+
+                LightObject{light_world_pos, light.mColor}
+            );
+        }
+    }
+
+    vmath::Vector4 light_position_world;
+    vmath::Vector4 light_color;
+    if (mLightObjectsVector.size()>0)
+    {
+        // use first light
+        light_position_world = mLightObjectsVector[0].mPosition;
+        light_color = mLightObjectsVector[0].mColor;
+    }
+    else // default light
+    {
+        light_position_world = vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
+        light_color = vmath::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
     vmath::Vector4 light_position = vp_matrix * light_position_world;
 
     glUniform4fv(mShaderProgram.getUniforms().light_position, 1, (const GLfloat*)&light_position);

@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
 
     // Camera
     gfx::Camera camera(width, height);
+    camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer;
@@ -273,6 +274,8 @@ int main(int argc, char *argv[])
     // test mouse
     bool lmb_down = false;
     bool rmb_down = false;
+    int32_t prev_mouse_x = 0;
+    int32_t prev_mouse_y = 0;
 
     int frame_counter = 0;
     while(!done)
@@ -343,7 +346,18 @@ int main(int argc, char *argv[])
             case SDL_MOUSEMOTION:
             {
                 if (lmb_down || rmb_down)
-                    std::cout << "Mouse = (" << event.motion.x << ", " << event.motion.y << ")" << std::endl;
+                {
+                    int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
+                    int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
+                    float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f;
+                    float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
+                    planet_scene_node->transform.rotation = vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
+                                                 vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
+                                                 planet_scene_node->transform.rotation;
+                }
+                // update previous mouse position
+                prev_mouse_x = event.motion.x;
+                prev_mouse_y = event.motion.y;
                 break;
             }
             case SDL_QUIT:
@@ -353,19 +367,6 @@ int main(int argc, char *argv[])
                 break;
             }   // End switch
         } // while(SDL_PollEvent(&event)))
-
-        // animate rotation
-        planet_rotation += std::chrono::duration<float>(dt_fixed).count()*planet_rotation_speed;
-        vmath::Vector3 rotation_axis1 = vmath::normalize(vmath::Vector3(1.0f, -1.0f, 0.0f));
-        vmath::Vector3 rotation_axis2 = vmath::normalize(vmath::Vector3(-1.0f, -1.0f, 0.0f));
-
-
-        planet_scene_node->transform.rotation = vmath::Quat::rotation(planet_rotation, rotation_axis1)
-                                               *vmath::Quat::rotation(planet_rotation/3.0f, rotation_axis2);
-
-//        // animate color
-//        planet_sceneobject->mMaterial.color =
-//            vmath::Vector4(0.5f*sin(100.0f*planet_rotation)+0.5f, 0.0f, 0.5f, 1.0f);
 
         // draw
         opengl_renderer.draw(camera);

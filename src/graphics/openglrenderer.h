@@ -42,7 +42,7 @@ struct Camera
 {
     Camera(int width, int height);
     vmath::Matrix4 mProjectionMatrix;
-    vmath::Matrix4 mCamMatrixInverse;
+    vmath::Matrix4 getCamMatrixInverse() const { return vmath::inverse(mTransform.getTransformMatrix()); }
 
     Transform mTransform;
 };
@@ -76,6 +76,7 @@ public:
 
     void draw(const Camera &camera) const;
 
+    void drawAlt(const Camera &camera) const;
 
 private:
     Shader mShaderProgram;
