@@ -34,17 +34,8 @@ Camera::Camera(int width, int height)
 
 OpenGLRenderer::OpenGLRenderer() : mGlobalWireframe(false)
 {
-    // GLEW
-    // glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-      /* Problem: glewInit failed, something is seriously wrong. */
-      std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
-    }
-    std::cout << "Status: Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+    // OpenGL context needs to be valid at this point
 
-    // opengl hello triangle
     glEnable(GL_DEPTH_TEST); // Is this necessary?
     glDepthFunc(GL_LESS); // Is this necessary?
 
@@ -56,82 +47,6 @@ OpenGLRenderer::OpenGLRenderer() : mGlobalWireframe(false)
     glPointSize(2.6f);
 
     glCullFace(GL_BACK);
-
-    // set up shaders
-    const char * vertex_shader_src =
-    "#version 410\n"
-
-    "layout(location = 0) in vec4 vertex_position;"
-    "layout(location = 1) in vec4 vertex_normal;"
-    "layout(location = 2) in vec2 vertex_texture_coordinates;"
-
-    "out vec4 position;"
-    "out vec4 normal;"
-
-    "uniform mat4 mv;"
-    "uniform mat4 p;"
-
-    "void main() {"
-    "  position = mv * vec4(vertex_position.xyz, 1.0);"
-    "  normal = mv * vec4(vertex_normal.xyz, 0.0);"
-    "  gl_Position = p * position;"
-    "}";
-
-    const char * fragment_shader_src =
-    "#version 410\n"
-
-    "in vec4 position;"
-    "in vec4 normal;"
-
-    "out vec4 frag_color;"
-
-    "uniform vec4 color;"
-    "uniform vec4 light_position;"
-    "uniform vec4 light_color;"
-
-    "void main() {"
-    //"  vec3 eyedirn = normalize(vec3(0,0,0) - position) ;"
-    //"  vec3 lightdirection = normalize(vec3(1.0, 1.0, -1.0));"
-    "  vec4 lightdirection = light_position - position;"
-    "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
-    "  frag_color = vec4(color.rgb * max(nDotL, 0), 1.0);"
-    "}";
-
-    std::cout << "compiling shaders" << std::endl;
-
-    // compile vertex shader
-    GLuint vertex_shader = glCreateShader (GL_VERTEX_SHADER);
-    glShaderSource (vertex_shader, 1, &vertex_shader_src, NULL);
-    glCompileShader (vertex_shader);
-
-    checkShaderCompiled(vertex_shader);
-
-    // compile fragment shader
-    GLuint fragment_shader = glCreateShader (GL_FRAGMENT_SHADER);
-    glShaderSource (fragment_shader, 1, &fragment_shader_src, NULL);
-    glCompileShader (fragment_shader);
-
-    checkShaderCompiled(fragment_shader);
-
-    std::cout << "linking shaders" << std::endl;
-
-    mShaderProgramID = glCreateProgram ();
-    glAttachShader (mShaderProgramID, fragment_shader);
-    glAttachShader (mShaderProgramID, vertex_shader);
-    glLinkProgram (mShaderProgramID);
-
-    // should check linker error
-    checkProgramLinked(mShaderProgramID);
-
-    //glUseProgram(mShaderProgramID);r
-
-    mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
-    mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
-    mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
-    mUniforms.light_position = glGetUniformLocation(mShaderProgramID, "light_position") ;
-    mUniforms.light_color = glGetUniformLocation(mShaderProgramID, "light_color") ;
-
-
 
     // Check for errors:
     common:checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
@@ -228,7 +143,7 @@ LightHandle SceneNode::addLight(const vmath::Vector4 &color,
 }
 
 
-inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe)
+inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Shader::Uniforms &uniforms, bool global_wireframe)
 {
     // deconstruct scene_object
     // wouldn't it be nice to write for ({transform, {vertices, primitives}, material} : mSceneObjectsVector)... std::tie?
@@ -287,9 +202,17 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
 
 void OpenGLRenderer::draw(const Camera &camera) const
 {
-    // switch shader, (might be done later at material stage...)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram (mShaderProgramID);
+
+    // update mutable global uniforms.
+    // blabla... update etc...
+    // like camera
+    // lights (forward renderer)
+    // wind direction
+    // all that stuff that can be shared by shader programs...
+
+    // switch shader, (might be done later at material stage...)
+    glUseProgram (mShaderProgram.getProgramID());
 
     // prepare lights
     mLightObjectsVector.clear();
@@ -321,8 +244,8 @@ void OpenGLRenderer::draw(const Camera &camera) const
     vmath::Matrix4 vp_matrix = camera.mCamMatrixInverse;
     vmath::Vector4 light_position = vp_matrix * light_position_world;
 
-    glUniform4fv(mUniforms.light_position, 1, (const GLfloat*)&light_position);
-    glUniform4fv(mUniforms.light_color, 1, (const GLfloat*)&light_color);
+    glUniform4fv(mShaderProgram.getUniforms().light_position, 1, (const GLfloat*)&light_position);
+    glUniform4fv(mShaderProgram.getUniforms().light_color, 1, (const GLfloat*)&light_color);
 
     // prepare the drawobjects
     mDrawObjectsVector.clear(); // could/does this need to be optimized?
@@ -344,7 +267,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
     // actually draw the batched draw objects
     for (const auto &draw_object : mDrawObjectsVector)
     {
-        drawDrawObject(draw_object, camera, mUniforms, mGlobalWireframe);
+        drawDrawObject(draw_object, camera, mShaderProgram.getUniforms(), mGlobalWireframe);
     }
 
 

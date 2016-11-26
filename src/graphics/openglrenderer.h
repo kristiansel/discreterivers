@@ -13,7 +13,9 @@
 #include "primitives.h"
 #include "geometry.h"
 #include "material.h"
+#include "vertexcolormaterial.h"
 #include "transform.h"
+#include "shader.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -45,7 +47,23 @@ struct Camera
     Transform mTransform;
 };
 
-class OpenGLRenderer
+class OpenGLContextDependent // base class that constructs opengl context before derived is constructed
+{
+public:
+    OpenGLContextDependent() // create OpenGL context using GLEW
+    {
+        // glewExperimental = GL_TRUE;
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+        {
+          // Problem: glewInit failed, something is seriously wrong.
+          std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+        }
+        std::cout << "Status: Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+    }
+};
+
+class OpenGLRenderer : public OpenGLContextDependent // Need to get a context before constructing OpenGLRenderer
 {
 public:
     OpenGLRenderer();
@@ -60,19 +78,9 @@ public:
 
 
 private:
-//    class ShaderProgram
-//    {
-//        friend class OpenGLRenderer;
-        GLuint mShaderProgramID;
-        struct Uniforms
-        {
-            GLint mv;
-            GLint p;
-            GLint color;
-            GLint light_position;
-            GLint light_color;
-        } mUniforms;
-//    } mShaderProgram;
+    Shader mShaderProgram;
+
+
 
     static bool checkShaderCompiled(GLuint shader);
     static bool checkProgramLinked(GLuint program);
@@ -96,7 +104,7 @@ private:
     mutable std::vector<DrawObject> mDrawObjectsVector;
     mutable std::vector<LightObject> mLightObjectsVector;
 
-    inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Uniforms &uniforms, bool global_wireframe = false);
+    inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Shader::Uniforms &uniforms, bool global_wireframe = false);
 };
 
 struct SceneObject

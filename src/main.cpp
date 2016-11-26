@@ -10,6 +10,7 @@
 
 #include "altplanet/altplanet.h"
 #include "altplanet/watersystem.h"
+#include "altplanet/irradiance.h"
 #include "common/macro/macroprofile.h"
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
@@ -97,9 +98,16 @@ int main(int argc, char *argv[])
     std::vector<gfx::Triangle> &alt_lake_triangles = water_geometry.freshwater.lakes.triangles;
     std::vector<gfx::Line> &alt_river_lines = water_geometry.freshwater.rivers.lines;
 
-    /*std::cout << "found " << alt_lake_points.size() << "lake_points" << std::endl;
-    std::cout << "found " << alt_lake_triangles.size() << "lake_triangles" << std::endl;
-    std::cout << "found " << alt_river_lines.size() << "river_lines" << std::endl;*/
+    // Generate planet irradiance map
+    std::vector<vmath::Vector3> alt_planet_normals;
+    gfx::generateNormals(&alt_planet_normals, alt_planet_points, alt_planet_triangles);
+
+    float planet_tilt = 0.408407f; // radians, same as earth
+    std::vector<float> alt_planet_irradiance = AltPlanet::Irradiance::irradianceYearMean(
+                alt_planet_points,
+                alt_planet_normals,
+                alt_planet_triangles,
+                planet_tilt);
 
 
     // SDL2 window code:
@@ -185,6 +193,13 @@ int main(int argc, char *argv[])
 
         vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
         gfx::Material material = gfx::Material(color);
+
+        /*gfx::Material::ColorScale colorScale = {
+            {0.0f, {0.0f, 0.0f, 0.0f, 1.0f}},
+            {1.0f, {1.0f, 0.5f, 0.0f, 1.0f}}
+        }*/
+
+        //gfx::Material material = gfx::VertexColorMaterial(alt_planet_irradiance /*, colorScale*/)
         material.setWireframe(false);
 
         return planet_scene_node->addSceneObject(geometry, material);
