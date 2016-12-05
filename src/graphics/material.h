@@ -2,29 +2,72 @@
 #define MATERIAL_H
 
 #include "../common/gfx_primitives.h"
+#include "texture.h"
 
 namespace gfx {
 
-struct Material
+class Material
 {
-    Material() : color(1.0f), wireframe(false), visible(true) {}
-    Material(const Material &m) : color(m.color), wireframe(m.wireframe), visible(m.visible) {}
-    explicit Material(const vmath::Vector4 &color_in) : color(color_in), wireframe(false), visible(true) {}
+private:
+    Material() : mColor(1.0f), mWireframe(false), mVisible(true), mTexture(Texture())
+    {
+
+    }
+
+public:
+    explicit Material(const vmath::Vector4 &color_in) : mColor(color_in),
+        mWireframe(false), mVisible(true), mTexture(Texture()) {}
+
+
+
+
+    Material(const Material &m) : mColor(m.mColor), mWireframe(m.mWireframe),
+        mVisible(m.mVisible), mTexture(mTexture)
+    {
+
+    }
+
+    Material(Material &&m) : mColor(m.mColor), mWireframe(m.mWireframe),
+        mVisible(m.mVisible), mTexture(std::move(mTexture))
+    {
+
+    }
+
+    /** Copy assignment operator */
+    Material& operator= (const Material& other)
+    {
+        Material tmp(other);         // re-use copy-constructor
+        *this = std::move(tmp);      // re-use move-assignment
+        return *this;
+    }
+
+    /** Move assignment operator */
+    Material& operator= (Material&& other) noexcept
+    {
+        // delete[] data;
+        mTexture = other.mTexture;
+        // other.data = nullptr;
+        return *this;
+    }
+
 
     // get
-    inline const vmath::Vector4 &getColor() const {return color;}
-    inline const bool &getWireframe() const {return wireframe;}
-    inline const bool &getVisible() const {return visible;}
+    inline const vmath::Vector4 &getColor() const {return mColor;}
+    inline const bool &getWireframe() const {return mWireframe;}
+    inline const bool &getVisible() const {return mVisible;}
+    inline const Texture &getTexture() const {return mTexture;}
 
     // set
-    inline void setColor(const vmath::Vector4 &color_in) {color=color_in;}
-    inline void setWireframe(bool w) {wireframe=w;}
-    inline void setVisible(bool v) {visible=v;}
+    inline void setColor(const vmath::Vector4 &color_in) {mColor=color_in;}
+    inline void setWireframe(bool w) {mWireframe=w;}
+    inline void setVisible(bool v) {mVisible=v;}
 
 private:
-    vmath::Vector4 color;
-    bool wireframe;
-    bool visible;
+    vmath::Vector4 mColor;
+    Texture mTexture;
+
+    bool mWireframe;
+    bool mVisible;
 };
 
 }

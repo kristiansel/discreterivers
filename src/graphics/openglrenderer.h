@@ -81,18 +81,22 @@ public:
 private:
     Shader mShaderProgram;
 
-
-
-    static bool checkShaderCompiled(GLuint shader);
-    static bool checkProgramLinked(GLuint program);
-
     bool mGlobalWireframe;
 
-    struct DrawObject
+    class DrawObject
     {
+    public:
+        DrawObject(const vmath::Matrix4 &matrix, const Material &material, const Geometry &geometry) :
+            mMatrix(matrix), mMaterial(material), mGeometry(geometry) {}
+        DrawObject(vmath::Matrix4 &&matrix, Material &&material, Geometry &&geometry) :
+            mMatrix(std::move(matrix)), mMaterial(std::move(material)), mGeometry(std::move(geometry)) {}
+
         vmath::Matrix4 mMatrix;
         Material mMaterial;
         Geometry mGeometry;
+
+    private:
+        DrawObject();
     };
 
     struct LightObject
@@ -108,8 +112,9 @@ private:
     inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Shader::Uniforms &uniforms, bool global_wireframe = false);
 };
 
-struct SceneObject
+class SceneObject
 {
+public:
     SceneObject(const Transform &transform, const Material &material, const Geometry &geometry)
         : mMaterial(material), mGeometry(geometry) {}
 
@@ -117,6 +122,8 @@ struct SceneObject
 
     Material mMaterial;
     Geometry mGeometry;
+private:
+    SceneObject();
 };
 
 

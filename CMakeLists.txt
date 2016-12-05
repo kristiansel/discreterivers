@@ -11,6 +11,27 @@ if(NOT SDL2_FOUND)
         message(SEND_ERROR "Failed to find SDL2.")
 endif()
 
+# Find SDL2_image
+find_package(SDL2_image REQUIRED)
+
+if(NOT SDL2_IMAGE_FOUND)
+        message(SEND_ERROR "Failed to find SDL2_image.")
+endif()
+
+# Find Zlib
+find_package(ZLIB REQUIRED)
+
+if(NOT ZLIB_FOUND)
+        message(SEND_ERROR "Failed to find ZLIB.")
+endif()
+
+# Find libPNG
+find_package(PNG REQUIRED)
+
+if(NOT PNG_FOUND)
+        message(SEND_ERROR "Failed to find libPNG.")
+endif()
+
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -27,6 +48,7 @@ endif()
 
 include_directories(
     ${SDL2_INCLUDE_DIRS}
+    ${SDL2_IMAGE_INCLUDE_DIR}
     ${GL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
 )
@@ -40,6 +62,9 @@ add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARY}
+    ${SDL2_IMAGE_LIBRARY}
+    ${ZLIB_LIBRARIES}
+    ${PNG_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
 )

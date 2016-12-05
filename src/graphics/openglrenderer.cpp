@@ -53,56 +53,6 @@ OpenGLRenderer::OpenGLRenderer() : mGlobalWireframe(false)
 
 }
 
-
-bool OpenGLRenderer::checkShaderCompiled(GLuint shader)
-{
-    GLint shader_compiled = 0;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
-    if(shader_compiled == GL_FALSE)
-    {
-        GLint max_length = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
-
-        // The maxLength includes the NULL character
-        std::vector<GLchar> info_log(max_length);
-        glGetShaderInfoLog(shader, max_length, &max_length, &info_log[0]);
-
-        for (auto err_char : info_log) std::cout << err_char;
-
-        // Provide the infolog in whatever manor you deem best.
-        // Exit with failure.
-        // glDeleteShader(shader); // Don't leak the shader.
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
-
-bool OpenGLRenderer::checkProgramLinked(GLuint program)
-{
-    GLint is_linked = 0;
-    glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
-    if(is_linked == GL_FALSE)
-    {
-        GLint max_length = 0;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> info_log(max_length);
-        glGetProgramInfoLog(program, max_length, &max_length, &info_log[0]);
-
-        for (auto info_char : info_log) std::cout << info_char;
-
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
-
 SceneNodeHandle OpenGLRenderer::addSceneNode()
 {
     scenenode_id id_out(mSceneNodesVector.size());
@@ -172,9 +122,16 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
     glUniformMatrix4fv(uniforms.p, 1, false, (const GLfloat*)&(p[0]));
     glUniform4fv(uniforms.color, 1, (const GLfloat*)&material.getColor());
 
-    //glBindVertexArray (vertices.vao);
-    // glBindBuffer (GL_ARRAY_BUFFER, vertices.getPositionArrayBuffer());
-    // glBindBuffer (GL_ARRAY_BUFFER, vertices.getNormalArrayBuffer());
+    checkOpenGLErrors("Draw before texture");
+
+    glActiveTexture(GL_TEXTURE0);
+
+    std::cout << "texture id: " << material.getTexture().getTextureID() << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, material.getTexture().getTextureID());
+
+    checkOpenGLErrors("Draw after texture");
+
 
     // Bind vertex array
     glBindVertexArray(vertices.getVertexArrayObject());
@@ -192,12 +149,14 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     }
 
-
+    checkOpenGLErrors("Before draw elements");
 
     //                                                  | num indices | type of index | wtf is this for?
     glDrawElements(PRIMITIVE_GL_CODE(primitives.getPrimitiveType()), primitives.getNumIndices(), GL_UNSIGNED_INT, (void*)0 );
 
 
+    checkOpenGLErrors("After draw elements");
+    //assert(false);
 }
 
 void OpenGLRenderer::draw(const Camera &camera) const
@@ -256,10 +215,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
             if (scene_object.mMaterial.getVisible()) // woops branching in tight loop, optimize me please!
             {
                 vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix()/* * scene_object.mTransform.getTransformMatrix()*/;
-                mDrawObjectsVector.emplace_back(
-
-                    DrawObject{world_matrix, scene_object.mMaterial, scene_object.mGeometry}
-                );
+                mDrawObjectsVector.emplace_back(world_matrix, scene_object.mMaterial, scene_object.mGeometry);
             }
         }
     }
@@ -269,79 +225,6 @@ void OpenGLRenderer::draw(const Camera &camera) const
     {
         drawDrawObject(draw_object, camera, mShaderProgram.getUniforms(), mGlobalWireframe);
     }
-}
-
-void OpenGLRenderer::drawAlt(const Camera &camera) const
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // update mutable global uniforms.
-    // blabla... update etc...
-    // like camera
-    // lights (forward renderer)
-    // wind direction
-    // all that stuff that can be shared by shader programs...
-
-    // switch shader, (might be done later at material stage...)
-    glUseProgram (mShaderProgram.getProgramID());
-
-    // prepare lights
-    mLightObjectsVector.clear();
-    for (const auto &scene_node : mSceneNodesVector)
-    {
-        for (const auto &light : scene_node.getLights())
-        {
-            vmath::Vector4 light_world_pos = scene_node.transform.getTransformMatrix() * light.mTransform.position;
-            mLightObjectsVector.emplace_back(
-
-                LightObject{light_world_pos, light.mColor}
-            );
-        }
-    }
-
-    vmath::Vector4 light_position_world;
-    vmath::Vector4 light_color;
-    if (mLightObjectsVector.size()>0)
-    {
-        // use first light
-        light_position_world = mLightObjectsVector[0].mPosition;
-        light_color = mLightObjectsVector[0].mColor;
-    }
-    else // default light
-    {
-        light_position_world = vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
-        light_color = vmath::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
-    vmath::Vector4 light_position = vp_matrix * light_position_world;
-
-    glUniform4fv(mShaderProgram.getUniforms().light_position, 1, (const GLfloat*)&light_position);
-    glUniform4fv(mShaderProgram.getUniforms().light_color, 1, (const GLfloat*)&light_color);
-
-    // prepare the drawobjects
-    mDrawObjectsVector.clear(); // could/does this need to be optimized?
-    for (const auto &scene_node : mSceneNodesVector)
-    {
-        for (const auto &scene_object : scene_node.getSceneObjects())
-        {
-            if (scene_object.mMaterial.getVisible()) // woops branching in tight loop, optimize me please!
-            {
-                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix()/* * scene_object.mTransform.getTransformMatrix()*/;
-                mDrawObjectsVector.emplace_back(
-
-                    DrawObject{world_matrix, scene_object.mMaterial, scene_object.mGeometry}
-                );
-            }
-        }
-    }
-
-    // actually draw the batched draw objects
-    for (const auto &draw_object : mDrawObjectsVector)
-    {
-        drawDrawObject(draw_object, camera, mShaderProgram.getUniforms(), mGlobalWireframe);
-    }
-
-
 }
 
 } // namespace gfx

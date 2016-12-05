@@ -37,13 +37,13 @@ public:
 
         "out vec4 frag_color;"
 
+        "uniform sampler2D tex;"
         "uniform vec4 color;"
         "uniform vec4 light_position;"
         "uniform vec4 light_color;"
 
         "void main() {"
-        //"  vec3 eyedirn = normalize(vec3(0,0,0) - position) ;"
-        //"  vec3 lightdirection = normalize(vec3(1.0, 1.0, -1.0));"
+        //"  vec4 texel = texture(tex, vec2(0, 0));"
         "  vec4 lightdirection = light_position - position;"
         "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
         "  frag_color = vec4(color.rgb * max(nDotL, 0), 1.0);"
@@ -75,84 +75,39 @@ public:
         // should check linker error
         checkProgramLinked(mShaderProgramID);
 
-        //glUseProgram(mShaderProgramID);r
+        glUseProgram(mShaderProgramID);
 
         mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
         mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
+        mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
         mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
         mUniforms.light_position = glGetUniformLocation(mShaderProgramID, "light_position") ;
         mUniforms.light_color = glGetUniformLocation(mShaderProgramID, "light_color") ;
 
-        // Check for errors:
-        common:checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
-    }
+        // Set shader uniform value
+        glUniform1i(mUniforms.tex, 0); // ALWAYS CHANNEL 0
 
-    struct Uniforms
-    {
-        GLint mv;
-        GLint p;
-        GLint color;
-        GLint light_position;
-        GLint light_color;
-    } mUniforms;
+        // Check for errors:
+        common:checkOpenGLErrors("Shader::Shader()");
+    }
 
     GLuint getProgramID() const {return mShaderProgramID;}
 
+    struct Uniforms;
     const Uniforms &getUniforms() const {return mUniforms;}
 
 private:
     GLuint mShaderProgramID;
 
-    static bool checkShaderCompiled(GLuint shader)
+    struct Uniforms
     {
-        GLint shader_compiled = 0;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
-        if(shader_compiled == GL_FALSE)
-        {
-            GLint max_length = 0;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
-
-            // The maxLength includes the NULL character
-            std::vector<GLchar> info_log(max_length);
-            glGetShaderInfoLog(shader, max_length, &max_length, &info_log[0]);
-
-            for (auto err_char : info_log) std::cout << err_char;
-
-            // Provide the infolog in whatever manor you deem best.
-            // Exit with failure.
-            // glDeleteShader(shader); // Don't leak the shader.
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-
-    static bool checkProgramLinked(GLuint program)
-    {
-        GLint is_linked = 0;
-        glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
-        if(is_linked == GL_FALSE)
-        {
-            GLint max_length = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
-
-            //The maxLength includes the NULL character
-            std::vector<GLchar> info_log(max_length);
-            glGetProgramInfoLog(program, max_length, &max_length, &info_log[0]);
-
-            for (auto info_char : info_log) std::cout << info_char;
-
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
+        GLint mv;
+        GLint p;
+        GLint tex;
+        GLint color;
+        GLint light_position;
+        GLint light_color;
+    } mUniforms;
 };
 
 }

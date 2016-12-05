@@ -109,6 +109,18 @@ int main(int argc, char *argv[])
                 alt_planet_triangles,
                 planet_tilt);
 
+    // check the irradiance
+    float max = std::numeric_limits<float>::min();
+    float min = std::numeric_limits<float>::max();
+    float mean = 0.f;
+    for (const auto &el : alt_planet_irradiance)
+    {
+        if (el < min) min=el;
+        if (el > max) max=el;
+        mean += el/alt_planet_irradiance.size();
+    }
+
+    std::cout << "irradiance info" << min << ", " << mean << ", " << max << std::endl;
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
@@ -139,6 +151,9 @@ int main(int argc, char *argv[])
 
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer;
+
+    // test texture
+    gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -385,7 +400,7 @@ int main(int argc, char *argv[])
     while((gl_err = glGetError()) != GL_NO_ERROR)
     {
         /* Problem: glewInit failed, something is seriously wrong. */
-        std::cerr << "OpenGL Error: " << gl_err << std::endl;
+        std::cerr << "OpenGL Error (exit): " << gl_err << std::endl;
     }
 
 
