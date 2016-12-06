@@ -16,6 +16,7 @@
 #include "vertexcolormaterial.h"
 #include "transform.h"
 #include "shader.h"
+#include "renderflags.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -37,15 +38,6 @@ struct Light;
 
 struct SceneNodeHandle;
 struct LightHandle;
-
-struct Camera
-{
-    Camera(int width, int height);
-    vmath::Matrix4 mProjectionMatrix;
-    vmath::Matrix4 getCamMatrixInverse() const { return vmath::inverse(mTransform.getTransformMatrix()); }
-
-    Transform mTransform;
-};
 
 class OpenGLContextDependent // base class that constructs opengl context before derived is constructed
 {
@@ -72,7 +64,7 @@ public:
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
-    void toggleWireframe() { mGlobalWireframe = mGlobalWireframe ? false : true; }
+    void toggleWireframe() { mRenderFlags.toggleFlag(RenderFlags::Wireframe); }
 
     void draw(const Camera &camera) const;
 
@@ -81,24 +73,9 @@ public:
 private:
     Shader mShaderProgram;
 
-    bool mGlobalWireframe;
+    RenderFlags mRenderFlags;
 
-    class DrawObject
-    {
-    public:
-        DrawObject(const vmath::Matrix4 &matrix, const Material &material, const Geometry &geometry) :
-            mMatrix(matrix), mMaterial(material), mGeometry(geometry) {}
-        DrawObject(vmath::Matrix4 &&matrix, Material &&material, Geometry &&geometry) :
-            mMatrix(std::move(matrix)), mMaterial(std::move(material)), mGeometry(std::move(geometry)) {}
-
-        vmath::Matrix4 mMatrix;
-        Material mMaterial;
-        Geometry mGeometry;
-
-    private:
-        DrawObject();
-    };
-
+    // should be shared among shaders
     struct LightObject
     {
         vmath::Vector4 mPosition;
@@ -106,10 +83,7 @@ private:
     };
 
     std::vector<SceneNode> mSceneNodesVector;
-    mutable std::vector<DrawObject> mDrawObjectsVector;
     mutable std::vector<LightObject> mLightObjectsVector;
-
-    inline static void drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Shader::Uniforms &uniforms, bool global_wireframe = false);
 };
 
 class SceneObject
@@ -118,10 +92,14 @@ public:
     SceneObject(const Material &material, const Geometry &geometry)
         : mMaterial(material), mGeometry(geometry) {}
 
-    void toggleVisible() {if(mMaterial.getVisible()) mMaterial.setVisible(false); else mMaterial.setVisible(true);}
+    void toggleVisible() { mFlags.toggleFlag(RenderFlags::Hidden); }
+    void setWireframe(bool w) { w ? mFlags.setFlag(RenderFlags::Wireframe) : mFlags.clearFlag(RenderFlags::Wireframe); }
+
+    RenderFlags getRenderFlags() const { return mFlags; }
 
     Material mMaterial;
     Geometry mGeometry;
+    RenderFlags mFlags;
 private:
     SceneObject();
 };

@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
+#include <vector>
 #include "../common/typetag.h"
 
 namespace gfx {

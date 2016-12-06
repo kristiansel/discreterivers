@@ -32,7 +32,7 @@ Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
-OpenGLRenderer::OpenGLRenderer() : mGlobalWireframe(false)
+OpenGLRenderer::OpenGLRenderer()
 {
     // OpenGL context needs to be valid at this point
 
@@ -91,54 +91,6 @@ LightHandle SceneNode::addLight(const vmath::Vector4 &color,
 
 }
 
-
-inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const Camera &camera, const Shader::Uniforms &uniforms, bool global_wireframe)
-{
-    // deconstruct scene_object
-    // wouldn't it be nice to write for ({transform, {vertices, primitives}, material} : mSceneObjectsVector)... std::tie?
-    const auto &model_matrix = draw_object.mMatrix;
-    const auto &geometry = draw_object.mGeometry;
-    const auto &material = draw_object.mMaterial;
-
-    // deconstruct geometry
-    const auto &vertices = geometry.getVertices();
-    const auto &primitives = geometry.getPrimitives();
-
-    vmath::Matrix4 mv = camera.getCamMatrixInverse() * model_matrix;
-
-    // combined model view projection matrix
-    vmath::Matrix4 p = camera.mProjectionMatrix;
-
-    glUniformMatrix4fv(uniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
-    glUniformMatrix4fv(uniforms.p, 1, false, (const GLfloat*)&(p[0]));
-    glUniform4fv(uniforms.color, 1, (const GLfloat*)&material.getColor());
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, material.getTexture().getTextureID());
-
-    // Bind vertex array
-    glBindVertexArray(vertices.getVertexArrayObject());
-
-    // Bind element array
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitives.getElementArrayBuffer());
-
-    // wireframe !
-    if (material.getWireframe()==true || global_wireframe) // woops branching in tight loop, should fix...
-    {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    }
-    else
-    {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    }
-
-    checkOpenGLErrors("Before draw elements");
-    //                                                  | num indices | type of index | wtf is this for?
-    glDrawElements(PRIMITIVE_GL_CODE(primitives.getPrimitiveType()), primitives.getNumIndices(), GL_UNSIGNED_INT, (void*)0 );
-
-    checkOpenGLErrors("After draw elements");
-}
-
 void OpenGLRenderer::draw(const Camera &camera) const
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -187,24 +139,23 @@ void OpenGLRenderer::draw(const Camera &camera) const
     glUniform4fv(mShaderProgram.getUniforms().light_color, 1, (const GLfloat*)&light_color);
 
     // prepare the drawobjects
-    mDrawObjectsVector.clear(); // could/does this need to be optimized?
+    mShaderProgram.clearDrawObjects(); // could/does this need to be optimized?
     for (const auto &scene_node : mSceneNodesVector)
     {
         for (const auto &scene_object : scene_node.getSceneObjects())
         {
-            if (scene_object.mMaterial.getVisible()) // woops branching in tight loop, optimize me please!
+            RenderFlags so_rflags = scene_object.getRenderFlags();
+            if (!so_rflags.checkFlag(RenderFlags::Hidden)) // woops branching in tight loop, optimize me please!
             {
-                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix()/* * scene_object.mTransform.getTransformMatrix()*/;
-                mDrawObjectsVector.emplace_back(world_matrix, scene_object.mMaterial, scene_object.mGeometry);
+                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix();
+                RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
+
+                mShaderProgram.addDrawObject(world_matrix, scene_object.mMaterial, scene_object.mGeometry, combined_flags);
             }
         }
     }
 
-    // actually draw the batched draw objects
-    for (const auto &draw_object : mDrawObjectsVector)
-    {
-        drawDrawObject(draw_object, camera, mShaderProgram.getUniforms(), mGlobalWireframe);
-    }
+    mShaderProgram.drawDrawObjects(camera);
 }
 
 } // namespace gfx

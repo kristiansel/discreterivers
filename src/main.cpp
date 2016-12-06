@@ -217,10 +217,11 @@ int main(int argc, char *argv[])
         }*/
 
         //gfx::Material material = gfx::VertexColorMaterial(alt_planet_irradiance /*, colorScale*/)
-        material.setWireframe(false);
 
         return planet_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!
+
+    //alt_planet_triangles_so->setWireframe(true);
 
     auto add_trivial_object = [](   const std::vector<vmath::Vector3> points,
                                     const std::vector<gfx::Triangle> triangles,
