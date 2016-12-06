@@ -71,8 +71,7 @@ SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
                                          const Transform &transform)
 {
     sceneobject_id id_out(mSceneObjects.size());
-    mSceneObjects.emplace_back(transform, material, geometry);
-
+    mSceneObjects.emplace_back(material, geometry);
     return SceneObjectHandle(this, id_out);
 }
 
@@ -107,31 +106,15 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
 
     vmath::Matrix4 mv = camera.getCamMatrixInverse() * model_matrix;
 
-#ifdef _VECTORMATH_DEBUG
-    //vmath::print(model_matrix, ("model_matrix"+std::to_string(debug_counter)).c_str());
-#endif
-
     // combined model view projection matrix
     vmath::Matrix4 p = camera.mProjectionMatrix;
-
-//#ifdef _VECTORMATH_DEBUG
-//    vmath::print(mvp, "mvp");
-//#endif
 
     glUniformMatrix4fv(uniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniformMatrix4fv(uniforms.p, 1, false, (const GLfloat*)&(p[0]));
     glUniform4fv(uniforms.color, 1, (const GLfloat*)&material.getColor());
 
-    checkOpenGLErrors("Draw before texture");
-
     glActiveTexture(GL_TEXTURE0);
-
-    std::cout << "texture id: " << material.getTexture().getTextureID() << std::endl;
-
     glBindTexture(GL_TEXTURE_2D, material.getTexture().getTextureID());
-
-    checkOpenGLErrors("Draw after texture");
-
 
     // Bind vertex array
     glBindVertexArray(vertices.getVertexArrayObject());
@@ -150,13 +133,10 @@ inline void OpenGLRenderer::drawDrawObject(const DrawObject &draw_object, const 
     }
 
     checkOpenGLErrors("Before draw elements");
-
     //                                                  | num indices | type of index | wtf is this for?
     glDrawElements(PRIMITIVE_GL_CODE(primitives.getPrimitiveType()), primitives.getNumIndices(), GL_UNSIGNED_INT, (void*)0 );
 
-
     checkOpenGLErrors("After draw elements");
-    //assert(false);
 }
 
 void OpenGLRenderer::draw(const Camera &camera) const

@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     gfx::OpenGLRenderer opengl_renderer;
 
     // test texture
-    gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
+    // gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -192,11 +192,11 @@ int main(int argc, char *argv[])
 
        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
        gfx::Material material = gfx::Material(color);
+
        //material.setWireframe(true);
 
        gfx::Transform transform;
        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-
        return planet_scene_node->addSceneObject(geometry, material, transform);
     })(); // immediately invoked lambda!
 
@@ -209,6 +209,7 @@ int main(int argc, char *argv[])
 
         vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
         gfx::Material material = gfx::Material(color);
+        std::cout << "alt_planet_triangles_so" << std::endl;
 
         /*gfx::Material::ColorScale colorScale = {
             {0.0f, {0.0f, 0.0f, 0.0f, 1.0f}},
@@ -255,9 +256,13 @@ int main(int argc, char *argv[])
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(alt_ocean_points, alt_ocean_triangles,
                                                              vmath::Vector4(0.5f, 0.5f, 0.6f, 1.0f), planet_scene_node);
 
+    std::cout << "alt_ocean_so" << std::endl;
+
     // Add planet lakes scene object
     gfx::SceneObjectHandle alt_lakes_so = add_trivial_object(alt_lake_points, alt_lake_triangles,
                                                              vmath::Vector4(0.7f, 0.7f, 0.8f, 1.0f), planet_scene_node);
+
+    std::cout << "alt_lakes_so" << std::endl;
 
     // Add planet rivers scene object
     gfx::SceneObjectHandle rivers_sceneobject = ([&]()
@@ -276,6 +281,9 @@ int main(int argc, char *argv[])
 
         return planet_scene_node->addSceneObject(geometry, material, transform);
     })();
+
+    std::cout << "rivers_sceneobject" << std::endl;
+
 
     // SDL event loop
     SDL_Event event;

@@ -17,35 +17,37 @@ public:
         std::cout << "Texture() default constructed: " << mTextureID << std::endl;
     }
 
+    /*
     Texture(const Texture &tex) : mTextureID(tex.mTextureID)
     {
         // weak pointer sematics, no new construction
         std::cout << "Texture(const Texture &tex) copy from " << tex.mTextureID << ", to " << mTextureID << std::endl;
-    }
+    }*/
 
+    /*
     Texture(Texture &&tex) : mTextureID(tex.mTextureID)
     {
         // should delete other...
         std::cout << "Texture(Texture &&tex) move from " << tex.mTextureID << ", to " << mTextureID << std::endl;
-    }
+    }*/
 
 
     /** Copy assignment operator */
-    Texture& operator= (const Texture& other)
+    /*Texture& operator= (const Texture& other)
     {
         Texture tmp(other);         // re-use copy-constructor
         *this = std::move(tmp);     // re-use move-assignment
         return *this;
-    }
+    }*/
 
     /** Move assignment operator */
-    Texture& operator= (Texture&& other) noexcept
+    /*Texture& operator= (Texture&& other) noexcept
     {
         // leak current texture
         mTextureID = other.mTextureID;
         // set other texture id to null...
         return *this;
-    }
+    }*/
 
 
     inline GLuint getTextureID() const {return mTextureID;}

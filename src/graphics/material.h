@@ -9,10 +9,10 @@ namespace gfx {
 class Material
 {
 private:
-    Material() : mColor(1.0f), mWireframe(false), mVisible(true), mTexture(Texture())
+    /*Material() : mColor(1.0f), mWireframe(false), mVisible(true), mTexture(Texture())
     {
 
-    }
+    }*/
 
 public:
     explicit Material(const vmath::Vector4 &color_in) : mColor(color_in),
@@ -21,34 +21,36 @@ public:
 
 
 
-    Material(const Material &m) : mColor(m.mColor), mWireframe(m.mWireframe),
-        mVisible(m.mVisible), mTexture(mTexture)
+    /*Material(const Material &m) : mColor(m.mColor), mWireframe(m.mWireframe),
+        mVisible(m.mVisible), mTexture(m.mTexture)
     {
+        std::cout << "Material(const Material &m): " << m.mTexture.mTextureID << std::endl;
+        std::cout << "Material(const Material &m): " << mTexture.mTextureID << std::endl;
+    }*/
 
-    }
-
+    /*
     Material(Material &&m) : mColor(m.mColor), mWireframe(m.mWireframe),
         mVisible(m.mVisible), mTexture(std::move(mTexture))
     {
 
-    }
+    }*/
 
     /** Copy assignment operator */
-    Material& operator= (const Material& other)
+    /*Material& operator= (const Material& other)
     {
         Material tmp(other);         // re-use copy-constructor
         *this = std::move(tmp);      // re-use move-assignment
         return *this;
-    }
+    }*/
 
     /** Move assignment operator */
-    Material& operator= (Material&& other) noexcept
+    /*Material& operator= (Material&& other) noexcept
     {
         // delete[] data;
         mTexture = other.mTexture;
         // other.data = nullptr;
         return *this;
-    }
+    }*/
 
 
     // get

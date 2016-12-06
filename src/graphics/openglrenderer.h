@@ -115,7 +115,7 @@ private:
 class SceneObject
 {
 public:
-    SceneObject(const Transform &transform, const Material &material, const Geometry &geometry)
+    SceneObject(const Material &material, const Geometry &geometry)
         : mMaterial(material), mGeometry(geometry) {}
 
     void toggleVisible() {if(mMaterial.getVisible()) mMaterial.setVisible(false); else mMaterial.setVisible(true);}
