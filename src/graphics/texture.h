@@ -3,13 +3,15 @@
 
 #include "gfxcommon.h"
 #include "SDL_image.h"
+#include "../common/typetag.h"
 
 namespace gfx {
 
 class Texture
 {
 public:
-    explicit Texture(const char * filename) { loadTextureFromFile(filename); }
+    inline explicit Texture(const char * filename) { loadTextureFromFile(filename); }
+    inline explicit Texture(const vmath::Vector4 &color);
 
     Texture()
     {
@@ -54,12 +56,30 @@ public:
     /*inline gl_texture_type getTextureType() const   {return mTextureType;}*/
 
 private:
-    void loadTextureFromFile(const char * filename);
+    inline void loadTextureFromFile(const char * filename);
+    inline void loadTextureFromPixels(void * pixels, int w, int h);
 
     GLuint mTextureID; // Pointer type, Textures is not a POD
     /*gl_texture_type mTextureType;*/
 };
 
+inline void Texture::loadTextureFromPixels(void * pixels, int w, int h)
+{
+    // Create one OpenGL texture
+    glGenTextures(1, &mTextureID);
+
+    // "Bind" the newly created texture : all future texture functions will modify this texture
+    glBindTexture(GL_TEXTURE_2D, mTextureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, pixels);
+
+    // Nice trilinear filtering.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
 
 inline void Texture::loadTextureFromFile(const char * filename)
 {
@@ -80,24 +100,35 @@ inline void Texture::loadTextureFromFile(const char * filename)
     std::cout << "width: " << image->w << std::endl;
     std::cout << "pitch: " << image->pitch << std::endl;
 
-    // Create one OpenGL texture
-    glGenTextures(1, &mTextureID);
-
-    // "Bind" the newly created texture : all future texture functions will modify this texture
-    glBindTexture(GL_TEXTURE_2D, mTextureID);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->w, image->h, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-
-    // Nice trilinear filtering.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    loadTextureFromPixels(image->pixels, image->w, image->h);
 
     // free the loaded image
     SDL_FreeSurface(image);
 }
+
+inline Texture::Texture(const vmath::Vector4 &color)
+{
+    const auto &c = color;
+    float pixels[] = {
+        c[0], c[1], c[2],   c[0], c[1], c[2],
+        c[0], c[1], c[2],   c[0], c[1], c[2],
+    };
+
+    int w = 2;
+    int h = 2;
+
+    /*float pixels[] = {
+        1.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+    }; // this doesn't work as expected even though texture coordinates are correct..
+
+    int w = 2;
+    int h = 2;*/
+
+    loadTextureFromPixels(pixels, w, h);
+}
+
+
 
 } // namespace gfx
 

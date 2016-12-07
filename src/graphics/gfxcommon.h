@@ -6,9 +6,12 @@
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
 #include <vector>
+#include <array>
 #include "../common/typetag.h"
 
 namespace gfx {
+
+typedef std::array<float, 2> TexCoords;
 
 inline void checkOpenGLErrors(const std::string &error_check_label)
 {

@@ -8,7 +8,7 @@
 namespace StdExt {
 
 //template<typename T>
-void remove_index(std::vector<vmath::Vector3>& vector, const std::vector<int>& to_remove)
+inline void remove_index(std::vector<vmath::Vector3>& vector, const std::vector<int>& to_remove)
 {
     auto vector_base = vector.begin();
     std::vector<vmath::Vector3>::size_type down_by = 0;
@@ -31,7 +31,7 @@ void remove_index(std::vector<vmath::Vector3>& vector, const std::vector<int>& t
 
 //template<typename A, typename B, typename A (*F)(const &B)>
 template<typename A, typename B>
-std::vector<B> vector_map(const std::vector<A> &v_in, std::function<B(const A&)> func)
+inline std::vector<B> vector_map(const std::vector<A> &v_in, std::function<B(const A&)> func)
 {
     std::vector<B> v_out;
     v_out.reserve(v_in.size());

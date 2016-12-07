@@ -10,15 +10,17 @@ Shader::Shader()
 
     "layout(location = 0) in vec4 vertex_position;"
     "layout(location = 1) in vec4 vertex_normal;"
-    "layout(location = 2) in vec2 vertex_texture_coordinates;"
+    "layout(location = 2) in vec2 vertex_tex_coords;"
 
     "out vec4 position;"
     "out vec4 normal;"
+    "out vec2 tex_coords;"
 
     "uniform mat4 mv;"
     "uniform mat4 p;"
 
     "void main() {"
+    "  tex_coords = vertex_tex_coords;"
     "  position = mv * vec4(vertex_position.xyz, 1.0);"
     "  normal = mv * vec4(vertex_normal.xyz, 0.0);"
     "  gl_Position = p * position;"
@@ -29,6 +31,7 @@ Shader::Shader()
 
     "in vec4 position;"
     "in vec4 normal;"
+    "in vec2 tex_coords;"
 
     "out vec4 frag_color;"
 
@@ -38,10 +41,11 @@ Shader::Shader()
     "uniform vec4 light_color;"
 
     "void main() {"
-    //"  vec4 texel = texture(tex, vec2(0, 0));"
+    "  vec4 texel = texture(tex, tex_coords);"
+    "  /*vec4 col = 0.5*(texel+color);*/"
     "  vec4 lightdirection = light_position - position;"
     "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
-    "  frag_color = vec4(color.rgb * max(nDotL, 0), 1.0);"
+    "  frag_color = vec4(texel.rgb * max(nDotL, 0), 1.0);"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
