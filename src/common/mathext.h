@@ -2,6 +2,7 @@
 #define MATHEXT_H
 
 #include <algorithm>
+#include <vector>
 
 namespace MathExt
 {
@@ -26,6 +27,11 @@ template<typename T>
 inline T clamp(const T& in, const T& min, const T& max)
 {
     return std::max(std::min(in, max), min);
+}
+
+inline void normalizeFloatVec(std::vector<float> &float_vec)
+{
+
 }
 
 
