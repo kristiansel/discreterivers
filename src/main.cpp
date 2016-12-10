@@ -16,12 +16,22 @@
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
 
+#include "common/fixedpoint/fixedpoint.h"
+namespace fxp = fixedpoint;
+const int32_t fxbitshift = 28;
+typedef fxp::fixed<int32_t, fxbitshift> fxint;
+typedef std::array<fxint, 4> fxvec4;
+#include "common/fixedpoint/profile.h"
+
+
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
-//namespace oglr = OpenGLRenderer;
+
 
 int main(int argc, char *argv[])
 {
+    //fixedpoint::profile();
+
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
@@ -39,7 +49,7 @@ int main(int argc, char *argv[])
     }*/
 
     // Alt planet
-    std::string planet_filename = "torus_planet.dat";
+    //std::string planet_filename = "torus_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
 /*
@@ -153,7 +163,7 @@ int main(int argc, char *argv[])
     gfx::OpenGLRenderer opengl_renderer;
 
     // test texture
-    // gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
+    //gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -182,7 +192,8 @@ int main(int argc, char *argv[])
     std::vector<vmath::Vector4> alt_planet_normal_data;
     gfx::generateNormals(&alt_planet_normal_data, alt_planet_position_data, alt_planet_triangles);
 
-    gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data);
+    std::vector<gfx::TexCoords> alt_planet_texcoords = planet_shape.getUV(alt_planet_points);
+    gfx::Vertices alt_planet_vertices = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, alt_planet_texcoords);
 
     // Planet point data scene object
     gfx::SceneObjectHandle alt_planet_points_so = ([&]()
@@ -203,20 +214,25 @@ int main(int argc, char *argv[])
     // Add planet triangle scene object
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
+        std::vector<gfx::TexCoords> irr_mat_texco;
+        gfx::Material material = gfx::Material::VertexColors(alt_planet_irradiance, irr_mat_texco/*, colorScale*/);
+
+        gfx::Vertices alt_planet_irr_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, irr_mat_texco);
 
         gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
-        gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);
 
-        vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
-        gfx::Material material = gfx::Material(color);
-        std::cout << "alt_planet_triangles_so" << std::endl;
+        //vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+        //gfx::Material material = gfx::Material(color);
+        //gfx::Material material = gfx::Material("planet_terrain.jpg");
+        //gfx::Material material = gfx::Material("earthlike.png");
 
         /*gfx::Material::ColorScale colorScale = {
             {0.0f, {0.0f, 0.0f, 0.0f, 1.0f}},
             {1.0f, {1.0f, 0.5f, 0.0f, 1.0f}}
         }*/
 
-        //gfx::Material material = gfx::VertexColorMaterial(alt_planet_irradiance /*, colorScale*/)
+
 
         return planet_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!

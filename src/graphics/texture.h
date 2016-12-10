@@ -7,10 +7,16 @@
 
 namespace gfx {
 
+struct gl_type_type_tag{};
+typedef decltype(GL_UNSIGNED_BYTE) GL_TYPE_TYPE;
+typedef ID<gl_type_type_tag, GL_TYPE_TYPE, GL_UNSIGNED_BYTE> gl_type;
+
+
 class Texture
 {
 public:
     inline explicit Texture(const char * filename) { loadTextureFromFile(filename); }
+    inline explicit Texture(void * pixels, int w, int h, gl_type type) { loadTextureFromPixels(pixels, w, h, type); }
     inline explicit Texture(const vmath::Vector4 &color);
 
     Texture()
@@ -19,51 +25,18 @@ public:
         std::cout << "Texture() default constructed: " << mTextureID << std::endl;
     }
 
-    /*
-    Texture(const Texture &tex) : mTextureID(tex.mTextureID)
-    {
-        // weak pointer sematics, no new construction
-        std::cout << "Texture(const Texture &tex) copy from " << tex.mTextureID << ", to " << mTextureID << std::endl;
-    }*/
-
-    /*
-    Texture(Texture &&tex) : mTextureID(tex.mTextureID)
-    {
-        // should delete other...
-        std::cout << "Texture(Texture &&tex) move from " << tex.mTextureID << ", to " << mTextureID << std::endl;
-    }*/
-
-
-    /** Copy assignment operator */
-    /*Texture& operator= (const Texture& other)
-    {
-        Texture tmp(other);         // re-use copy-constructor
-        *this = std::move(tmp);     // re-use move-assignment
-        return *this;
-    }*/
-
-    /** Move assignment operator */
-    /*Texture& operator= (Texture&& other) noexcept
-    {
-        // leak current texture
-        mTextureID = other.mTextureID;
-        // set other texture id to null...
-        return *this;
-    }*/
-
-
     inline GLuint getTextureID() const {return mTextureID;}
     /*inline gl_texture_type getTextureType() const   {return mTextureType;}*/
 
 private:
     inline void loadTextureFromFile(const char * filename);
-    inline void loadTextureFromPixels(void * pixels, int w, int h);
+    inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type);
 
     GLuint mTextureID; // Pointer type, Textures is not a POD
     /*gl_texture_type mTextureType;*/
 };
 
-inline void Texture::loadTextureFromPixels(void * pixels, int w, int h)
+inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type)
 {
     // Create one OpenGL texture
     glGenTextures(1, &mTextureID);
@@ -71,13 +44,13 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h)
     // "Bind" the newly created texture : all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D, mTextureID);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_TYPE_TYPE(type), pixels);
 
     // Nice trilinear filtering.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -100,7 +73,7 @@ inline void Texture::loadTextureFromFile(const char * filename)
     std::cout << "width: " << image->w << std::endl;
     std::cout << "pitch: " << image->pitch << std::endl;
 
-    loadTextureFromPixels(image->pixels, image->w, image->h);
+    loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE));
 
     // free the loaded image
     SDL_FreeSurface(image);
@@ -125,7 +98,9 @@ inline Texture::Texture(const vmath::Vector4 &color)
     int w = 2;
     int h = 2;*/
 
-    loadTextureFromPixels(pixels, w, h);
+    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT));
+
+    //loadTextureFromFile("planet_terrain.jpg");
 }
 
 

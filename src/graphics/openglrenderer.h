@@ -13,7 +13,6 @@
 #include "primitives.h"
 #include "geometry.h"
 #include "material.h"
-#include "vertexcolormaterial.h"
 #include "transform.h"
 #include "shader.h"
 #include "renderflags.h"

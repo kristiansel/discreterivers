@@ -1,8 +1,12 @@
 #ifndef PLANETSHAPES_H
 #define PLANETSHAPES_H
 
+#include <cmath>
+
 #define _VECTORMATH_DEBUG
 #include "../dep/vecmath/vectormath_aos.h"
+
+#include "../common/gfx_primitives.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -61,6 +65,8 @@ public:
      */
     //virtual int getEulerCharacteristic() const = 0;
 
+    virtual std::vector<gfx::TexCoords> getUV(const std::vector<vmath::Vector3> &points) const = 0;
+
     //////////////////////////////////////////////////
     // Functions that utilize the virtual functions //
     //////////////////////////////////////////////////
@@ -116,6 +122,7 @@ private:
     float radius;
 };*/
 
+
 class Sphere : public BaseShape
 {
 public:
@@ -134,6 +141,21 @@ public:
     {
         return point;
     }
+
+    std::vector<gfx::TexCoords> getUV(const std::vector<vmath::Vector3> &points) const
+    {
+        std::vector<gfx::TexCoords> texco_out(points.size());
+
+        for(int i = 0; i<texco_out.size(); i++)
+        {
+            auto d = vmath::normalize(points[i]);
+            float u = 0.5+atan(2.0f*d[2]*d[0])/(2.0f*M_PI);
+            float v = 0.5-asin(d[1])/M_PI;
+            texco_out[i] = {u, v};
+        }
+        return texco_out;
+    }
+
 private:
     float radius;
 };
@@ -159,6 +181,17 @@ public:
     {
         vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
         return point-circle_point;
+    }
+
+    std::vector<gfx::TexCoords> getUV(const std::vector<vmath::Vector3> &points) const
+    {
+        std::vector<gfx::TexCoords> texco_out(points.size());
+
+        for(int i = 0; i<texco_out.size(); i++)
+        {
+            texco_out[i] = {0, 0};
+        }
+        return texco_out;
     }
 
 private:

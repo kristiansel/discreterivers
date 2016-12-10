@@ -28,6 +28,7 @@ inline T clamp(const T& in, const T& min, const T& max)
     return std::max(std::min(in, max), min);
 }
 
+
 }
 
 #endif // MATHEXT_H

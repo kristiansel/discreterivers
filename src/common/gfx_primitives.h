@@ -7,11 +7,14 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <array>
 
 namespace vmath = Vectormath::Aos;
 
 namespace gfx
 {
+    typedef std::array<float, 2> TexCoords;
+
     struct Triangle
     {
         int indices[3]; //should this be padded?

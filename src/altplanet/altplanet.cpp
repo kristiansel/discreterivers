@@ -34,7 +34,7 @@ namespace AltPlanet
 
     PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape)
 	{
-        PROFILE_BEGIN();
+        PROFILE_BEGIN(generate_timer);
         std::cout << "generating planet... " << std::endl;
 
         PlanetGeometry geometry;
@@ -98,7 +98,7 @@ namespace AltPlanet
 
         std::cout << "done!" << std::endl;
 
-        PROFILE_END(AltPlanet::generate);
+        PROFILE_END(generate_timer);
 
 		return geometry;
 	}

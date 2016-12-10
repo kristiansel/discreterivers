@@ -11,8 +11,6 @@
 
 namespace gfx {
 
-typedef std::array<float, 2> TexCoords;
-
 inline void checkOpenGLErrors(const std::string &error_check_label)
 {
     GLenum gl_err = GL_NO_ERROR;

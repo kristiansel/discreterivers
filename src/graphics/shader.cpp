@@ -46,6 +46,7 @@ Shader::Shader()
     "  vec4 lightdirection = light_position - position;"
     "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
     "  frag_color = vec4(texel.rgb * max(nDotL, 0), 1.0);"
+    "  /*frag_color = vec4(vec3(tex_coords, 0) * max(nDotL, 0), 1.0);*/"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
