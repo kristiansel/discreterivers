@@ -11,18 +11,11 @@
 #include "altplanet/altplanet.h"
 #include "altplanet/watersystem.h"
 #include "altplanet/irradiance.h"
+#include "altplanet/humidity.h"
 #include "common/macro/macroprofile.h"
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
-
-#include "common/fixedpoint/fixedpoint.h"
-namespace fxp = fixedpoint;
-const int32_t fxbitshift = 28;
-typedef fxp::fixed<int32_t, fxbitshift> fxint;
-typedef std::array<fxint, 4> fxvec4;
-#include "common/fixedpoint/profile.h"
-
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
@@ -30,8 +23,6 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    //fixedpoint::profile();
-
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
@@ -132,6 +123,10 @@ int main(int argc, char *argv[])
 
     std::cout << "irradiance info" << min << ", " << mean << ", " << max << std::endl;
 
+    // planet humidity
+    std::vector<float> alt_planet_humidity = AltPlanet::Humidity::humidityYearMean(alt_planet_points, planet_shape);
+
+
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
     int width = 1800;
@@ -215,7 +210,7 @@ int main(int argc, char *argv[])
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
         std::vector<gfx::TexCoords> irr_mat_texco;
-        gfx::Material material = gfx::Material::VertexColors(alt_planet_irradiance, irr_mat_texco/*, colorScale*/);
+        gfx::Material material = gfx::Material::VertexColors(alt_planet_humidity, irr_mat_texco/*, colorScale*/);
 
         gfx::Vertices alt_planet_irr_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, irr_mat_texco);
 

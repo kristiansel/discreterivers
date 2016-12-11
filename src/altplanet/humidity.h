@@ -12,7 +12,7 @@ namespace Humidity
 {
 
 std::vector<float> humidityYearMean(const std::vector<vmath::Vector3> &points,
-                                    const AltPlanet::Shape &planet_shape);
+                                    const Shape::BaseShape &planet_shape);
 
 }
 
