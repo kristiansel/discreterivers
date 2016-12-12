@@ -59,7 +59,7 @@ inline Material Material::VertexColors(const std::vector<float> &vertex_colors,
     int w = 3;
     int h = 1;
 
-    mat_out.mTexture = Texture(pixels, w, h, gl_type(GL_FLOAT));
+    mat_out.mTexture = Texture(pixels, w, h, gl_type(GL_FLOAT), Texture::filter::nearest);
 
     float vc_max = std::numeric_limits<float>::min();
     float vc_min = std::numeric_limits<float>::max();

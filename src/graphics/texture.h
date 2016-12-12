@@ -15,28 +15,36 @@ typedef ID<gl_type_type_tag, GL_TYPE_TYPE, GL_UNSIGNED_BYTE> gl_type;
 class Texture
 {
 public:
+    using gl_mag_filter_t = decltype(GL_LINEAR);
+    using gl_min_filter_t = decltype(GL_LINEAR_MIPMAP_LINEAR);
+    enum class gl_texture_filter { nearest, linear };
+    using filter = gl_texture_filter;
+
     inline explicit Texture(const char * filename) { loadTextureFromFile(filename); }
-    inline explicit Texture(void * pixels, int w, int h, gl_type type) { loadTextureFromPixels(pixels, w, h, type); }
+    inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
+    {
+        loadTextureFromPixels(pixels, w, h, type, tex_filter);
+    }
     inline explicit Texture(const vmath::Vector4 &color);
 
     Texture()
     {
-        loadTextureFromFile("planet_terrain.jpg");
-        std::cout << "Texture() default constructed: " << mTextureID << std::endl;
+        loadDefaultTexture();
+        //std::cout << "Texture() default constructed: " << mTextureID << std::endl;
     }
 
     inline GLuint getTextureID() const {return mTextureID;}
     /*inline gl_texture_type getTextureType() const   {return mTextureType;}*/
-
 private:
     inline void loadTextureFromFile(const char * filename);
-    inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type);
+    inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
+    inline void loadDefaultTexture();
 
     GLuint mTextureID; // Pointer type, Textures is not a POD
     /*gl_texture_type mTextureType;*/
 };
 
-inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type)
+inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
 {
     // Create one OpenGL texture
     glGenTextures(1, &mTextureID);
@@ -46,11 +54,28 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type 
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_TYPE_TYPE(type), pixels);
 
+    gl_mag_filter_t mag_filter;
+    gl_min_filter_t min_filter;
+    switch (tex_filter)
+    {
+        case (gl_texture_filter::nearest):
+            mag_filter = GL_NEAREST;
+            min_filter = GL_NEAREST_MIPMAP_NEAREST;
+            break;
+        case (gl_texture_filter::linear):
+            mag_filter = GL_LINEAR;
+            min_filter = GL_LINEAR_MIPMAP_LINEAR;
+            break;
+        default: // should be unreachable
+            assert((false&&"invalid texture filtering spec"));
+    }
+
+
     // Nice trilinear filtering.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -73,7 +98,7 @@ inline void Texture::loadTextureFromFile(const char * filename)
     std::cout << "width: " << image->w << std::endl;
     std::cout << "pitch: " << image->pitch << std::endl;
 
-    loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE));
+    loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
 
     // free the loaded image
     SDL_FreeSurface(image);
@@ -98,12 +123,23 @@ inline Texture::Texture(const vmath::Vector4 &color)
     int w = 2;
     int h = 2;*/
 
-    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT));
+    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT), gl_texture_filter::linear);
 
     //loadTextureFromFile("planet_terrain.jpg");
 }
 
+inline void Texture::loadDefaultTexture()
+{
+    float pixels[] = {
+        1.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+    };
 
+    int w = 2;
+    int h = 2;
+
+    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT), gl_texture_filter::linear);
+}
 
 } // namespace gfx
 
