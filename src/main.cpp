@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
-    int width = 1800;
-    int height = 900;
+    int width = 1000;
+    int height = 400;
 
     //int width = 2800;
     //int height = 1600;
@@ -309,6 +309,7 @@ int main(int argc, char *argv[])
     // test mouse
     bool lmb_down = false;
     bool rmb_down = false;
+    
     int32_t prev_mouse_x = 0;
     int32_t prev_mouse_y = 0;
 
@@ -343,7 +344,7 @@ int main(int argc, char *argv[])
                         std::vector<vmath::Vector4> position_data;
                         std::vector<gfx::Point> primitives_data;
 
-                        for (int i = 0; i<alt_planet_points.size(); i++)
+                        for (int i = 0; i < alt_planet_points.size(); i++)
                         {
                             position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
                             position_data.back().setW(1.0f);
@@ -358,7 +359,7 @@ int main(int argc, char *argv[])
                     }
                     case(SDLK_t):
                     {
-
+                        
                     }
                     case(SDLK_ESCAPE):
                         done = true;
@@ -380,16 +381,24 @@ int main(int argc, char *argv[])
             }
             case SDL_MOUSEMOTION:
             {
-                if (lmb_down || rmb_down)
-                {
+                if (lmb_down) {
                     int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
                     int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
-                    float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f;
+                    float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                     float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
-                    planet_scene_node->transform.rotation = vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
-                                                 vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
-                                                 planet_scene_node->transform.rotation;
+
+                    planet_scene_node->transform.rotation =
+                            vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
+                            vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
+                            planet_scene_node->transform.rotation;
+                } else if (rmb_down) {
+                    float mouse_delta_x =  static_cast<float>(prev_mouse_x - event.motion.x)/50.0f;
+                    float mouse_delta_y = -static_cast<float>(prev_mouse_y - event.motion.y)/50.0f;
+
+                    camera.mTransform.position +=
+                            vmath::Vector3(mouse_delta_x, mouse_delta_y, 0.0f);
                 }
+                
                 // update previous mouse position
                 prev_mouse_x = event.motion.x;
                 prev_mouse_y = event.motion.y;
