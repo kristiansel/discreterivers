@@ -30,54 +30,54 @@ int main(int argc, char *argv[])
 
     // profile
     /*for (int num_pts = 500; num_pts<4000; num_pts+=500)
-    {
-        std::cout << "generating with " << num_pts << " points" << std::endl;
-        PROFILE_BEGIN()
+      {
+      std::cout << "generating with " << num_pts << " points" << std::endl;
+      PROFILE_BEGIN()
 
-        auto dummy = AltPlanet::generate(num_pts, planet_shape);
+      auto dummy = AltPlanet::generate(num_pts, planet_shape);
         
-        PROFILE_END(altplanet_generate)
-    }*/
+      PROFILE_END(altplanet_generate)
+      }*/
 
     // Alt planet
     //std::string planet_filename = "torus_planet.dat";
 
     AltPlanet::PlanetGeometry alt_planet_geometry;
-/*
+    /*
     // try to open planet file
     std::ifstream file(planet_filename, std::ios::binary);
     bool loading_went_bad = false;
     if (file.is_open()) {
-        // load planet from file
-        try {
-            std::cout << "loading planet file: " << planet_filename << std::endl;
-            Serial::StreamType resin = Serial::read_from_file(planet_filename);
-            alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
-        } catch (...) {
-            loading_went_bad = true;
-            std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
-        }
+    // load planet from file
+    try {
+    std::cout << "loading planet file: " << planet_filename << std::endl;
+    Serial::StreamType resin = Serial::read_from_file(planet_filename);
+    alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
+    } catch (...) {
+    loading_went_bad = true;
+    std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
+    }
     }
     else
     {
-        std::cout << "could not open file " << planet_filename << std::endl;
-        loading_went_bad = true;
+    std::cout << "could not open file " << planet_filename << std::endl;
+    loading_went_bad = true;
     }
 
     if (loading_went_bad)
     {
-        std::cout << "generating planet geometry" << std::endl;
-        // create the planet
-*/
-        // Generate geometry
-        alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
-/*
-        // Serialize it
-        try {
-            Serial::serialize_to_file(alt_planet_geometry, planet_filename);
-        } catch (...) {
-            std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
-        }
+    std::cout << "generating planet geometry" << std::endl;
+    // create the planet
+    */
+    // Generate geometry
+    alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
+    /*
+    // Serialize it
+    try {
+    Serial::serialize_to_file(alt_planet_geometry, planet_filename);
+    } catch (...) {
+    std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
+    }
     }*/
 
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
@@ -105,10 +105,10 @@ int main(int argc, char *argv[])
 
     float planet_tilt = 0.408407f; // radians, same as earth
     std::vector<float> alt_planet_irradiance = AltPlanet::Irradiance::irradianceYearMean(
-                alt_planet_points,
-                alt_planet_normals,
-                alt_planet_triangles,
-                planet_tilt);
+        alt_planet_points,
+        alt_planet_normals,
+        alt_planet_triangles,
+        planet_tilt);
 
     // check the irradiance
     float max = std::numeric_limits<float>::min();
@@ -136,9 +136,9 @@ int main(int argc, char *argv[])
     //int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
-                                  SDL_WINDOWPOS_UNDEFINED, // windowpos x
-                                  SDL_WINDOWPOS_UNDEFINED, // windowpos y
-                                  width, height, flags);
+                                               SDL_WINDOWPOS_UNDEFINED, // windowpos x
+                                               SDL_WINDOWPOS_UNDEFINED, // windowpos y
+                                               width, height, flags);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -158,18 +158,18 @@ int main(int argc, char *argv[])
     gfx::OpenGLRenderer opengl_renderer;
 
     // test texture
-    //gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
+    // gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
     gfx::LightHandle light = ([](const gfx::SceneNodeHandle &scene_node)
-    {
-        vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(10.0f, 10.0f, 10.0f);
+                              {
+                                  vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
+                                  gfx::Transform transform;
+                                  transform.position = vmath::Vector3(10.0f, 10.0f, 10.0f);
 
-        return scene_node->addLight(color, transform);
-    })(light_scene_node);
+                                  return scene_node->addLight(color, transform);
+                              })(light_scene_node);
 
     gfx::SceneNodeHandle planet_scene_node = opengl_renderer.addSceneNode();
 
@@ -179,9 +179,9 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i<alt_planet_points.size(); i++)
     {
-       alt_planet_position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-       alt_planet_position_data.back().setW(1.0f);
-       alt_planet_point_primitives_data.push_back({i});
+        alt_planet_position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+        alt_planet_position_data.back().setW(1.0f);
+        alt_planet_point_primitives_data.push_back({i});
     }
 
     std::vector<vmath::Vector4> alt_planet_normal_data;
@@ -192,45 +192,43 @@ int main(int argc, char *argv[])
 
     // Planet point data scene object
     gfx::SceneObjectHandle alt_planet_points_so = ([&]()
-    {
-       gfx::Primitives primitives = gfx::Primitives(alt_planet_point_primitives_data);
-       gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
+                                                   {
+                                                       gfx::Primitives primitives = gfx::Primitives(alt_planet_point_primitives_data);
+                                                       gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-       vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-       gfx::Material material = gfx::Material(color);
+                                                       vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
+                                                       gfx::Material material = gfx::Material(color);
 
-       //material.setWireframe(true);
+                                                       // material.setWireframe(true);
 
-       gfx::Transform transform;
-       transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-       return planet_scene_node->addSceneObject(geometry, material, transform);
-    })(); // immediately invoked lambda!
+                                                       gfx::Transform transform;
+                                                       transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
+                                                       return planet_scene_node->addSceneObject(geometry, material, transform);
+                                                   })(); // immediately invoked lambda!
 
     // Add planet triangle scene object
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
-    {
-        std::vector<gfx::TexCoords> irr_mat_texco;
-        gfx::Material material = gfx::Material::VertexColors(alt_planet_humidity, irr_mat_texco/*, colorScale*/);
+                                                      {
+                                                          std::vector<gfx::TexCoords> irr_mat_texco;
+                                                          gfx::Material material = gfx::Material::VertexColors(alt_planet_humidity, irr_mat_texco/*, colorScale*/);
 
-        gfx::Vertices alt_planet_irr_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, irr_mat_texco);
+                                                          gfx::Vertices alt_planet_irr_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, irr_mat_texco);
 
-        gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
-        gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);
+                                                          gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
+                                                          gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);
 
-        //vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
-        //gfx::Material material = gfx::Material(color);
-        //gfx::Material material = gfx::Material("planet_terrain.jpg");
-        //gfx::Material material = gfx::Material("earthlike.png");
+                                                          // vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
+                                                          // gfx::Material material = gfx::Material(color);
+                                                          // gfx::Material material = gfx::Material("planet_terrain.jpg");
+                                                          // gfx::Material material = gfx::Material("earthlike.png");
 
-        /*gfx::Material::ColorScale colorScale = {
-            {0.0f, {0.0f, 0.0f, 0.0f, 1.0f}},
-            {1.0f, {1.0f, 0.5f, 0.0f, 1.0f}}
-        }*/
+                                                          /*gfx::Material::ColorScale colorScale = {
+                                                            {0.0f, {0.0f, 0.0f, 0.0f, 1.0f}},
+                                                            {1.0f, {1.0f, 0.5f, 0.0f, 1.0f}}
+                                                            }*/
 
-
-
-        return planet_scene_node->addSceneObject(geometry, material);
-    })(); // immediately invoked lambda!
+                                                          return planet_scene_node->addSceneObject(geometry, material);
+                                                      })(); // immediately invoked lambda!
 
     //alt_planet_triangles_so->setWireframe(true);
 
@@ -238,31 +236,31 @@ int main(int argc, char *argv[])
                                     const std::vector<gfx::Triangle> triangles,
                                     const vmath::Vector4 &color,
                                     gfx::SceneNodeHandle &scene_node)
-    {
-        std::vector<vmath::Vector4> position_data;
+            {
+                std::vector<vmath::Vector4> position_data;
 
-        for (int i = 0; i<points.size(); i++)
-        {
-            position_data.push_back((const vmath::Vector4&)(points[i]));
-            position_data.back().setW(1.0f);
-        }
+                for (int i = 0; i<points.size(); i++)
+                {
+                    position_data.push_back((const vmath::Vector4&)(points[i]));
+                    position_data.back().setW(1.0f);
+                }
 
-        std::vector<vmath::Vector4> normal_data;
-        gfx::generateNormals(&normal_data, position_data, triangles);
+                std::vector<vmath::Vector4> normal_data;
+                gfx::generateNormals(&normal_data, position_data, triangles);
 
-        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+                gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-        gfx::Primitives primitives = gfx::Primitives(triangles);
-        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+                gfx::Primitives primitives = gfx::Primitives(triangles);
+                gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-        gfx::Material material = gfx::Material(color);
+                gfx::Material material = gfx::Material(color);
 
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
+                gfx::Transform transform;
+                transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+                transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
 
-        return scene_node->addSceneObject(geometry, material, transform);
-    };
+                return scene_node->addSceneObject(geometry, material, transform);
+            };
 
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(alt_ocean_points, alt_ocean_triangles,
@@ -278,21 +276,21 @@ int main(int argc, char *argv[])
 
     // Add planet rivers scene object
     gfx::SceneObjectHandle rivers_sceneobject = ([&]()
-    {
-        const std::vector<gfx::Line> &rivers_primitives_data = alt_river_lines;
+                                                 {
+                                                     const std::vector<gfx::Line> &rivers_primitives_data = alt_river_lines;
 
-        gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
-        gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
+                                                     gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
+                                                     gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-        vmath::Vector4 color(0.7f, 0.7f, 0.8f, 1.0f);
-        gfx::Material material = gfx::Material(color);
+                                                     vmath::Vector4 color(0.7f, 0.7f, 0.8f, 1.0f);
+                                                     gfx::Material material = gfx::Material(color);
 
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
+                                                     gfx::Transform transform;
+                                                     transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+                                                     transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
 
-        return planet_scene_node->addSceneObject(geometry, material, transform);
-    })();
+                                                     return planet_scene_node->addSceneObject(geometry, material, transform);
+                                                 })();
 
     std::cout << "rivers_sceneobject" << std::endl;
 
@@ -321,94 +319,111 @@ int main(int argc, char *argv[])
         {
             switch(event.type)
             {
-            case SDL_KEYDOWN:
-                if (event.key.repeat == 0)
-                {
-                    switch(event.key.keysym.sym)
+                case SDL_KEYDOWN:
+                    if (event.key.repeat == 0)
                     {
-                    case(SDLK_f):
-                        opengl_renderer.toggleWireframe();
-                        break;
-                    case(SDLK_q):
-                        done = true;
-                        break;
-                    case(SDLK_h):
-                        alt_planet_triangles_so->toggleVisible();
-                        break;
-                    case(SDLK_u):
-                    {
-                        // do an iteration of repulsion
-                        AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
-
-                        // update the scene object geometry
-                        std::vector<vmath::Vector4> position_data;
-                        std::vector<gfx::Point> primitives_data;
-
-                        for (int i = 0; i < alt_planet_points.size(); i++)
+                        switch(event.key.keysym.sym)
                         {
-                            position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                            position_data.back().setW(1.0f);
-                            primitives_data.push_back({i});
+                            case(SDLK_f):
+                                opengl_renderer.toggleWireframe();
+                                break;
+                            case(SDLK_q):
+                                done = true;
+                                break;
+                            case(SDLK_h):
+                                alt_planet_triangles_so->toggleVisible();
+                                break;
+                            case(SDLK_u):
+                                {
+                                    // do an iteration of repulsion
+                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
+
+                                    // update the scene object geometry
+                                    std::vector<vmath::Vector4> position_data;
+                                    std::vector<gfx::Point> primitives_data;
+
+                                    for (int i = 0; i < alt_planet_points.size(); i++)
+                                    {
+                                        position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                                        position_data.back().setW(1.0f);
+                                        primitives_data.push_back({i});
+                                    }
+
+                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
+
+                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                                    break;
+                                }
+                    
+                                // movement
+                            case(SDLK_UP):
+                                {
+                                    camera.mTransform.position -= vmath::Vector3(0.0f, 0.1f, 0.0f);
+                                    break;
+                                }
+                            case(SDLK_DOWN):
+                                {
+                                    camera.mTransform.position += vmath::Vector3(0.0f, 0.1f, 0.0f);
+                                    break;
+                                }
+                            case(SDLK_RIGHT):
+                                {
+                                    camera.mTransform.position -= vmath::Vector3(0.1f, 0.0f, 0.0f);
+                                    break;
+                                }
+                            case(SDLK_LEFT):
+                                {
+                                    camera.mTransform.position += vmath::Vector3(0.1f, 0.0f, 0.0f);
+                                    break;
+                                }
+                            case(SDLK_ESCAPE):
+                                done = true;
+                                break;
                         }
-
-                        gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
-                        gfx::Primitives primitives = gfx::Primitives(primitives_data);
-
-                        alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
-                        break;
                     }
-                    case(SDLK_t):
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
                     {
-                        
-                    }
-                    case(SDLK_ESCAPE):
-                        done = true;
+                        lmb_down = event.button.button == SDL_BUTTON_LEFT;
+                        rmb_down = event.button.button == SDL_BUTTON_RIGHT;
                         break;
                     }
-                }
-                break;
-            case SDL_MOUSEBUTTONDOWN:
-            {
-                lmb_down = event.button.button == SDL_BUTTON_LEFT;
-                rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-                break;
-            }
-            case SDL_MOUSEBUTTONUP:
-            {
-                lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
-                rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
-                break;
-            }
-            case SDL_MOUSEMOTION:
-            {
-                if (lmb_down) {
-                    int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
-                    int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
-                    float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
-                    float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
+                case SDL_MOUSEBUTTONUP:
+                    {
+                        lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
+                        rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
+                        break;
+                    }
+                case SDL_MOUSEMOTION:
+                    {
+                        if (lmb_down || rmb_down) {
+                            int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
+                            int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
+                            float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
+                            float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
 
-                    planet_scene_node->transform.rotation =
-                            vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
-                            vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
-                            planet_scene_node->transform.rotation;
-                } else if (rmb_down) {
-                    float mouse_delta_x =  static_cast<float>(prev_mouse_x - event.motion.x)/50.0f;
-                    float mouse_delta_y = -static_cast<float>(prev_mouse_y - event.motion.y)/50.0f;
-
-                    camera.mTransform.position +=
-                            vmath::Vector3(mouse_delta_x, mouse_delta_y, 0.0f);
-                }
+                            planet_scene_node->transform.rotation =
+                                    vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
+                                    vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
+                                    planet_scene_node->transform.rotation;
+                        }
                 
-                // update previous mouse position
-                prev_mouse_x = event.motion.x;
-                prev_mouse_y = event.motion.y;
-                break;
-            }
-            case SDL_QUIT:
-                done = true;
-                break;
-            default:
-                break;
+                        // update previous mouse position
+                        prev_mouse_x = event.motion.x;
+                        prev_mouse_y = event.motion.y;
+                        break;
+                    }
+                case SDL_MOUSEWHEEL:
+                    {
+                        camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
+                        break;
+                    }
+                case SDL_QUIT:
+                    done = true;
+                    break;
+                default:
+                    break;
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
@@ -420,7 +435,7 @@ int main(int argc, char *argv[])
 
         // sleep as to not consume 100% CPU
         // could perhaps subtract the frame time here...
-        std::this_thread::sleep_for (dt_fixed);
+        std::this_thread::sleep_for(dt_fixed);
 
     }   // End while(!done)
 
