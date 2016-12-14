@@ -28,57 +28,57 @@ int main(int argc, char *argv[])
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
     AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    // profile
-    /*for (int num_pts = 500; num_pts<4000; num_pts+=500)
-      {
-      std::cout << "generating with " << num_pts << " points" << std::endl;
-      PROFILE_BEGIN()
+#ifdef PROFILE
+    for (int num_pts = 500; num_pts < 4000; num_pts += 500)
+    {
+        std::cout << "generating with " << num_pts << " points" << std::endl;
 
-      auto dummy = AltPlanet::generate(num_pts, planet_shape);
-        
-      PROFILE_END(altplanet_generate)
-      }*/
-
+        PROFILE_BEGIN();        
+        auto dummy = AltPlanet::generate(num_pts, planet_shape);
+        PROFILE_END(altplanet_generate);
+    }
+#endif
     // Alt planet
     //std::string planet_filename = "torus_planet.dat";
+ 
+    // // try to open planet file
+    // std::ifstream file(planet_filename, std::ios::binary);
+    // bool loading_went_bad = false;
+    // if (file.is_open()) {
+    //     // load planet from file
+    //     try {
+    //         std::cout << "loading planet file: " << planet_filename << std::endl;
+    //         Serial::StreamType resin = Serial::read_from_file(planet_filename);
+    //         alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
+    //     } catch (...) {
+    //         loading_went_bad = true;
+    //         std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
+    //     }
+    // }
+    // else
+    // {
+    //     std::cout << "could not open file " << planet_filename << std::endl;
+    //     loading_went_bad = true;
+    // }
+    
+    // if (loading_went_bad)
+    // {
+    //     std::cout << "generating planet geometry" << std::endl;
+    //     // create the planet
 
-    AltPlanet::PlanetGeometry alt_planet_geometry;
-    /*
-    // try to open planet file
-    std::ifstream file(planet_filename, std::ios::binary);
-    bool loading_went_bad = false;
-    if (file.is_open()) {
-    // load planet from file
-    try {
-    std::cout << "loading planet file: " << planet_filename << std::endl;
-    Serial::StreamType resin = Serial::read_from_file(planet_filename);
-    alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
-    } catch (...) {
-    loading_went_bad = true;
-    std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
-    }
-    }
-    else
-    {
-    std::cout << "could not open file " << planet_filename << std::endl;
-    loading_went_bad = true;
-    }
+    //     // Generate geometry
+    //     alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
+    
+    //     // Serialize it
+    //     try {
+    //         Serial::serialize_to_file(alt_planet_geometry, planet_filename);
+    //     } catch (...) {
+    //         std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
+    //     }
+    // }
 
-    if (loading_went_bad)
-    {
-    std::cout << "generating planet geometry" << std::endl;
-    // create the planet
-    */
-    // Generate geometry
-    alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
-    /*
-    // Serialize it
-    try {
-    Serial::serialize_to_file(alt_planet_geometry, planet_filename);
-    } catch (...) {
-    std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
-    }
-    }*/
+    // generate planet
+    AltPlanet::PlanetGeometry alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
 
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
     int width = 1000;
-    int height = 400;
+    int height = 800;
 
     //int width = 2800;
     //int height = 1600;
@@ -333,92 +333,81 @@ int main(int argc, char *argv[])
                             case(SDLK_h):
                                 alt_planet_triangles_so->toggleVisible();
                                 break;
-                            case(SDLK_u):
-                                {
-                                    // do an iteration of repulsion
-                                    AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
+                            case(SDLK_u): {
+                                // do an iteration of repulsion
+                                AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
 
-                                    // update the scene object geometry
-                                    std::vector<vmath::Vector4> position_data;
-                                    std::vector<gfx::Point> primitives_data;
+                                // update the scene object geometry
+                                std::vector<vmath::Vector4> position_data;
+                                std::vector<gfx::Point> primitives_data;
+                                
+                                for (int i = 0; i < alt_planet_points.size(); i++)
+                                {
+                                    position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
+                                    position_data.back().setW(1.0f);
+                                    primitives_data.push_back({i});
+                                }
 
-                                    for (int i = 0; i < alt_planet_points.size(); i++)
-                                    {
-                                        position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
-                                        position_data.back().setW(1.0f);
-                                        primitives_data.push_back({i});
-                                    }
-
-                                    gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
-                                    gfx::Primitives primitives = gfx::Primitives(primitives_data);
-
-                                    alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
-                                    break;
-                                }
-                    
-                                // movement
-                            case(SDLK_UP):
-                                {
-                                    camera.mTransform.position -= vmath::Vector3(0.0f, 0.1f, 0.0f);
-                                    break;
-                                }
-                            case(SDLK_DOWN):
-                                {
-                                    camera.mTransform.position += vmath::Vector3(0.0f, 0.1f, 0.0f);
-                                    break;
-                                }
-                            case(SDLK_RIGHT):
-                                {
-                                    camera.mTransform.position -= vmath::Vector3(0.1f, 0.0f, 0.0f);
-                                    break;
-                                }
-                            case(SDLK_LEFT):
-                                {
-                                    camera.mTransform.position += vmath::Vector3(0.1f, 0.0f, 0.0f);
-                                    break;
-                                }
+                                gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
+                                gfx::Primitives primitives = gfx::Primitives(primitives_data);
+                                
+                                alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+                                break;
+                            } 
+                            case(SDLK_UP): {
+                                camera.mTransform.position -= vmath::Vector3(0.0f, 0.1f, 0.0f);
+                                break;
+                            }
+                            case(SDLK_DOWN): {
+                                camera.mTransform.position += vmath::Vector3(0.0f, 0.1f, 0.0f);
+                                break;
+                            }
+                            case(SDLK_RIGHT): {
+                                camera.mTransform.position -= vmath::Vector3(0.1f, 0.0f, 0.0f);
+                                break;
+                            }
+                            case(SDLK_LEFT): {
+                                camera.mTransform.position += vmath::Vector3(0.1f, 0.0f, 0.0f);
+                                break;
+                            }
                             case(SDLK_ESCAPE):
                                 done = true;
                                 break;
                         }
                     }
                     break;
-                case SDL_MOUSEBUTTONDOWN:
-                    {
-                        lmb_down = event.button.button == SDL_BUTTON_LEFT;
-                        rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-                        break;
-                    }
-                case SDL_MOUSEBUTTONUP:
-                    {
-                        lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
-                        rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
-                        break;
-                    }
-                case SDL_MOUSEMOTION:
-                    {
-                        if (lmb_down || rmb_down) {
-                            int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
-                            int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
-                            float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
-                            float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
+                case SDL_MOUSEBUTTONDOWN: {
+                    lmb_down = event.button.button == SDL_BUTTON_LEFT;
+                    rmb_down = event.button.button == SDL_BUTTON_RIGHT;
+                    break;
+                }
+                case SDL_MOUSEBUTTONUP: {
+                    lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
+                    rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
+                    break;
+                }
+                case SDL_MOUSEMOTION: {
+                    if (lmb_down || rmb_down) {
+                        int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
+                        int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
+                        float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
+                        float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
 
-                            planet_scene_node->transform.rotation =
-                                    vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
-                                    vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
-                                    planet_scene_node->transform.rotation;
-                        }
-                
-                        // update previous mouse position
-                        prev_mouse_x = event.motion.x;
-                        prev_mouse_y = event.motion.y;
-                        break;
+                        planet_scene_node->transform.rotation =
+                                vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
+                                vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
+                                planet_scene_node->transform.rotation;
                     }
-                case SDL_MOUSEWHEEL:
-                    {
-                        camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
-                        break;
-                    }
+                    
+                    // update previous mouse position
+                    prev_mouse_x = event.motion.x;
+                    prev_mouse_y = event.motion.y;
+                    break;
+                }
+                case SDL_MOUSEWHEEL: {
+                    camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
+                    break;
+                }
                 case SDL_QUIT:
                     done = true;
                     break;
