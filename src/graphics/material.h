@@ -11,6 +11,8 @@ class Material
 public:
     inline explicit Material(const vmath::Vector4 &color_in);
     inline explicit Material(const char * texture_file);
+    inline explicit Material(void * pixels, int w, int h, gl_type type, Texture::filter tex_filter);
+
 
     // get
     inline const vmath::Vector4 &getColor() const {return mColor;}
@@ -43,6 +45,9 @@ inline Material::Material(const char * texture_file) :
 
 }
 
+inline Material::Material(void * pixels, int w, int h, gl_type type, Texture::filter tex_filter) :
+    mColor{0, 0, 0, 1}, mTexture(pixels, w, h, type, tex_filter) {}
+
 
 inline Material Material::VertexColors(const std::vector<float> &vertex_colors,
                                 std::vector<gfx::TexCoords> &tex_coords_out)
@@ -59,7 +64,7 @@ inline Material Material::VertexColors(const std::vector<float> &vertex_colors,
     int w = 3;
     int h = 1;
 
-    mat_out.mTexture = Texture(pixels, w, h, gl_type(GL_FLOAT), Texture::filter::nearest);
+    mat_out.mTexture = Texture(pixels, w, h, gl_type(GL_FLOAT), Texture::filter::linear);
 
     float vc_max = std::numeric_limits<float>::min();
     float vc_min = std::numeric_limits<float>::max();
@@ -80,6 +85,7 @@ inline Material Material::VertexColors(const std::vector<float> &vertex_colors,
 
     return mat_out;
 }
+
 
 }
 

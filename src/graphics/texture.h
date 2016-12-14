@@ -70,8 +70,6 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type 
             assert((false&&"invalid texture filtering spec"));
     }
 
-
-    // Nice trilinear filtering.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);

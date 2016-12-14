@@ -12,6 +12,7 @@
 #include "altplanet/watersystem.h"
 #include "altplanet/irradiance.h"
 #include "altplanet/humidity.h"
+#include "altplanet/climate.h"
 #include "common/macro/macroprofile.h"
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
@@ -206,16 +207,34 @@ int main(int argc, char *argv[])
        return planet_scene_node->addSceneObject(geometry, material, transform);
     })(); // immediately invoked lambda!
 
+    alt_planet_points_so->toggleVisible();
+
     // Add planet triangle scene object
     gfx::SceneObjectHandle alt_planet_triangles_so = ([&]()
     {
-        std::vector<gfx::TexCoords> irr_mat_texco;
-        gfx::Material material = gfx::Material::VertexColors(alt_planet_humidity, irr_mat_texco/*, colorScale*/);
+        /*std::vector<gfx::TexCoords> irr_mat_texco;
+        gfx::Material material = gfx::Material::VertexColors(alt_planet_humidity, irr_mat_texco);
+
 
         gfx::Vertices alt_planet_irr_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, irr_mat_texco);
 
         gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
-        gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);*/
+
+        auto climate_tex = AltPlanet::Climate::createClimatePixels();
+
+        gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
+                                               climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::nearest);
+
+        std::vector<gfx::TexCoords> clim_mat_texco = AltPlanet::Climate::getClimateTexcoords(alt_planet_irradiance, alt_planet_humidity);
+
+        gfx::Vertices alt_planet_clim_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, clim_mat_texco);
+
+        gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_clim_verts, primitives);
+
+
+
 
         //vmath::Vector4 color(1.f, 1.f, 1.f, 1.0f);
         //gfx::Material material = gfx::Material(color);
@@ -266,13 +285,13 @@ int main(int argc, char *argv[])
 
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(alt_ocean_points, alt_ocean_triangles,
-                                                             vmath::Vector4(0.5f, 0.5f, 0.6f, 1.0f), planet_scene_node);
+                                                             vmath::Vector4(0.2f, 0.2f, 0.8f, 1.0f), planet_scene_node);
 
     std::cout << "alt_ocean_so" << std::endl;
 
     // Add planet lakes scene object
     gfx::SceneObjectHandle alt_lakes_so = add_trivial_object(alt_lake_points, alt_lake_triangles,
-                                                             vmath::Vector4(0.7f, 0.7f, 0.8f, 1.0f), planet_scene_node);
+                                                             vmath::Vector4(0.6f, 0.6f, 0.9f, 1.0f), planet_scene_node);
 
     std::cout << "alt_lakes_so" << std::endl;
 
@@ -284,7 +303,7 @@ int main(int argc, char *argv[])
         gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
         gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-        vmath::Vector4 color(0.7f, 0.7f, 0.8f, 1.0f);
+        vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
         gfx::Material material = gfx::Material(color);
 
         gfx::Transform transform;

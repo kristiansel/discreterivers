@@ -1,5 +1,7 @@
 #include "irradiance.h"
 
+#include "../common/mathext.h"
+
 namespace AltPlanet {
 
 namespace Irradiance {
@@ -54,8 +56,10 @@ std::vector<float> irradianceYearMean(const std::vector<vmath::Vector3> &points,
     }
 
     //      normalize the irradiance number somehow... (between one and zero for example?)
-    float norm_factor = 1.0f/static_cast<float>(N_SUN_ROTATION*N_SELF_ROTATION);
-    for (float &irr : irradiance) irr *= norm_factor;
+    // float norm_factor = 1.0f/static_cast<float>(N_SUN_ROTATION*N_SELF_ROTATION);
+    // for (float &irr : irradiance) irr *= norm_factor;
+
+    MathExt::normalizeFloatVec(irradiance);
 
     return irradiance;
 }
