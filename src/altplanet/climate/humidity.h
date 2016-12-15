@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "../common/gfx_primitives.h"
-#include "planetshapes.h"
+#include "../../common/gfx_primitives.h"
+#include "../planetshapes.h"
 
 namespace AltPlanet {
 

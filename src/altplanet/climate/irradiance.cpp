@@ -1,6 +1,6 @@
 #include "irradiance.h"
 
-#include "../common/mathext.h"
+#include "../../common/mathext.h"
 
 namespace AltPlanet {
 

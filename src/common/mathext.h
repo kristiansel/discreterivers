@@ -30,8 +30,10 @@ inline T clamp(const T& in, const T& min, const T& max)
     return std::max(std::min(in, max), min);
 }
 
-inline void normalizeFloatVec(std::vector<float> &float_vec)
+inline void normalizeFloatVec(std::vector<float> &float_vec, float to_max = 1.0f, float to_min = 0.0f)
 {
+    assert((max>min));
+
     float v_max = std::numeric_limits<float>::min();
     float v_min = std::numeric_limits<float>::max();
     for (int i = 0; i<float_vec.size(); i++)
@@ -58,7 +60,7 @@ inline void normalizeFloatVec(std::vector<float> &float_vec)
 
     for (int i = 0; i<float_vec.size(); i++)
     {
-        float_vec[i] = (float_vec[i]-v_min)/(v_max-v_min);
+        float_vec[i] = (to_max-to_min)*(float_vec[i]-v_min)/(v_max-v_min)+to_min;
     }
 
 }

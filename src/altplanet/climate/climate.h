@@ -1,7 +1,8 @@
 #ifndef CLIMATE_H
 #define CLIMATE_H
 
-#include "../common/gfx_primitives.h"
+#include "../../common/gfx_primitives.h"
+#include "../../common/mathext.h"
 
 namespace AltPlanet {
 
@@ -49,14 +50,39 @@ namespace Climate {
         return out;
     }
 
-    inline std::vector<gfx::TexCoords> getClimateTexcoords(const std::vector<float> &irradiance, const std::vector<float> &humidity)
+    typedef std::array<float, 2> ClimateCoords;
+
+    // map the irradiance to the shape of the arcsin curve to shrink arctic/tundra/desert biomes
+    inline float mapIrrArcSin(float irr_in)
+    {
+        return (1.5f + std::asin(2.0f*irr_in-1.0f))/3.0f;
+    }
+
+    // or use the square root function! Aiai, big mistake
+    //inline float mapIrrSqrt(float irr_in)
+    //{
+    //    return std::sqrt(irr_in);
+    //}
+
+
+    inline std::vector<ClimateCoords> getClimateCoords(const std::vector<float> &irradiance, const std::vector<float> &humidity)
     {
         assert((irradiance.size()==humidity.size()));
         // gief `zip` plx
         std::vector<gfx::TexCoords> out(irradiance.size());
         for (int i=0; i<irradiance.size(); i++) {
-            out[i] = { irradiance[i], humidity[i] };
+            out[i] = { mapIrrArcSin(irradiance[i]), humidity[i] };
         }
+
+        return out;
+    }
+
+    // Heights scaled between 0=sea level and 1=highest mountain
+    inline std::vector<float> scaledHeights(std::vector<float> heights, float sea_level)
+    {
+        std::vector<float> out(height.size());
+
+        MathExt::
 
         return out;
     }

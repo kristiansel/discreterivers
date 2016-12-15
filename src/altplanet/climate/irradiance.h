@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <vector>
-#include "../common/gfx_primitives.h"
+#include "../../common/gfx_primitives.h"
 
 namespace AltPlanet {
 

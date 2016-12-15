@@ -1,7 +1,7 @@
 #include "humidity.h"
 
-#include "../common/procedural/noise3d.h"
-#include "../common/mathext.h"
+#include "../../common/procedural/noise3d.h"
+#include "../../common/mathext.h"
 
 namespace AltPlanet {
 
