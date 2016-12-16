@@ -32,7 +32,7 @@ inline T clamp(const T& in, const T& min, const T& max)
 
 inline void normalizeFloatVec(std::vector<float> &float_vec, float to_max = 1.0f, float to_min = 0.0f)
 {
-    assert((max>min));
+    assert((to_max>to_min));
 
     float v_max = std::numeric_limits<float>::min();
     float v_min = std::numeric_limits<float>::max();

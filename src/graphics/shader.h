@@ -33,10 +33,12 @@ public:
 
     inline void clearDrawObjects() const { mDrawObjectsVector.clear(); }
 
-    inline void addDrawObject(const vmath::Matrix4 &world_matrix, const Material &material,
-                              const Geometry &geometry, RenderFlags render_flags) const
+    inline void addDrawObject(const vmath::Matrix4 &world_matrix,
+                              const Material::DrawData &material_data,
+                              const Geometry::DrawData &geometry_data,
+                              RenderFlags render_flags) const
     {
-         mDrawObjectsVector.emplace_back(world_matrix, material, geometry, render_flags);
+         mDrawObjectsVector.emplace_back(world_matrix, material_data, geometry_data, render_flags);
     }
 
     inline void drawDrawObjects( const Camera &camera ) const
@@ -52,18 +54,18 @@ private:
     class DrawObject
     {
     public:
-        DrawObject(const vmath::Matrix4 &matrix, const Material &material,
-                   const Geometry &geometry, RenderFlags render_flags) :
-            mMatrix(matrix), mMaterial(material), mGeometry(geometry), mRenderFlags(render_flags) {}
+        DrawObject(const vmath::Matrix4 &matrix, const Material::DrawData &material_data,
+                   const Geometry::DrawData &geometry_data, RenderFlags render_flags) :
+            mMatrix(matrix), mMaterialData(material_data), mGeometryData(geometry_data), mRenderFlags(render_flags) {}
 
-        DrawObject(vmath::Matrix4 &&matrix, Material &&material, Geometry &&geometry,
+        /*DrawObject(vmath::Matrix4 &&matrix, Material::DrawData &&material_data, Geometry &&geometry,
                    RenderFlags &&render_flags) :
-            mMatrix(std::move(matrix)), mMaterial(std::move(material)), mGeometry(std::move(geometry)),
-            mRenderFlags(render_flags) {}
+            mMatrix(std::move(matrix)), mMaterialData(std::move(material_data)), mGeometry(std::move(geometry)),
+            mRenderFlags(render_flags) {}*/
 
         vmath::Matrix4 mMatrix;
-        Material mMaterial;
-        Geometry mGeometry;
+        Material::DrawData mMaterialData;
+        Geometry::DrawData mGeometryData;
         RenderFlags mRenderFlags;
 
     private:
@@ -84,12 +86,8 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
     // deconstruct scene_object
     // wouldn't it be nice to write for ({transform, {vertices, primitives}, material} : mSceneObjectsVector)... std::tie?
     const auto &model_matrix = draw_object.mMatrix;
-    const auto &geometry = draw_object.mGeometry;
-    const auto &material = draw_object.mMaterial;
-
-    // deconstruct geometry
-    const auto &vertices = geometry.getVertices();
-    const auto &primitives = geometry.getPrimitives();
+    const auto &geometry_data = draw_object.mGeometryData;
+    const auto &material_data = draw_object.mMaterialData;
 
     vmath::Matrix4 mv = camera.getCamMatrixInverse() * model_matrix;
 
@@ -98,16 +96,16 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniformMatrix4fv(mUniforms.p, 1, false, (const GLfloat*)&(p[0]));
-    glUniform4fv(mUniforms.color, 1, (const GLfloat*)&material.getColor());
+    glUniform4fv(mUniforms.color, 1, (const GLfloat*)&material_data.color);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, material.getTexture().getTextureID());
+    glBindTexture(GL_TEXTURE_2D, material_data.texID);
 
     // Bind vertex array
-    glBindVertexArray(vertices.getVertexArrayObject());
+    glBindVertexArray(geometry_data.vertices.mVertexArrayObject);
 
     // Bind element array
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitives.getElementArrayBuffer());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry_data.primitives.mElementArrayBuffer);
 
     // wireframe !
     if (draw_object.mRenderFlags.checkFlag(RenderFlags::Wireframe)) // woops branching in tight loop, should fix...
@@ -121,7 +119,8 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
 
     checkOpenGLErrors("Before draw elements");
     //                                                  | num indices | type of index | wtf is this for?
-    glDrawElements(PRIMITIVE_GL_CODE(primitives.getPrimitiveType()), primitives.getNumIndices(), GL_UNSIGNED_INT, (void*)0 );
+    glDrawElements(PRIMITIVE_GL_CODE(geometry_data.primitives.mPrimitiveType),
+                   geometry_data.primitives.mNumIndices, GL_UNSIGNED_INT, (void*)0 );
 
     checkOpenGLErrors("After draw elements");
 }

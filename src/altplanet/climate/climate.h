@@ -78,14 +78,14 @@ namespace Climate {
     }
 
     // Heights scaled between 0=sea level and 1=highest mountain
-    inline std::vector<float> scaledHeights(std::vector<float> heights, float sea_level)
+    /*inline std::vector<float> scaledHeights(std::vector<float> heights, float sea_level)
     {
         std::vector<float> out(height.size());
 
-        MathExt::
+        MathExt::normalizeFloatVec(heights, )
 
         return out;
-    }
+    }*/
 
 }
 

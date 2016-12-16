@@ -147,10 +147,11 @@ void OpenGLRenderer::draw(const Camera &camera) const
             RenderFlags so_rflags = scene_object.getRenderFlags();
             if (!so_rflags.checkFlag(RenderFlags::Hidden)) // woops branching in tight loop, optimize me please!
             {
-                vmath::Matrix4 world_matrix = scene_node.transform.getTransformMatrix();
                 RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
 
-                mShaderProgram.addDrawObject(world_matrix, scene_object.mMaterial, scene_object.mGeometry, combined_flags);
+                mShaderProgram.addDrawObject(scene_node.transform.getTransformMatrix(),
+                                             scene_object.mMaterial.getDrawData(),
+                                             scene_object.mGeometry.getDrawData(), combined_flags);
             }
         }
     }

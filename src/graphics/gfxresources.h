@@ -11,7 +11,7 @@ class Resource
 public:
     typedef int KeyType;
 
-    struct Info {KeyType key; GLuint id;};
+    struct Info { KeyType key; GLuint id; };
     Info create();
     void destroy();
 

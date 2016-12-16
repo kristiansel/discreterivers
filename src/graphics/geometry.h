@@ -22,6 +22,33 @@ struct Geometry
     inline const Vertices& getVertices() const {return mVertices;}
     inline const Primitives& getPrimitives() const {return mPrimitives;}
 
+    struct DrawData {
+        struct Vertices {
+            GLuint mVertexArrayObject;
+        } vertices;
+
+        struct Primitives {
+            GLuint mElementArrayBuffer; // Pointer type, Primitives is not a POD
+            GLsizeiptr mNumIndices;
+            gl_primitive_type mPrimitiveType;
+        } primitives;
+
+    };
+
+    DrawData getDrawData() const
+    {
+        return {
+            {
+                mVertices.getVertexArrayObject(),
+            },
+            {
+                mPrimitives.getElementArrayBuffer(),
+                mPrimitives.getNumIndices(),
+                mPrimitives.getPrimitiveType()
+            }
+        };
+    }
+
 private:
     Geometry();
 

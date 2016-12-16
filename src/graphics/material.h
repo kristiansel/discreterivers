@@ -13,16 +13,22 @@ public:
     inline explicit Material(const char * texture_file);
     inline explicit Material(void * pixels, int w, int h, gl_type type, Texture::filter tex_filter);
 
-
-    // get
-    inline const vmath::Vector4 &getColor() const {return mColor;}
-    inline const Texture &getTexture() const {return mTexture;}
-
     inline static Material VertexColors(const std::vector<float> &vertex_colors,
                                  std::vector<gfx::TexCoords> &tex_coords_out);
 
+    struct DrawData {
+        vmath::Vector4 color;
+        GLuint texID;
+    };
+
+    DrawData getDrawData() const
+    {
+        return { mColor, mTexture.getTextureID() };
+    }
+
 private:
     Material() {}
+
     vmath::Vector4 mColor;
     Texture mTexture;
 };

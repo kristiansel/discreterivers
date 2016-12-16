@@ -20,6 +20,7 @@ struct Vertices
     inline GLuint getVertexArrayObject() const       {return mVertexArrayObject;}
     inline GLuint getPositionArrayBuffer() const     {return mPositionArrayBuffer;}
     inline GLuint getNormalArrayBuffer() const       {return mNormalArrayBuffer;}
+    inline GLuint getTexCoordArrayBuffer() const     {return mTexCoordArrayBuffer;}
 
 
 private:

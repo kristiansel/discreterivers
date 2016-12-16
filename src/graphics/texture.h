@@ -28,9 +28,30 @@ public:
     inline explicit Texture(const vmath::Vector4 &color);
 
     Texture()
+        { loadDefaultTexture(); std::cout << "Texture DEFAULT constructed: " << mTextureID << std::endl; }
+
+    Texture(const Texture &tx) : mTextureID(tx.mTextureID)
+        { std::cout << "Texture COPY constructed" << mTextureID << std::endl; }
+
+    Texture(Texture &&tx)  : mTextureID(tx.mTextureID)
+        { std::cout << "Texture MOVE constructed: " << mTextureID << std::endl; }
+
+    Texture& operator= (const Texture& tx)
     {
-        loadDefaultTexture();
-        //std::cout << "Texture() default constructed: " << mTextureID << std::endl;
+        Texture tmp(tx);         // re-use copy-constructor
+        *this = std::move(tmp);     // re-use move-assignment
+        std::cout << "Texture COPY ASSIGN operator: " << mTextureID << std::endl;
+        return *this;
+    }
+
+    /** Move assignment operator */
+    Texture& operator= (Texture&& tx) noexcept
+    {
+        //delete[] data;
+        mTextureID = tx.mTextureID; //data = other.data;
+        //other.data = nullptr;
+        std::cout << "Texture MOVE ASSIGN operator: " << mTextureID << std::endl;
+        return *this;
     }
 
     inline GLuint getTextureID() const {return mTextureID;}
