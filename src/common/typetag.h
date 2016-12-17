@@ -27,5 +27,13 @@ private:
         impl m_val;
 };
 
+/*template<class T, T val>
+
+template<class T, T val>
+class typetag {
+    struct typetag_tag{};
+    typedef ID<primitive_type_tag, PRIMITIVE_GL_CODE, GL_TRIANGLES> gl_primitive_type;
+};*/
+
 
 #endif // TYPETAG_H

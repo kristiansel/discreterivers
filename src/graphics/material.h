@@ -27,7 +27,7 @@ public:
     }
 
 private:
-    Material() {}
+    Material();
 
     vmath::Vector4 mColor;
     Texture mTexture;

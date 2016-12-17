@@ -4,6 +4,7 @@
 #include "gfxcommon.h"
 #include "SDL_image.h"
 #include "../common/typetag.h"
+#include "resource.h"
 
 namespace gfx {
 
@@ -12,58 +13,158 @@ typedef decltype(GL_UNSIGNED_BYTE) GL_TYPE_TYPE;
 typedef ID<gl_type_type_tag, GL_TYPE_TYPE, GL_UNSIGNED_BYTE> gl_type;
 
 
-class Texture
+class Texture final
 {
 public:
+    //===============================
+    // Public types                //
+    //===============================
     using gl_mag_filter_t = decltype(GL_LINEAR);
     using gl_min_filter_t = decltype(GL_LINEAR_MIPMAP_LINEAR);
     enum class gl_texture_filter { nearest, linear };
     using filter = gl_texture_filter;
 
-    inline explicit Texture(const char * filename) { loadTextureFromFile(filename); }
-    inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
-    {
-        loadTextureFromPixels(pixels, w, h, type, tex_filter);
-    }
+    //===============================
+    // Explicit data constructors  //
+    //===============================
+    inline explicit Texture(const char * filename);
+    inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
     inline explicit Texture(const vmath::Vector4 &color);
 
-    Texture()
-        { loadDefaultTexture(); std::cout << "Texture DEFAULT constructed: " << mTextureID << std::endl; }
+    //===============================
+    // Public member functions     //
+    //===============================
+    inline GLuint getTextureID() const { return mTextureID; }
 
-    Texture(const Texture &tx) : mTextureID(tx.mTextureID)
-        { std::cout << "Texture COPY constructed" << mTextureID << std::endl; }
-
-    Texture(Texture &&tx)  : mTextureID(tx.mTextureID)
-        { std::cout << "Texture MOVE constructed: " << mTextureID << std::endl; }
-
-    Texture& operator= (const Texture& tx)
+    //===============================
+    // Rule of five                //
+    //===============================
+private:
+    Texture(); // deleted
+        //{ loadDefaultTexture(); std::cout << "Texture DEFAULT constructed: " << mTextureID << std::endl; }
+public:
+    inline Texture(const Texture &tx) : mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
     {
-        Texture tmp(tx);         // re-use copy-constructor
+        Resource::TextureManager().incr(mResourceID);
+        std::cout << "Texture COPY constructed" << mTextureID << std::endl;
+    }
+
+    inline Texture(Texture &&tx)  : mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
+    {
+        tx.mResourceID = Resource::ResID::invalid();
+        std::cout << "Texture MOVE constructed: " << mTextureID << std::endl;
+    }
+
+    inline Texture& operator= (const Texture& tx)
+    {
+        Texture tmp(tx);            // re-use copy-constructor
         *this = std::move(tmp);     // re-use move-assignment
         std::cout << "Texture COPY ASSIGN operator: " << mTextureID << std::endl;
         return *this;
     }
 
     /** Move assignment operator */
-    Texture& operator= (Texture&& tx) noexcept
+    inline Texture& operator= (Texture&& tx) noexcept
     {
         //delete[] data;
+        refDestruct();
         mTextureID = tx.mTextureID; //data = other.data;
-        //other.data = nullptr;
+        tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
         std::cout << "Texture MOVE ASSIGN operator: " << mTextureID << std::endl;
         return *this;
     }
 
-    inline GLuint getTextureID() const {return mTextureID;}
-    /*inline gl_texture_type getTextureType() const   {return mTextureType;}*/
+    inline ~Texture();
+
 private:
+    //===============================
+    // Private member variables    //
+    //===============================
+    GLuint mTextureID; // Pointer type, Textures is not a POD
+    Resource::ResID mResourceID;
+
+    //===============================
+    // Private helper functions    //
+    //===============================
     inline void loadTextureFromFile(const char * filename);
     inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
     inline void loadDefaultTexture();
-
-    GLuint mTextureID; // Pointer type, Textures is not a POD
-    /*gl_texture_type mTextureType;*/
+    inline void refDestruct();
+    inline void resourceDestruct();
 };
+
+//==============================================================
+//                                                            //
+// Implementation of inline functions                         //
+//                                                            //
+//==============================================================
+
+inline Texture::Texture(const char * filename)
+{
+    // add a new resource
+    mResourceID = Resource::TextureManager().add();
+
+    // load
+    loadTextureFromFile(filename);
+}
+
+inline Texture::Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
+{
+    // add a new resource
+    mResourceID = Resource::TextureManager().add();
+
+    loadTextureFromPixels(pixels, w, h, type, tex_filter);
+}
+
+
+inline Texture::Texture(const vmath::Vector4 &color)
+{
+    // add a new resource
+    mResourceID = Resource::TextureManager().add();
+
+    const auto &c = color;
+    float pixels[] = {
+        c[0], c[1], c[2],   c[0], c[1], c[2],
+        c[0], c[1], c[2],   c[0], c[1], c[2],
+    };
+
+    int w = 2;
+    int h = 2;
+
+    /*float pixels[] = {
+        1.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+    }; // this doesn't work as expected even though texture coordinates are correct..
+
+    int w = 2;
+    int h = 2;*/
+
+    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT), gl_texture_filter::linear);
+
+    //loadTextureFromFile("planet_terrain.jpg");
+}
+
+inline Texture::~Texture()
+{
+    refDestruct();
+    //std::cout << "Texture DESTRUCTOR: " << mTextureID << ", new count: " << new_count << std::endl;
+}
+
+inline void Texture::refDestruct()
+{
+    size_t new_count = Resource::TextureManager().decr(mResourceID);
+    if (new_count == 0)
+    {
+        resourceDestruct();
+    }
+}
+
+
+inline void Texture::resourceDestruct()
+{
+    std::cout << "deleting texture" << std::endl;
+    glDeleteTextures(1, &mTextureID);
+}
 
 inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
 {
@@ -123,29 +224,6 @@ inline void Texture::loadTextureFromFile(const char * filename)
     SDL_FreeSurface(image);
 }
 
-inline Texture::Texture(const vmath::Vector4 &color)
-{
-    const auto &c = color;
-    float pixels[] = {
-        c[0], c[1], c[2],   c[0], c[1], c[2],
-        c[0], c[1], c[2],   c[0], c[1], c[2],
-    };
-
-    int w = 2;
-    int h = 2;
-
-    /*float pixels[] = {
-        1.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
-    }; // this doesn't work as expected even though texture coordinates are correct..
-
-    int w = 2;
-    int h = 2;*/
-
-    loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT), gl_texture_filter::linear);
-
-    //loadTextureFromFile("planet_terrain.jpg");
-}
 
 inline void Texture::loadDefaultTexture()
 {
