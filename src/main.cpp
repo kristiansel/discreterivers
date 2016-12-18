@@ -159,7 +159,26 @@ int main(int argc, char *argv[])
     gfx::OpenGLRenderer opengl_renderer;
 
     // test texture
-    // gfx::Texture tex = gfx::Texture("planet_terrain.jpg");
+    std::cout << "texture test START" << std::endl;
+    {
+        gfx::Texture tex = gfx::Texture(vmath::Vector4(1.0f, 0.0f, 1.0f, 0.0f));
+
+        // move tex
+        gfx::Texture t2 = std::move(tex);
+
+
+        // tex is here semantically invalid (should be variable not defined in a more proper language
+        // in practice, tex is now a reference with "weak" semantics, i.e. can still be used, but
+        // will never destruct the underlying resource
+
+        // reassign tex1
+        tex = gfx::Texture(vmath::Vector4(1.0f, 0.0f, 1.0f, 0.0f));
+
+        // copy assign
+        gfx::Texture t3 = t2;
+    }
+
+    std::cout << "texture test END" << std::endl;
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();

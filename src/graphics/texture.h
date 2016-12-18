@@ -8,12 +8,52 @@
 
 namespace gfx {
 
+class TexManaged
+{
+public:
+    inline TexManaged()
+    {
+        std::cout << "Base DEFAULT constructor" << std::endl;
+    }
+
+    inline TexManaged(const TexManaged &tx)
+    {
+        //Resource::TextureManager().incr(mResourceID);
+        std::cout << "Base COPY constructed" <<std::endl;
+    }
+
+    inline TexManaged(TexManaged &&tx)
+    {
+        //tx.mResourceID = Resource::ResID::invalid();
+        std::cout << "Base MOVE constructed: " << std::endl;
+    }
+
+    inline TexManaged& operator= (const TexManaged& tx)
+    {
+        std::cout << "Base COPY ASSIGN operator: " << std::endl;
+        return *this;
+    }
+
+    /** Move assignment operator */
+    inline TexManaged& operator= (TexManaged&& tx) noexcept
+    {
+        std::cout << "Base MOVE ASSIGN operator: " << std::endl;
+        return *this;
+    }
+
+    inline ~TexManaged()
+    {
+        std::cout << "Base DESTRUCTOR" << std::endl;
+    }
+};
+
+
+
 struct gl_type_type_tag{};
 typedef decltype(GL_UNSIGNED_BYTE) GL_TYPE_TYPE;
 typedef ID<gl_type_type_tag, GL_TYPE_TYPE, GL_UNSIGNED_BYTE> gl_type;
 
-
-class Texture final
+class Texture final : TexManaged
 {
 public:
     //===============================
@@ -43,13 +83,13 @@ private:
     Texture(); // deleted
         //{ loadDefaultTexture(); std::cout << "Texture DEFAULT constructed: " << mTextureID << std::endl; }
 public:
-    inline Texture(const Texture &tx) : mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
+    inline Texture(const Texture &tx) : TexManaged(tx), mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
     {
         Resource::TextureManager().incr(mResourceID);
         std::cout << "Texture COPY constructed" << mTextureID << std::endl;
     }
 
-    inline Texture(Texture &&tx)  : mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
+    inline Texture(Texture &&tx)  : TexManaged(std::move(tx)), mTextureID(tx.mTextureID), mResourceID(tx.mResourceID)
     {
         tx.mResourceID = Resource::ResID::invalid();
         std::cout << "Texture MOVE constructed: " << mTextureID << std::endl;
@@ -66,9 +106,10 @@ public:
     /** Move assignment operator */
     inline Texture& operator= (Texture&& tx) noexcept
     {
-        //delete[] data;
+        TexManaged::operator=(tx);
         refDestruct();
         mTextureID = tx.mTextureID; //data = other.data;
+        mResourceID = tx.mResourceID; //data = other.data;
         tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
         std::cout << "Texture MOVE ASSIGN operator: " << mTextureID << std::endl;
         return *this;
@@ -147,7 +188,7 @@ inline Texture::Texture(const vmath::Vector4 &color)
 inline Texture::~Texture()
 {
     refDestruct();
-    //std::cout << "Texture DESTRUCTOR: " << mTextureID << ", new count: " << new_count << std::endl;
+    std::cout << "Texture DESTRUCTOR: " << mTextureID << std::endl;
 }
 
 inline void Texture::refDestruct()

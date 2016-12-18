@@ -47,12 +47,11 @@ public:
 
     size_t decr(ResID res_id)
     {
-        DEBUG_ASSERT((size_t(res_id)<mResources.size()));
-
         if (res_id == ResID::invalid()) {
             return dont_destruct; // return a high count value that will not result in an attempt at destruction
         }
         else {
+            DEBUG_ASSERT((size_t(res_id)<mResources.size()));
             auto new_count = (--mResources[size_t(res_id)]);
             std::cout << "RES DECR count: " << new_count << std::endl;
             return new_count;
