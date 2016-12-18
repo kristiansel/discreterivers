@@ -4,74 +4,15 @@
 #include "gfxcommon.h"
 #include "SDL_image.h"
 #include "../common/typetag.h"
-#include "resource.h"
+#include "../common/resmanager/refcounted.h"
 
 namespace gfx {
-
-template<class Managed>
-class TexManaged
-{
-    // how to static assert that refDestruct is implemented
-public:
-    inline TexManaged()
-    {
-        mResourceID = Resource::TextureManager().add();
-        std::cout << "Base DEFAULT constructor" << std::endl;
-    }
-
-    inline TexManaged(const TexManaged &tx) : mResourceID(tx.mResourceID)
-    {
-        Resource::TextureManager().incr(mResourceID);
-        std::cout << "Base COPY constructed" <<std::endl;
-    }
-
-    inline TexManaged(TexManaged &&tx) : mResourceID(tx.mResourceID)
-    {
-        tx.mResourceID = Resource::ResID::invalid();
-        std::cout << "Base MOVE constructed: " << std::endl;
-    }
-
-    inline TexManaged& operator= (const TexManaged& tx)
-    {
-        std::cout << "Base COPY ASSIGN operator: " << std::endl;
-        return *this;
-    }
-
-    /** Move assignment operator */
-    inline TexManaged& operator= (TexManaged&& tx) noexcept
-    {
-        refDestruct();
-        mResourceID = tx.mResourceID; //data = other.data;
-        tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
-        std::cout << "Base MOVE ASSIGN operator: " << std::endl;
-        return *this;
-    }
-
-    inline ~TexManaged()
-    {
-        refDestruct();
-        std::cout << "Base DESTRUCTOR" << std::endl;
-    }
-private:
-    Resource::ResID mResourceID;
-
-    inline void refDestruct()
-    {
-        size_t new_count = Resource::TextureManager().decr(mResourceID);
-        if (new_count == 0)
-        {
-            static_cast<Managed*>(this)->resourceDestruct();
-        }
-    }
-};
-
-
 
 struct gl_type_type_tag{};
 typedef decltype(GL_UNSIGNED_BYTE) GL_TYPE_TYPE;
 typedef ID<gl_type_type_tag, GL_TYPE_TYPE, GL_UNSIGNED_BYTE> gl_type;
 
-class Texture final : public TexManaged<Texture>
+class Texture final : public Resource::RefCounted<Texture>
 {
 public:
     //===============================
@@ -94,42 +35,15 @@ public:
     //===============================
     inline GLuint getTextureID() const { return mTextureID; }
 
-    //===============================
-    // Rule of five                //
-    //===============================
+    // No rule of five/lifecycle methods need to be implemented
+    // that is handled by Resource::RefCounted<Texture> base class
+
 private:
     Texture(); // deleted
-        //{ loadDefaultTexture(); std::cout << "Texture DEFAULT constructed: " << mTextureID << std::endl; }
+
 public:
-    /*inline Texture(const Texture &tx) : TexManaged(tx), mTextureID(tx.mTextureID)
-    {
-        std::cout << "Texture COPY constructed" << mTextureID << std::endl;
-    }
-
-    inline Texture(Texture &&tx)  : TexManaged(std::move(tx)), mTextureID(tx.mTextureID)
-    {
-        std::cout << "Texture MOVE constructed: " << mTextureID << std::endl;
-    }
-
-    inline Texture& operator= (const Texture& tx)
-    {
-        Texture tmp(tx);            // re-use copy-constructor
-        *this = std::move(tmp);     // re-use move-assignment
-        std::cout << "Texture COPY ASSIGN operator: " << mTextureID << std::endl;
-        return *this;
-    }
-
-    inline Texture& operator= (Texture&& tx) noexcept
-    {
-        TexManaged::operator=(tx);
-        mTextureID = tx.mTextureID; //data = other.data;
-        std::cout << "Texture MOVE ASSIGN operator: " << mTextureID << std::endl;
-        return *this;
-    }
-
-    inline ~Texture();*/
-
-    // needed for TexManaged
+    // provide the cleanup function to be used by the
+    // Resource::RefCounted<Texture> base class
     inline void resourceDestruct();
 
 private:
@@ -138,16 +52,12 @@ private:
     //===============================
     GLuint mTextureID; // Pointer type, Textures is not a POD
 
-
     //===============================
     // Private helper functions    //
     //===============================
     inline void loadTextureFromFile(const char * filename);
     inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
     inline void loadDefaultTexture();
-
-
-
 };
 
 //==============================================================
@@ -192,17 +102,10 @@ inline Texture::Texture(const vmath::Vector4 &color)
     //loadTextureFromFile("planet_terrain.jpg");
 }
 
-/*inline Texture::~Texture()
-{
-    std::cout << "Texture DESTRUCTOR: " << mTextureID << std::endl;
-}*/
-
-
-
 
 inline void Texture::resourceDestruct()
 {
-    std::cout << "deleting texture" << std::endl;
+    std::cout << "deleting texture: " << mTextureID << std::endl;
     glDeleteTextures(1, &mTextureID);
 }
 

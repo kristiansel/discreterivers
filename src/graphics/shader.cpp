@@ -75,6 +75,15 @@ Shader::Shader()
     // should check linker error
     checkProgramLinked(mShaderProgramID);
 
+    // shaders are copied into the program, so time to
+    // clean up shaders
+    glDetachShader(mShaderProgramID, vertex_shader);
+    glDetachShader(mShaderProgramID, fragment_shader);
+
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
+    // get uniform locations
     glUseProgram(mShaderProgramID);
 
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
@@ -89,6 +98,12 @@ Shader::Shader()
 
     // Check for errors:
     common:checkOpenGLErrors("Shader::Shader()");
+}
+
+Shader::~Shader()
+{
+    std::cout << "deleting shader: " << mShaderProgramID << std::endl;
+    glDeleteProgram(mShaderProgramID);
 }
 
 } // namespace gfx

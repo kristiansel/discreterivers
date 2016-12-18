@@ -15,6 +15,7 @@ namespace gfx {
 class Shader {
 public:
     Shader();
+    ~Shader();
 
     GLuint getProgramID() const {return mShaderProgramID;}
 
@@ -75,7 +76,9 @@ private:
     inline void drawDrawObject(const DrawObject &draw_object, const Camera &camera, bool global_wireframe = false) const;
 
     GLuint mShaderProgramID;
+
     Uniforms mUniforms;
+
     mutable std::vector<DrawObject> mDrawObjectsVector;
 };
 

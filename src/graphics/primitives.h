@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "gfxcommon.h"
+#include "../common/resmanager/refcounted.h"
 
 namespace gfx {
 
@@ -12,14 +13,18 @@ struct primitive_type_tag{};
 typedef decltype(GL_TRIANGLES) PRIMITIVE_GL_CODE;
 typedef ID<primitive_type_tag, PRIMITIVE_GL_CODE, GL_TRIANGLES> gl_primitive_type;
 
-struct Primitives
+class Primitives : public Resource::RefCounted<Primitives>
 {
+public:
     template<class PrimitiveType>
     explicit Primitives(const std::vector<PrimitiveType> &primitive_data);
 
-    inline GLuint getElementArrayBuffer() const         {return mElementArrayBuffer;}
-    inline GLsizeiptr getNumIndices() const             {return mNumIndices;}
-    inline gl_primitive_type getPrimitiveType() const   {return mPrimitiveType;}
+    inline GLuint getElementArrayBuffer() const         { return mElementArrayBuffer; }
+    inline GLsizeiptr getNumIndices() const             { return mNumIndices; }
+    inline gl_primitive_type getPrimitiveType() const   { return mPrimitiveType; }
+
+    // used by Resource::RefCounted<Primitives>
+    inline void resourceDestruct();
 
 private:
     Primitives();
@@ -50,6 +55,12 @@ Primitives::Primitives(const std::vector<PrimitiveType> &primitives_data)
             gl_primitive_type(GL_TRIANGLES);
 
     mPrimitiveType = gl_primitive;
+}
+
+inline void Primitives::resourceDestruct()
+{
+    std::cout << "deleting primitives: " << mElementArrayBuffer << std::endl;
+    glDeleteBuffers(1, &mElementArrayBuffer);
 }
 
 } // namespace gfx

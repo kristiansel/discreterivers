@@ -2,14 +2,16 @@
 #define VERTICES_H
 
 #include <vector>
+#include "gfxcommon.h"
 #include "../common/stdext.h"
 #include "../common/gfx_primitives.h"
-#include "gfxcommon.h"
+#include "../common/resmanager/refcounted.h"
 
 namespace gfx {
 
-struct Vertices
+class Vertices : public Resource::RefCounted<Vertices>
 {
+public:
     inline explicit Vertices(const std::vector<vmath::Vector4> &position_data,
                       const std::vector<vmath::Vector4> &normal_data);
 
@@ -22,6 +24,8 @@ struct Vertices
     inline GLuint getNormalArrayBuffer() const       {return mNormalArrayBuffer;}
     inline GLuint getTexCoordArrayBuffer() const     {return mTexCoordArrayBuffer;}
 
+// used by Resource::RefCounted<Vertices>
+    inline void resourceDestruct();
 
 private:
     Vertices();
@@ -99,6 +103,15 @@ inline void Vertices::init(const std::vector<vmath::Vector4> &position_data,
 
 
     checkOpenGLErrors("Vertices::Vertices");
+}
+
+inline void Vertices::resourceDestruct()
+{
+    std::cout << "deleting vertices: " << mVertexArrayObject << std::endl;
+    glDeleteBuffers(1, &mTexCoordArrayBuffer);
+    glDeleteBuffers(1, &mNormalArrayBuffer);
+    glDeleteBuffers(1, &mPositionArrayBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
 }
 
 }

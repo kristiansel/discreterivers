@@ -7,8 +7,9 @@
 
 namespace gfx {
 
-struct Geometry
+class Geometry
 {
+public:
     explicit Geometry(const Vertices &vertices, const Primitives &primitives) :
         mVertices(vertices), mPrimitives(primitives) {}
 
