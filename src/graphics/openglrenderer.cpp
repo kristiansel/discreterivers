@@ -151,7 +151,8 @@ void OpenGLRenderer::draw(const Camera &camera) const
 
                 mShaderProgram.addDrawObject(scene_node.transform.getTransformMatrix(),
                                              scene_object.mMaterial.getDrawData(),
-                                             scene_object.mGeometry.getDrawData(), combined_flags);
+                                             scene_object.mGeometry.getDrawData(),
+                                             combined_flags);
             }
         }
     }

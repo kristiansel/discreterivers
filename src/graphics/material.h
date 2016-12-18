@@ -33,12 +33,6 @@ private:
     Texture mTexture;
 };
 
-/*inline Material::Material(const vmath::Vector4 &color_in) :
-    mColor(color_in), mTexture(Texture())
-{
-
-}*/
-
 inline Material::Material(const vmath::Vector4 &color_in) :
     mColor(color_in), mTexture(color_in)
 {

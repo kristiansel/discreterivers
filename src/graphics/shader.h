@@ -34,12 +34,15 @@ public:
 
     inline void clearDrawObjects() const { mDrawObjectsVector.clear(); }
 
-    inline void addDrawObject(const vmath::Matrix4 &world_matrix,
-                              const Material::DrawData &material_data,
-                              const Geometry::DrawData &geometry_data,
+    inline void addDrawObject(vmath::Matrix4 &&world_matrix,
+                              Material::DrawData &&material_data,
+                              Geometry::DrawData &&geometry_data,
                               RenderFlags render_flags) const
     {
-         mDrawObjectsVector.emplace_back(world_matrix, material_data, geometry_data, render_flags);
+         mDrawObjectsVector.emplace_back(std::move(world_matrix),
+                                         std::move(material_data),
+                                         std::move(geometry_data),
+                                         render_flags);
     }
 
     inline void drawDrawObjects( const Camera &camera ) const
