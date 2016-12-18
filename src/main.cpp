@@ -22,6 +22,18 @@
 namespace vmath = Vectormath::Aos;
 
 
+/*static int resizingEventWatcher(void* data, SDL_Event* event)
+{
+    if (event->type == SDL_WINDOWEVENT &&
+            event->window.event == SDL_WINDOWEVENT_RESIZED) {
+        SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
+        if (win == (SDL_Window*)data) {
+            printf("resizing.....\n");
+        }
+    }
+    return 0;
+}*/
+
 int main(int argc, char *argv[])
 {
     //AltPlanet::Shape::Disk disk(3.0f);
@@ -129,17 +141,18 @@ int main(int argc, char *argv[])
 
 
     // SDL2 window code:
-    Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL;
+    Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
     int width = 1000;
     int height = 800;
 
-    //int width = 2800;
-    //int height = 1600;
+    //int width = 2800;    //int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos x
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
+
+    //SDL_AddEventWatch(resizingEventWatcher, mainWindow);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -156,10 +169,10 @@ int main(int argc, char *argv[])
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 
     // Opengl renderer
-    gfx::OpenGLRenderer opengl_renderer;
+    gfx::OpenGLRenderer opengl_renderer(width, height);
 
     // test texture
-    std::cout << "texture test START" << std::endl;
+    /*std::cout << "texture test START" << std::endl;
     {
         gfx::Texture tex = gfx::Texture(vmath::Vector4(1.0f, 0.0f, 1.0f, 0.0f));
 
@@ -179,6 +192,7 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "texture test END" << std::endl;
+    */
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -337,10 +351,15 @@ int main(int argc, char *argv[])
     int32_t prev_mouse_x = 0;
     int32_t prev_mouse_y = 0;
 
+    //bool fullscreen = false;
+
     int frame_counter = 0;
     while(!done)
     {
         ++frame_counter;
+
+        bool resizing_this_frame = false;
+
         while( SDL_PollEvent(&event) )
         {
             switch(event.type)
@@ -379,7 +398,11 @@ int main(int argc, char *argv[])
                                 
                                 alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
                                 break;
-                            } 
+                            }
+                            case(SDLK_r): {
+                                SDL_SetWindowSize(mainWindow, 1500, 800);
+                                break;
+                            }
                             case(SDLK_UP): {
                                 camera.mTransform.position -= vmath::Vector3(0.0f, 0.1f, 0.0f);
                                 break;
@@ -394,6 +417,10 @@ int main(int argc, char *argv[])
                             }
                             case(SDLK_LEFT): {
                                 camera.mTransform.position += vmath::Vector3(0.1f, 0.0f, 0.0f);
+                                break;
+                            }
+                            case (SDLK_F11): {
+                                SDL_SetWindowFullscreen(mainWindow, SDL_WINDOW_FULLSCREEN);
                                 break;
                             }
                             case(SDLK_ESCAPE):
@@ -434,6 +461,26 @@ int main(int argc, char *argv[])
                     camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
                     break;
                 }
+                case SDL_WINDOWEVENT: {
+                    switch (event.window.event) {
+                        /*case SDL_WINDOWEVENT_RESIZED: { // fire only on mouse drag
+                            SDL_Log("Window %d resized to %dx%d",
+                                    event.window.windowID, event.window.data1,
+                                    event.window.data2);
+                            resizing_this_frame = true;
+                            break;
+                        }*/
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general of the events
+                            /*SDL_Log("Window %d size changed to %dx%d",
+                                    event.window.windowID, event.window.data1,
+                                    event.window.data2);*/
+                            resizing_this_frame = true;
+                            opengl_renderer.resize(event.window.data1, event.window.data2);
+                            break;
+                        }
+                    } // switch (event.window.event)
+                    break;
+                } // case SDL_WINDOWEVENT:
                 case SDL_QUIT:
                     done = true;
                     break;
@@ -442,15 +489,20 @@ int main(int argc, char *argv[])
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
-        // draw
-        opengl_renderer.draw(camera);
+        if (!resizing_this_frame)
+        {
+            // draw
+            opengl_renderer.draw(camera);
 
-        // goes in drawing code:
-        SDL_GL_SwapWindow(mainWindow);
+            // goes in drawing code:
+            SDL_GL_SwapWindow(mainWindow);
 
-        // sleep as to not consume 100% CPU
-        // could perhaps subtract the frame time here...
-        std::this_thread::sleep_for(dt_fixed);
+
+            // sleep as to not consume 100% CPU
+            // could perhaps subtract the frame time here...
+            std::this_thread::sleep_for(dt_fixed);
+
+        }
 
     }   // End while(!done)
 

@@ -32,7 +32,7 @@ Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
-OpenGLRenderer::OpenGLRenderer()
+OpenGLRenderer::OpenGLRenderer(int w, int h)
 {
     // OpenGL context needs to be valid at this point
 
@@ -48,9 +48,16 @@ OpenGLRenderer::OpenGLRenderer()
 
     glCullFace(GL_BACK);
 
+    resize(w, h);
+
     // Check for errors:
     common:checkOpenGLErrors("OpenGLRenderer::OpenGLRenderer");
 
+}
+
+void OpenGLRenderer::resize(int w, int h)
+{
+    glViewport(0, 0, w, h);
 }
 
 SceneNodeHandle OpenGLRenderer::addSceneNode()

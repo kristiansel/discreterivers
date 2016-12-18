@@ -10,6 +10,7 @@
 
 #include "../common/gfx_primitives.h"
 #include "../common/typetag.h"
+#include "../common/macro/macrodebugassert.h"
 #include "primitives.h"
 #include "geometry.h"
 #include "material.h"
@@ -49,6 +50,7 @@ public:
         {
           // Problem: glewInit failed, something is seriously wrong.
           std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+          DEBUG_ASSERT((GLEW_OK != err));
         }
         std::cout << "Status: Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
     }
@@ -57,7 +59,7 @@ public:
 class OpenGLRenderer : public OpenGLContextDependent // Need to get a context before constructing OpenGLRenderer
 {
 public:
-    OpenGLRenderer();
+    OpenGLRenderer(int w, int h);
 
     SceneNodeHandle addSceneNode();
 
@@ -68,6 +70,8 @@ public:
     void draw(const Camera &camera) const;
 
     void drawAlt(const Camera &camera) const;
+
+    void resize(int w, int h);
 
 private:
     Shader mShaderProgram;
