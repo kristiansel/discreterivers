@@ -60,6 +60,11 @@ void OpenGLRenderer::resize(int w, int h)
     glViewport(0, 0, w, h);
 }
 
+void OpenGLRenderer::addGUINode(gui::GUITransform && gui_transform)
+{
+    mGUINodesVector.emplace_back(std::move(gui_transform));
+}
+
 SceneNodeHandle OpenGLRenderer::addSceneNode()
 {
     scenenode_id id_out(mSceneNodesVector.size());
@@ -110,7 +115,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
     // all that stuff that can be shared by shader programs...
 
     // switch shader, (might be done later at material stage...)
-    glUseProgram (mShaderProgram.getProgramID());
+    glUseProgram (mMainShader.getProgramID());
 
     // prepare lights
     mLightObjectsVector.clear();
@@ -142,11 +147,11 @@ void OpenGLRenderer::draw(const Camera &camera) const
     vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
     vmath::Vector4 light_position = vp_matrix * light_position_world;
 
-    glUniform4fv(mShaderProgram.getUniforms().light_position, 1, (const GLfloat*)&light_position);
-    glUniform4fv(mShaderProgram.getUniforms().light_color, 1, (const GLfloat*)&light_color);
+    glUniform4fv(mMainShader.getUniforms().light_position, 1, (const GLfloat*)&light_position);
+    glUniform4fv(mMainShader.getUniforms().light_color, 1, (const GLfloat*)&light_color);
 
     // prepare the drawobjects
-    mShaderProgram.clearDrawObjects(); // could/does this need to be optimized?
+    mMainShader.clearDrawObjects(); // could/does this need to be optimized?
     for (const auto &scene_node : mSceneNodesVector)
     {
         for (const auto &scene_object : scene_node.getSceneObjects())
@@ -156,7 +161,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
             {
                 RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
 
-                mShaderProgram.addDrawObject(scene_node.transform.getTransformMatrix(),
+                mMainShader.addDrawObject(scene_node.transform.getTransformMatrix(),
                                              scene_object.mMaterial.getDrawData(),
                                              scene_object.mGeometry.getDrawData(),
                                              combined_flags);
@@ -164,7 +169,11 @@ void OpenGLRenderer::draw(const Camera &camera) const
         }
     }
 
-    mShaderProgram.drawDrawObjects(camera);
+    mMainShader.drawDrawObjects(camera);
+
+    // render the gui
+    // TODO: Complete this
+    // mGUIShader.drawGUI(mGUINodesVector);
 }
 
 } // namespace gfx

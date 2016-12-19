@@ -156,6 +156,10 @@ int main(int argc, char *argv[])
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer(width, height);
 
+    // add some gui
+    opengl_renderer.addGUINode(gfx::gui::GUITransform({0.15f, 0.15f}, {0.3f, 0.3f}));
+
+
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
     gfx::LightHandle light = ([](const gfx::SceneNodeHandle &scene_node)

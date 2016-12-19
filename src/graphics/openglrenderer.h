@@ -17,6 +17,8 @@
 #include "transform.h"
 #include "shader.h"
 #include "renderflags.h"
+#include "gui/guinode.h"
+#include "gui/guishader.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -63,6 +65,8 @@ public:
 
     SceneNodeHandle addSceneNode();
 
+    void addGUINode(gui::GUITransform &&gui_transform);
+
     SceneNode * getSceneNodePtr(scenenode_id id);
 
     void toggleWireframe() { mRenderFlags.toggleFlag(RenderFlags::Wireframe); }
@@ -74,9 +78,11 @@ public:
     void resize(int w, int h);
 
 private:
-    Shader mShaderProgram;
-
+    // global render flags
     RenderFlags mRenderFlags;
+
+    // Main scene shader stuff
+    Shader mMainShader;
 
     // should be shared among shaders
     struct LightObject
@@ -87,6 +93,11 @@ private:
 
     std::vector<SceneNode> mSceneNodesVector;
     mutable std::vector<LightObject> mLightObjectsVector;
+
+    // GUI shader stuff
+    GUIShader mGUIShader;
+
+    std::vector<gui::GUINode> mGUINodesVector;
 };
 
 class SceneObject

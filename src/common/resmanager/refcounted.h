@@ -37,7 +37,7 @@ public:
     /** Move assignment operator */
     inline RefCounted& operator= (RefCounted&& tx) noexcept
     {
-        refDestruct();
+        destroyRef();
         mResourceID = tx.mResourceID; //data = other.data;
         tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
         //std::cout << "RefCounted MOVE ASSIGN operator: " << std::endl;
@@ -46,13 +46,13 @@ public:
 
     inline ~RefCounted()
     {
-        refDestruct();
+        destroyRef();
         //std::cout << "RefCounted DESTRUCTOR" << std::endl;
     }
 private:
     Resource::ResID mResourceID;
 
-    inline void refDestruct()
+    inline void destroyRef()
     {
         size_t new_count = getManager().decr(mResourceID);
         if (new_count == 0)
