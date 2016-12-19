@@ -21,19 +21,6 @@
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 
-
-/*static int resizingEventWatcher(void* data, SDL_Event* event)
-{
-    if (event->type == SDL_WINDOWEVENT &&
-            event->window.event == SDL_WINDOWEVENT_RESIZED) {
-        SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
-        if (win == (SDL_Window*)data) {
-            printf("resizing.....\n");
-        }
-    }
-    return 0;
-}*/
-
 int main(int argc, char *argv[])
 {
     //AltPlanet::Shape::Disk disk(3.0f);
@@ -152,10 +139,8 @@ int main(int argc, char *argv[])
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
 
-    //SDL_AddEventWatch(resizingEventWatcher, mainWindow);
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
@@ -170,29 +155,6 @@ int main(int argc, char *argv[])
 
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer(width, height);
-
-    // test texture
-    /*std::cout << "texture test START" << std::endl;
-    {
-        gfx::Texture tex = gfx::Texture(vmath::Vector4(1.0f, 0.0f, 1.0f, 0.0f));
-
-        // move tex
-        gfx::Texture t2 = std::move(tex);
-
-
-        // tex is here semantically invalid (should be variable not defined in a more proper language
-        // in practice, tex is now a reference with "weak" semantics, i.e. can still be used, but
-        // will never destruct the underlying resource
-
-        // reassign tex1
-        tex = gfx::Texture(vmath::Vector4(1.0f, 0.0f, 1.0f, 0.0f));
-
-        // copy assign
-        gfx::Texture t3 = t2;
-    }
-
-    std::cout << "texture test END" << std::endl;
-    */
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -351,7 +313,7 @@ int main(int argc, char *argv[])
     int32_t prev_mouse_x = 0;
     int32_t prev_mouse_y = 0;
 
-    //bool fullscreen = false;
+    bool fullscreen = false;
 
     int frame_counter = 0;
     while(!done)
@@ -420,7 +382,8 @@ int main(int argc, char *argv[])
                                 break;
                             }
                             case (SDLK_F11): {
-                                SDL_SetWindowFullscreen(mainWindow, SDL_WINDOW_FULLSCREEN);
+                                SDL_SetWindowFullscreen(mainWindow, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
+                                fullscreen = !fullscreen;
                                 break;
                             }
                             case(SDLK_ESCAPE):
@@ -463,14 +426,7 @@ int main(int argc, char *argv[])
                 }
                 case SDL_WINDOWEVENT: {
                     switch (event.window.event) {
-                        /*case SDL_WINDOWEVENT_RESIZED: { // fire only on mouse drag
-                            SDL_Log("Window %d resized to %dx%d",
-                                    event.window.windowID, event.window.data1,
-                                    event.window.data2);
-                            resizing_this_frame = true;
-                            break;
-                        }*/
-                        case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general of the events
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general resize event
                             /*SDL_Log("Window %d size changed to %dx%d",
                                     event.window.windowID, event.window.data1,
                                     event.window.data2);*/
