@@ -60,11 +60,6 @@ void OpenGLRenderer::resize(int w, int h)
     glViewport(0, 0, w, h);
 }
 
-void OpenGLRenderer::addGUINode(gui::GUITransform && gui_transform)
-{
-    mGUINodesVector.emplace_back(std::move(gui_transform));
-}
-
 SceneNodeHandle OpenGLRenderer::addSceneNode()
 {
     scenenode_id id_out(mSceneNodesVector.size());
@@ -173,7 +168,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
 
     // render the gui
     // TODO: Complete this
-    // mGUIShader.drawGUI(mGUINodesVector);
+    mGUIShader.drawGUI(mGUINodesVector);
 }
 
 } // namespace gfx

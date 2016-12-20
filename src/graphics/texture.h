@@ -4,6 +4,7 @@
 #include "gfxcommon.h"
 #include "SDL_image.h"
 #include "../common/typetag.h"
+#include "../common/gfx_primitives.h"
 #include "../common/resmanager/refcounted.h"
 
 namespace gfx {
@@ -23,11 +24,27 @@ public:
     enum class gl_texture_filter { nearest, linear };
     using filter = gl_texture_filter;
 
+    using gl_pixel_format_t = decltype(GL_RGB);
+    enum class gl_pixel_format { red, rgb, rgba };
+    using pixel_format = gl_pixel_format;
+    gl_pixel_format_t getPixelFormat(gl_pixel_format pixel_format) {
+        switch (pixel_format)
+        {
+            case (gl_pixel_format::red):     return GL_RED;
+            case (gl_pixel_format::rgb):     return GL_RGB;
+            case (gl_pixel_format::rgba):    return GL_RGBA;
+            default: assert((false&&"invalid texture pixel format spec"));
+        }
+    }
+
     //===============================
     // Explicit data constructors  //
     //===============================
     inline explicit Texture(const char * filename);
-    inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
+    inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
+                            gl_pixel_format internal_format = gl_pixel_format::rgb,
+                            gl_pixel_format format = gl_pixel_format::rgb);
+
     inline explicit Texture(const vmath::Vector4 &color);
 
     //===============================
@@ -56,7 +73,9 @@ private:
     // Private helper functions    //
     //===============================
     inline void loadTextureFromFile(const char * filename);
-    inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter);
+    inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
+                                       gl_pixel_format internal_format = gl_pixel_format::rgb,
+                                       gl_pixel_format format = gl_pixel_format::rgb);
     inline void loadDefaultTexture();
 };
 
@@ -72,9 +91,10 @@ inline Texture::Texture(const char * filename)
     loadTextureFromFile(filename);
 }
 
-inline Texture::Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
+inline Texture::Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
+                        gl_pixel_format internal_format, gl_pixel_format format)
 {
-    loadTextureFromPixels(pixels, w, h, type, tex_filter);
+    loadTextureFromPixels(pixels, w, h, type, tex_filter, internal_format, format);
 }
 
 
@@ -109,7 +129,8 @@ inline void Texture::resourceDestruct()
     glDeleteTextures(1, &mTextureID);
 }
 
-inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter)
+inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
+                                           gl_pixel_format internal_format, gl_pixel_format format)
 {
     // Create one OpenGL texture
     glGenTextures(1, &mTextureID);
@@ -117,7 +138,7 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type 
     // "Bind" the newly created texture : all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D, mTextureID);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_TYPE_TYPE(type), pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, getPixelFormat(internal_format), w, h, 0, getPixelFormat(internal_format), GL_TYPE_TYPE(type), pixels);
 
     gl_mag_filter_t mag_filter;
     gl_min_filter_t min_filter;

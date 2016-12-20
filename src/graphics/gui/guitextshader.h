@@ -1,5 +1,5 @@
-#ifndef GUISHADER_H
-#define GUISHADER_H
+#ifndef GUITEXTSHADER_H
+#define GUITEXTSHADER_H
 
 #include "../gfxcommon.h"
 #include "guinode.h"
@@ -9,38 +9,34 @@ namespace gfx {
 
 namespace gui {
 
-class GUIShader {
+class GUITextShader {
 public:
-    GUIShader();
-    ~GUIShader();
+    GUITextShader();
+    ~GUITextShader();
 
-    GLuint getProgramID() const {return mShaderProgramID;}
+    GLuint getProgramID() const { return mShaderProgramID; }
 
     struct Uniforms;
-    const Uniforms &getUniforms() const {return mUniforms;}
+    const Uniforms &getUniforms() const { return mUniforms; }
 
     struct Uniforms
     {
         GLint mv;
-        //GLint tex;
-        GLint color;
-
+        GLint tex;
     };
 
-    inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
+    //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
 private:
     GLuint mShaderProgramID;
 
     Uniforms mUniforms;
 
-    //Primitives mRectPrimitives;
-
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
 };
 
-inline void GUIShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
+/*inline void GUITextShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
 {
     glUseProgram(mShaderProgramID);
     glDisable(GL_DEPTH_TEST);
@@ -57,10 +53,10 @@ inline void GUIShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
     }
 
     glEnable(GL_DEPTH_TEST);
-}
+}*/
 
 } // namespace gui
 
 } // namespace gfx
 
-#endif // GUISHADER_H
+#endif // GUITEXTSHADER_H

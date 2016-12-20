@@ -50,38 +50,7 @@ Shader::Shader()
     "}";
 
     std::cout << "compiling shaders" << std::endl;
-
-    // compile vertex shader
-    GLuint vertex_shader = glCreateShader (GL_VERTEX_SHADER);
-    glShaderSource (vertex_shader, 1, &vertex_shader_src, NULL);
-    glCompileShader (vertex_shader);
-
-    checkShaderCompiled(vertex_shader);
-
-    // compile fragment shader
-    GLuint fragment_shader = glCreateShader (GL_FRAGMENT_SHADER);
-    glShaderSource (fragment_shader, 1, &fragment_shader_src, NULL);
-    glCompileShader (fragment_shader);
-
-    checkShaderCompiled(fragment_shader);
-
-    std::cout << "linking shaders" << std::endl;
-
-    mShaderProgramID = glCreateProgram ();
-    glAttachShader (mShaderProgramID, fragment_shader);
-    glAttachShader (mShaderProgramID, vertex_shader);
-    glLinkProgram (mShaderProgramID);
-
-    // should check linker error
-    checkProgramLinked(mShaderProgramID);
-
-    // shaders are copied into the program, so time to
-    // clean up shaders
-    glDetachShader(mShaderProgramID, vertex_shader);
-    glDetachShader(mShaderProgramID, fragment_shader);
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
+    mShaderProgramID = createProgramFromShaders(vertex_shader_src, fragment_shader_src);
 
     // get uniform locations
     glUseProgram(mShaderProgramID);

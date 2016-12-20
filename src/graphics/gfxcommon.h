@@ -68,6 +68,45 @@ inline bool checkProgramLinked(GLuint program)
     }
 }
 
+
+inline GLuint createProgramFromShaders(const char * vertex_shader_src, const char * fragment_shader_src)
+{
+    // compile vertex shader
+    GLuint vertex_shader = glCreateShader (GL_VERTEX_SHADER);
+    glShaderSource (vertex_shader, 1, &vertex_shader_src, NULL);
+    glCompileShader (vertex_shader);
+
+    checkShaderCompiled(vertex_shader);
+
+    // compile fragment shader
+    GLuint fragment_shader = glCreateShader (GL_FRAGMENT_SHADER);
+    glShaderSource (fragment_shader, 1, &fragment_shader_src, NULL);
+    glCompileShader (fragment_shader);
+
+    checkShaderCompiled(fragment_shader);
+
+    std::cout << "linking shaders" << std::endl;
+
+    GLuint shader_program = glCreateProgram ();
+    glAttachShader (shader_program, fragment_shader);
+    glAttachShader (shader_program, vertex_shader);
+    glLinkProgram (shader_program);
+
+    // should check linker error
+    checkProgramLinked(shader_program);
+
+    // shaders are copied into the program, so time to
+    // clean up shaders
+    glDetachShader(shader_program, vertex_shader);
+    glDetachShader(shader_program, fragment_shader);
+
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
+    return shader_program;
+}
+
+
 }
 
 #endif // COMMON_H

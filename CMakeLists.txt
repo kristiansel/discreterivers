@@ -25,6 +25,13 @@ if(NOT ZLIB_FOUND)
         message(SEND_ERROR "Failed to find ZLIB.")
 endif()
 
+# Find FreeType
+find_package(Freetype REQUIRED)
+
+if(NOT FREETYPE_FOUND)
+        message(SEND_ERROR "Failed to find Freetype.")
+endif()
+
 # Find libPNG
 find_package(PNG REQUIRED)
 
@@ -51,6 +58,7 @@ include_directories(
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${GL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
+    ${FREETYPE_INCLUDE_DIRS}
 )
 
 # Create compilation database
@@ -67,8 +75,10 @@ target_link_libraries(${PROJECT_NAME}
     ${PNG_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
+    ${FREETYPE_LIBRARIES}
 )
 
 # message(STATUS "SDL2_LIBRARY: " ${SDL2_LIBRARY})
 # message(STATUS "OPENGL_LIBRARIES: " ${OPENGL_LIBRARIES})
 # message(STATUS "GLEW_LIBRARIES: " ${GLEW_LIBRARIES})
+# message(STATUS "FREETYPE_INCLUDE_DIRS: " ${FREETYPE_INCLUDE_DIRS})

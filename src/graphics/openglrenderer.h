@@ -19,6 +19,7 @@
 #include "renderflags.h"
 #include "gui/guinode.h"
 #include "gui/guishader.h"
+#include "gui/guifontrenderer.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -65,15 +66,16 @@ public:
 
     SceneNodeHandle addSceneNode();
 
-    void addGUINode(gui::GUITransform &&gui_transform);
+    //inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform);
+
+    template <typename ...Args>
+    inline void addGUINode(Args... args);
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
     void toggleWireframe() { mRenderFlags.toggleFlag(RenderFlags::Wireframe); }
 
     void draw(const Camera &camera) const;
-
-    void drawAlt(const Camera &camera) const;
 
     void resize(int w, int h);
 
@@ -95,9 +97,11 @@ private:
     mutable std::vector<LightObject> mLightObjectsVector;
 
     // GUI shader stuff
-    GUIShader mGUIShader;
+    gui::GUIShader mGUIShader;
 
     std::vector<gui::GUINode> mGUINodesVector;
+
+    gui::GUIFontRenderer mGUIFontRenderer; // move this!
 };
 
 class SceneObject
@@ -227,6 +231,20 @@ private:
     SceneNode * mSceneNode;
     light_id mID;
 };
+
+
+/*inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform && gui_transform)
+{
+    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform));
+}*/
+
+
+template <typename ...Args>
+inline void OpenGLRenderer::addGUINode(Args... args)
+{
+    mGUINodesVector.emplace_back( std::forward<Args>(args)... );
+}
+
 
 
 } // namespace gfx

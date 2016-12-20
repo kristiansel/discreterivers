@@ -58,14 +58,14 @@ private:
     class DrawObject
     {
     public:
-        DrawObject(const vmath::Matrix4 &matrix, const Material::DrawData &material_data,
+        /*DrawObject(const vmath::Matrix4 &matrix, const Material::DrawData &material_data,
                    const Geometry::DrawData &geometry_data, RenderFlags render_flags) :
-            mMatrix(matrix), mMaterialData(material_data), mGeometryData(geometry_data), mRenderFlags(render_flags) {}
+            mMatrix(matrix), mMaterialData(material_data), mGeometryData(geometry_data), mRenderFlags(render_flags) {}*/
 
-        /*DrawObject(vmath::Matrix4 &&matrix, Material::DrawData &&material_data, Geometry &&geometry,
-                   RenderFlags &&render_flags) :
-            mMatrix(std::move(matrix)), mMaterialData(std::move(material_data)), mGeometry(std::move(geometry)),
-            mRenderFlags(render_flags) {}*/
+        DrawObject(vmath::Matrix4 &&matrix, Material::DrawData &&material_data, Geometry::DrawData &&geometry_data,
+                   RenderFlags render_flags) :
+            mMatrix(std::move(matrix)), mMaterialData(std::move(material_data)), mGeometryData(std::move(geometry_data)),
+            mRenderFlags(render_flags) {}
 
         vmath::Matrix4 mMatrix;
         Material::DrawData mMaterialData;

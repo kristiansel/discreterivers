@@ -1,42 +1,37 @@
-#include "guishader.h"
+#include "guitextshader.h"
 
 namespace gfx {
 
 namespace gui {
-GUIShader::GUIShader()
+
+GUITextShader::GUITextShader()
 {
     // set up shaders
     const char * vertex_shader_src =
     "#version 330\n"
 
     "layout(location = 0) in vec4 vertex_position;"
-    // "layout(location = 2) in vec2 vertex_tex_coords;"
+    "layout(location = 1) in vec2 vertex_tex_coords;"
 
-    //"out vec4 position;"
-    //"out vec2 tex_coords;"
+    "out vec2 tex_coords;"
     "uniform mat4 mv;"
 
     "void main() {"
-    //"  tex_coords = vertex_tex_coords;"
-    //"  position = position"
+    "  tex_coords = vertex_tex_coords;"
     "  gl_Position = mv * vertex_position;"
     "}";
 
     const char * fragment_shader_src =
     "#version 330\n"
 
-    //"in vec4 position;"
-    //"in vec2 tex_coords;"
+    "in vec2 tex_coords;"
 
     "out vec4 frag_color;"
 
-    //"uniform sampler2D tex;"
-    "uniform vec4 color;"
+    "uniform sampler2D tex;"
 
     "void main() {"
-    //"  vec4 texel = texture(tex, tex_coords);"
-    //"  frag_color = vec4(1.0, 1.0, 1.0, 1.0);"
-    "  frag_color = color;"
+    "  frag_color = texture(tex, tex_coords);"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
@@ -46,12 +41,11 @@ GUIShader::GUIShader()
     // get uniform locations
     glUseProgram(mShaderProgramID);
 
-    //mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
-    mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
+    mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
 
     // Set shader uniform value
-    //glUniform1i(mUniforms.tex, 0); // ALWAYS CHANNEL 0
+    glUniform1i(mUniforms.tex, 0); // ALWAYS CHANNEL 0
 
     // Check for errors:
     common:checkOpenGLErrors("GUIShader::GUIShader()");
@@ -71,7 +65,7 @@ GUIShader::GUIShader()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-GUIShader::~GUIShader()
+GUITextShader::~GUITextShader()
 {
     std::cout << "deleting shader: " << mShaderProgramID << std::endl;
     glDeleteProgram(mShaderProgramID);

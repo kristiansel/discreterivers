@@ -157,7 +157,20 @@ int main(int argc, char *argv[])
     gfx::OpenGLRenderer opengl_renderer(width, height);
 
     // add some gui
-    opengl_renderer.addGUINode(gfx::gui::GUITransform({0.15f, 0.15f}, {0.3f, 0.3f}));
+    vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
+
+    /*auto hNode1 = */opengl_renderer.addGUINode(
+                vmath::Vector4(color_gui_base),
+                gfx::gui::GUITransform({0.33f, 0.33f}, {0.5f, 0.5f}) );
+
+    /*auto hNode2 = */opengl_renderer.addGUINode(
+                vmath::Vector4(2.0f*color_gui_base),
+                gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
+                "The Quick Brown Fox Jumps Over The Lazy Dog");
+
+    /*auto hNode1->addGUINode(
+                vmath::Vector4(2.0f*color_gui_base),
+                gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );*/
 
 
     // create a scene graph node for a light
