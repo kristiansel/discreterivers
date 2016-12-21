@@ -18,8 +18,9 @@ GUIShader::GUIShader()
 
     "void main() {"
     //"  tex_coords = vertex_tex_coords;"
-    //"  position = position"
-    "  gl_Position = mv * vertex_position;"
+    //"  position = mv * vertex_position;"
+    //"  gl_Position = position;"
+    "   gl_Position = mv * vertex_position;"
     "}";
 
     const char * fragment_shader_src =
@@ -37,6 +38,7 @@ GUIShader::GUIShader()
     //"  vec4 texel = texture(tex, tex_coords);"
     //"  frag_color = vec4(1.0, 1.0, 1.0, 1.0);"
     "  frag_color = color;"
+    //"   frag_color = abs(position);"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
@@ -62,7 +64,7 @@ GUIShader::GUIShader()
     glBindVertexArray(mVertexArrayObject);
 
     const GLfloat vertices[] = {
-        0.0f, -2.0f, 0.0f, 0.0f, 2.0f, -2.0f, 2.0f, 0.0f };
+        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f };
 
     glGenBuffers(1, &mPositionArrayBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mPositionArrayBuffer);

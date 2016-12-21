@@ -68,8 +68,11 @@ public:
 
     //inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform);
 
-    template <typename ...Args>
-    inline void addGUINode(Args... args);
+    //template <typename ...Args>
+    //inline void addGUINode(Args... args);
+
+    inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text = "",
+                std::initializer_list<gui::GUINode> &&children = {});
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
@@ -239,12 +242,23 @@ private:
 }*/
 
 
-template <typename ...Args>
-inline void OpenGLRenderer::addGUINode(Args... args)
-{
-    mGUINodesVector.emplace_back( std::forward<Args>(args)... );
-}
+//template <typename ...Args>
+//inline void OpenGLRenderer::addGUINode(Args... args)
+//{
+//    mGUINodesVector.emplace_back( std::forward<Args>(args)... );
+//}
 
+// nice template doesn't deduce type arguments.... :(
+
+// "std::forward essentially does template type deduction from function call. Scott Meyers describes in his
+// Effective Modern C++ book this situation as one of the perfect forwarding failure cases. As he said in the
+// book, one simple workaround is to use auto:"
+
+inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text,
+            std::initializer_list<gui::GUINode> &&children)
+{
+    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), std::move(text), std::move(children));
+}
 
 
 } // namespace gfx

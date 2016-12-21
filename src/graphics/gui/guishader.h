@@ -38,22 +38,36 @@ private:
 
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
+
+    void drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
 };
+
+inline void GUIShader::drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
+{
+    vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
+
+    glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
+    glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(gui_node.getColor()));
+
+    glBindVertexArray(mVertexArrayObject);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    for (const GUINode &child_node : gui_node.getChildren())
+    {
+        drawRecursive(child_node, mv);
+    }
+}
 
 inline void GUIShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
 {
     glUseProgram(mShaderProgramID);
     glDisable(GL_DEPTH_TEST);
 
+    vmath::Matrix4 screen_space = GUITransform::getScreenSpaceTransform();
+
     for (const auto &gui_node : gui_nodes)
     {
-        vmath::Matrix4 mv = gui_node.getTransform().getTransformMatrix();
-
-        glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
-        glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(gui_node.getColor()));
-
-        glBindVertexArray(mVertexArrayObject);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        drawRecursive(gui_node, screen_space);
     }
 
     glEnable(GL_DEPTH_TEST);
