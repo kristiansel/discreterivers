@@ -17,6 +17,8 @@
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
+#include "graphics/gui/guifontrenderer.h"
+
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
@@ -159,7 +161,11 @@ int main(int argc, char *argv[])
     // add some gui
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
-    //auto &&inner_child = ;
+
+    gfx::gui::GUIFontRenderer guiFontRenderer;
+
+    // PITCH issues
+    gfx::Texture r_texture = guiFontRenderer.getTexture('R');
 
     opengl_renderer.addGUINode(
         vmath::Vector4(color_gui_base),
@@ -176,7 +182,7 @@ int main(int argc, char *argv[])
     opengl_renderer.addGUINode(
                 vmath::Vector4(2.0f*color_gui_base),
                 gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
-                "The Quick Brown Fox Jumps Over The Lazy Dog");
+                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, r_texture);
 
 
 

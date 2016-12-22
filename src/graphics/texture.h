@@ -43,7 +43,7 @@ public:
     inline explicit Texture(const char * filename);
     inline explicit Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
                             gl_pixel_format internal_format = gl_pixel_format::rgb,
-                            gl_pixel_format format = gl_pixel_format::rgb);
+                            gl_pixel_format format = gl_pixel_format::rgb, bool unpack_alignment = false);
 
     inline explicit Texture(const vmath::Vector4 &color);
 
@@ -55,8 +55,10 @@ public:
     // No rule of five/lifecycle methods need to be implemented
     // that is handled by Resource::RefCounted<Texture> base class
 
-private:
-    Texture(); // deleted
+public:
+    // stupid language that needs this????? get rid of unordered_map<char, Texture> in font renderer...
+    Texture() : Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)) {} // texture zero should always be safe to call opengl on
+    // what happens when you draw with this?
 
 public:
     // provide the cleanup function to be used by the
@@ -75,7 +77,7 @@ private:
     inline void loadTextureFromFile(const char * filename);
     inline void loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
                                        gl_pixel_format internal_format = gl_pixel_format::rgb,
-                                       gl_pixel_format format = gl_pixel_format::rgb);
+                                       gl_pixel_format format = gl_pixel_format::rgb, bool unpack_alignment = false);
     inline void loadDefaultTexture();
 };
 
@@ -92,9 +94,9 @@ inline Texture::Texture(const char * filename)
 }
 
 inline Texture::Texture(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
-                        gl_pixel_format internal_format, gl_pixel_format format)
+                        gl_pixel_format internal_format, gl_pixel_format format, bool unpack_alignment)
 {
-    loadTextureFromPixels(pixels, w, h, type, tex_filter, internal_format, format);
+    loadTextureFromPixels(pixels, w, h, type, tex_filter, internal_format, format, unpack_alignment);
 }
 
 
@@ -125,20 +127,21 @@ inline Texture::Texture(const vmath::Vector4 &color)
 
 inline void Texture::resourceDestruct()
 {
-    std::cout << "deleting texture: " << mTextureID << std::endl;
-    glDeleteTextures(1, &mTextureID);
+    if (mTextureID != 0)
+    {
+        std::cout << "deleting texture: " << mTextureID << std::endl;
+        glDeleteTextures(1, &mTextureID);
+    }
 }
 
 inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type type, gl_texture_filter tex_filter,
-                                           gl_pixel_format internal_format, gl_pixel_format format)
+                                           gl_pixel_format internal_format, gl_pixel_format format, bool unpack_alignment)
 {
     // Create one OpenGL texture
     glGenTextures(1, &mTextureID);
 
     // "Bind" the newly created texture : all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D, mTextureID);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, getPixelFormat(internal_format), w, h, 0, getPixelFormat(internal_format), GL_TYPE_TYPE(type), pixels);
 
     gl_mag_filter_t mag_filter;
     gl_min_filter_t min_filter;
@@ -160,6 +163,10 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+
+    if (unpack_alignment) glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, getPixelFormat(internal_format), w, h, 0, getPixelFormat(internal_format), GL_TYPE_TYPE(type), pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 

@@ -91,7 +91,7 @@ inline void Vertices::init(const std::vector<vmath::Vector4> &position_data,
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
     // create normal buffer
-    std::cout << "first texture coordinate: " << texcoord_data[0][0] << ", " << texcoord_data[0][1] << std::endl;
+    //std::cout << "first texture coordinate: " << texcoord_data[0][0] << ", " << texcoord_data[0][1] << std::endl;
     mTexCoordArrayBuffer = 0;
     glGenBuffers(1, &mTexCoordArrayBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mTexCoordArrayBuffer);

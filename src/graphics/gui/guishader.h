@@ -22,7 +22,7 @@ public:
     struct Uniforms
     {
         GLint mv;
-        //GLint tex;
+        GLint tex;
         GLint color;
 
     };
@@ -38,6 +38,7 @@ private:
 
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
+    GLuint mTexCoordArrayBuffer;
 
     void drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
 };
@@ -48,6 +49,9 @@ inline void GUIShader::drawRecursive(const GUINode &gui_node, vmath::Matrix4 par
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(gui_node.getColor()));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gui_node.getTextureID());
 
     glBindVertexArray(mVertexArrayObject);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

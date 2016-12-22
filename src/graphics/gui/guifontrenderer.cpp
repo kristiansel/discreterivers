@@ -16,20 +16,37 @@ GUIFontRenderer::GUIFontRenderer()
         assert(false&&"Could load font `IMFePIrm28P.ttf`");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 28); // change size later
+    FT_Set_Pixel_Sizes(face, 0, 192); // change size later
 
     int len = strlen( sAllowedGlyphs );
 
     for (int i = 0; i < len; i++)
     {
-        if(FT_Load_Char(face, 'X', FT_LOAD_RENDER))
+        //assert(sAllowedGlyphs[i] <= 255);
+        if(FT_Load_Char(face, sAllowedGlyphs[i], FT_LOAD_RENDER))
         {
-            assert(false&&"Could not load character `X`");
+            std::cerr << "Could not load character `" << sAllowedGlyphs[i] << "`" << std::endl;
+            assert(false);
         }
         FT_GlyphSlot glyph = face->glyph;
 
-        mGlyphTextures.emplace_back(glyph->bitmap.buffer, glyph->bitmap.width, glyph->bitmap.rows,
-                                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest);
+        mGlyphTextures[sAllowedGlyphs[i]] = Texture(glyph->bitmap.buffer, glyph->bitmap.width, glyph->bitmap.rows,
+                                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest,
+                                    Texture::pixel_format::red, // internal format
+                                    Texture::pixel_format::red);  // format
+    }
+}
+
+Texture GUIFontRenderer::getTexture(char glyph)
+{
+    auto search = mGlyphTextures.find(glyph);
+    if(search != mGlyphTextures.end())
+    {
+        return search->second;
+    }
+    else
+    {
+        assert(false&&"could not find texture for glyph");
     }
 }
 

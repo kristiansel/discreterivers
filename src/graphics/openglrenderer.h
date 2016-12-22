@@ -19,7 +19,6 @@
 #include "renderflags.h"
 #include "gui/guinode.h"
 #include "gui/guishader.h"
-#include "gui/guifontrenderer.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -72,7 +71,7 @@ public:
     //inline void addGUINode(Args... args);
 
     inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text = "",
-                std::initializer_list<gui::GUINode> &&children = {});
+                std::initializer_list<gui::GUINode> &&children = {}, const gfx::Texture &texture = gfx::Texture());
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
@@ -103,8 +102,6 @@ private:
     gui::GUIShader mGUIShader;
 
     std::vector<gui::GUINode> mGUINodesVector;
-
-    gui::GUIFontRenderer mGUIFontRenderer; // move this!
 };
 
 class SceneObject
@@ -255,9 +252,9 @@ private:
 // book, one simple workaround is to use auto:"
 
 inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text,
-            std::initializer_list<gui::GUINode> &&children)
+            std::initializer_list<gui::GUINode> &&children, const gfx::Texture &texture)
 {
-    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), std::move(text), std::move(children));
+    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), std::move(text), std::move(children), texture);
 }
 
 
