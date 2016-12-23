@@ -19,6 +19,7 @@
 #include "renderflags.h"
 #include "gui/guinode.h"
 #include "gui/guishader.h"
+#include "gui/guitextshader.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -100,8 +101,11 @@ private:
 
     // GUI shader stuff
     gui::GUIShader mGUIShader;
+    gui::GUITextShader mGUITextShader;
 
     std::vector<gui::GUINode> mGUINodesVector;
+
+    inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const;
 };
 
 class SceneObject

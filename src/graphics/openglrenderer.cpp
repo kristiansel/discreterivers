@@ -168,7 +168,29 @@ void OpenGLRenderer::draw(const Camera &camera) const
 
     // render the gui
     // TODO: Complete this
-    mGUIShader.drawGUI(mGUINodesVector);
+
+    glUseProgram(mGUIShader.getProgramID());
+    glDisable(GL_DEPTH_TEST);
+
+    vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
+
+    for (const auto &gui_node : mGUINodesVector)
+    {
+        drawGUIRecursive(gui_node, screen_space);
+    }
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+
+inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const
+{
+    vmath::Matrix4 mv = mGUIShader.drawGUINode(gui_node, parent_transform);
+
+    for (const gui::GUINode &child_node : gui_node.getChildren())
+    {
+        drawGUIRecursive(child_node, mv);
+    }
 }
 
 } // namespace gfx

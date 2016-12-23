@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
     //int width = 2800;    //int height = 1600;
 
-    SDL_Window * mainWindow = SDL_CreateWindow("SDL2 OpenGL test", // window name
+    SDL_Window * mainWindow = SDL_CreateWindow("Discrete rivers", // window name
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos x
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
