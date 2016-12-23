@@ -165,7 +165,11 @@ int main(int argc, char *argv[])
     gfx::gui::GUIFontRenderer guiFontRenderer;
 
     // PITCH issues
-    gfx::Texture r_texture = guiFontRenderer.getTexture('R');
+    gfx::Texture r_texture = guiFontRenderer.getTexture('/');
+
+    gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas("res/fonts/IMFePIrm28P.ttf");
+
+    gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
 
     opengl_renderer.addGUINode(
         vmath::Vector4(color_gui_base),
@@ -174,7 +178,8 @@ int main(int argc, char *argv[])
         {
             gfx::gui::GUINode(
                 vmath::Vector4{1.0, 1.0, 1.0, 1.0},
-                gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f})
+                gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f}),
+                "", {}, earth_tex
             ),
         }
     );
@@ -182,7 +187,7 @@ int main(int argc, char *argv[])
     opengl_renderer.addGUINode(
                 vmath::Vector4(2.0f*color_gui_base),
                 gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
-                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, r_texture);
+                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, font_atlas_tex);
 
 
 

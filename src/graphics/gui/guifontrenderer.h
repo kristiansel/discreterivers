@@ -24,6 +24,8 @@ public:
 
     Texture getTexture(char glyph);
 
+    Texture getTextureAtlas(const char * font_file_name);
+
 private:
     FT_Library mFTlibary;
     FT_Face mFontFace;
@@ -37,6 +39,10 @@ private:
     };
 
     std::vector<GlyphDrawInfo> mGlyphDrawInfo;
+
+    std::vector<unsigned char> mTexAtlasData;
+    unsigned int mTexAtlasWidth;
+    unsigned int mTexAtlasRows;
 
 };
 

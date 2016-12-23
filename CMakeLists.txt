@@ -68,6 +68,10 @@ file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+
 target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
