@@ -20,11 +20,19 @@ namespace gui {
 class GUIFontRenderer
 {
 public:
-    GUIFontRenderer();
+    GUIFontRenderer(const char * font_file_name);
 
     Texture getTexture(char glyph);
 
-    Texture getTextureAtlas(const char * font_file_name);
+    struct GlyphDrawInfo {
+        int bitmap_left;
+        int bitmap_top;
+        struct { long x, y; } advance;
+    };
+
+    inline GlyphDrawInfo getGlyphDrawInfo(char glyph);
+
+    Texture getTextureAtlas();
 
 private:
     FT_Library mFTlibary;
@@ -34,11 +42,7 @@ private:
 
     std::unordered_map<char, Texture> mGlyphTextures;
 
-    struct GlyphDrawInfo {
-
-    };
-
-    std::vector<GlyphDrawInfo> mGlyphDrawInfo;
+    std::unordered_map<char, GlyphDrawInfo> mGlyphDrawInfo;
 
     std::vector<unsigned char> mTexAtlasData;
     unsigned int mTexAtlasWidth;

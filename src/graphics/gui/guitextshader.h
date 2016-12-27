@@ -2,8 +2,9 @@
 #define GUITEXTSHADER_H
 
 #include "../gfxcommon.h"
+//#include "../primitives.h"
 #include "guinode.h"
-#include "../primitives.h"
+#include "guifontrenderer.h"
 
 namespace gfx {
 
@@ -25,6 +26,7 @@ public:
         GLint tex;
     };
 
+    inline void drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const;
     //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
 private:
@@ -34,6 +36,8 @@ private:
 
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
+
+    //GUIFontRenderer mGUIFontRenderer;
 };
 
 /*inline void GUITextShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
@@ -54,6 +58,11 @@ private:
 
     glEnable(GL_DEPTH_TEST);
 }*/
+
+inline void GUITextShader::drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const
+{
+    //std::cout << "drawing gui text" << std::endl;
+}
 
 } // namespace gui
 

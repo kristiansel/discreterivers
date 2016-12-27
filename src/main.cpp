@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 #endif
     // Alt planet
     //std::string planet_filename = "torus_planet.dat";
- 
+
     // // try to open planet file
     // std::ifstream file(planet_filename, std::ios::binary);
     // bool loading_went_bad = false;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     //     std::cout << "could not open file " << planet_filename << std::endl;
     //     loading_went_bad = true;
     // }
-    
+
     // if (loading_went_bad)
     // {
     //     std::cout << "generating planet geometry" << std::endl;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
     //     // Generate geometry
     //     alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
-    
+
     //     // Serialize it
     //     try {
     //         Serial::serialize_to_file(alt_planet_geometry, planet_filename);
@@ -131,10 +131,10 @@ int main(int argc, char *argv[])
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
-    int width = 1000;
-    int height = 800;
+    //int width = 1000;
+    //int height = 800;
 
-    //int width = 2800;    //int height = 1600;
+    int width = 2800;    int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("Discrete rivers", // window name
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos x
@@ -162,12 +162,12 @@ int main(int argc, char *argv[])
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
 
-    gfx::gui::GUIFontRenderer guiFontRenderer;
+    gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf");
 
     // PITCH issues
     gfx::Texture r_texture = guiFontRenderer.getTexture('/');
 
-    gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas("res/fonts/IMFePIrm28P.ttf");
+    gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas();
 
     gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
 
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
             gfx::gui::GUINode(
                 vmath::Vector4{1.0, 1.0, 1.0, 1.0},
                 gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f}),
-                "", {}, earth_tex
+                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, earth_tex
             ),
         }
     );
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     opengl_renderer.addGUINode(
                 vmath::Vector4(2.0f*color_gui_base),
                 gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
-                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, font_atlas_tex);
+                "", {}, font_atlas_tex);
 
 
 
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
     // test mouse
     bool lmb_down = false;
     bool rmb_down = false;
-    
+
     int32_t prev_mouse_x = 0;
     int32_t prev_mouse_y = 0;
 
@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
                                 // update the scene object geometry
                                 std::vector<vmath::Vector4> position_data;
                                 std::vector<gfx::Point> primitives_data;
-                                
+
                                 for (int i = 0; i < alt_planet_points.size(); i++)
                                 {
                                     position_data.push_back((const vmath::Vector4&)(alt_planet_points[i]));
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 
                                 gfx::Vertices vertices = gfx::Vertices(position_data, position_data /*, texcoords*/);
                                 gfx::Primitives primitives = gfx::Primitives(primitives_data);
-                                
+
                                 alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
                                 break;
                             }
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
                                 vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
                                 planet_scene_node->transform.rotation;
                     }
-                    
+
                     // update previous mouse position
                     prev_mouse_x = event.motion.x;
                     prev_mouse_y = event.motion.y;

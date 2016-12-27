@@ -186,6 +186,7 @@ void OpenGLRenderer::draw(const Camera &camera) const
 inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {
     vmath::Matrix4 mv = mGUIShader.drawGUINode(gui_node, parent_transform);
+    mGUITextShader.drawGUINodeText(gui_node, parent_transform);
 
     for (const gui::GUINode &child_node : gui_node.getChildren())
     {

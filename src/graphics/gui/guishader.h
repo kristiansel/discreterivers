@@ -2,8 +2,8 @@
 #define GUISHADER_H
 
 #include "../gfxcommon.h"
+//#include "../primitives.h"
 #include "guinode.h"
-#include "../primitives.h"
 
 namespace gfx {
 

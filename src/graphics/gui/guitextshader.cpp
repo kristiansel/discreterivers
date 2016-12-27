@@ -4,7 +4,8 @@ namespace gfx {
 
 namespace gui {
 
-GUITextShader::GUITextShader()
+GUITextShader::GUITextShader() //:
+    // mGUIFontRenderer("res/IMFePIrm28P.ttf")
 {
     // set up shaders
     const char * vertex_shader_src =

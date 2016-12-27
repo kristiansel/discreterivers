@@ -4,16 +4,16 @@ namespace gfx {
 
 namespace gui {
 
-GUIFontRenderer::GUIFontRenderer()
+GUIFontRenderer::GUIFontRenderer(const char * font_file_name)
 {
-    FT_Library ft_library;
+    FT_Library &ft_library = mFTlibary;
     if(FT_Init_FreeType(&ft_library)) {
         assert(false&&"Could not init freetype library");
     }
 
-    FT_Face face;
-    if(FT_New_Face(ft_library, "res/fonts/IMFePIrm28P.ttf", 0, &face)) {
-        assert(false&&"Could load font `IMFePIrm28P.ttf`");
+    FT_Face &face = mFontFace;
+    if(FT_New_Face(ft_library, font_file_name, 0, &face)) {
+        assert(false&&"Could load font");
     }
 
     FT_Set_Pixel_Sizes(face, 0, 192); // change size later
@@ -52,18 +52,23 @@ GUIFontRenderer::GUIFontRenderer()
     }
 }
 
-Texture GUIFontRenderer::getTextureAtlas(const char * font_file_path)
+Texture GUIFontRenderer::getTextureAtlas()
 {
-    FT_Library ft_library;
+    /*FT_Library ft_library;
     if(FT_Init_FreeType(&ft_library)) {
         assert(false&&"Could not init freetype library");
     }
 
-    FT_Face face;
+
     if(FT_New_Face(ft_library, font_file_path, 0, &face)) {
         assert(false&&"Could load font `IMFePIrm28P.ttf`");
     }
 
+
+    FT_Library &ft_library = mFTlibary;
+
+    */
+    FT_Face &face = mFontFace;
     FT_Set_Pixel_Sizes(face, 0, 96); // change size later
 
 
@@ -146,4 +151,3 @@ Texture GUIFontRenderer::getTexture(char glyph)
 } // namespace gui
 
 } // namespace gfx
-
