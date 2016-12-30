@@ -8,6 +8,8 @@
 #include <iostream>
 #include <unordered_map>
 
+
+#include "guitextvertices.h"
 #include "../texture.h"
 #include "../../common/macro/macrodebugassert.h"
 
@@ -22,8 +24,6 @@ class GUIFontRenderer
 public:
     GUIFontRenderer(const char * font_file_name);
 
-    Texture getTexture(char glyph);
-
     struct GlyphDrawInfo {
         int bitmap_left;
         int bitmap_top;
@@ -34,13 +34,13 @@ public:
 
     Texture getTextureAtlas();
 
+    inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
+
 private:
     FT_Library mFTlibary;
     FT_Face mFontFace;
 
     static constexpr char const * sAllowedGlyphs = R"(' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~)";
-
-    std::unordered_map<char, Texture> mGlyphTextures;
 
     std::unordered_map<char, GlyphDrawInfo> mGlyphDrawInfo;
 

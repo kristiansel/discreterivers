@@ -13,7 +13,8 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name)
 
     FT_Face &face = mFontFace;
     if(FT_New_Face(ft_library, font_file_name, 0, &face)) {
-        assert(false&&"Could load font");
+        //std::cout << "font_file_name: " << font_file_name << std::endl;
+        assert(false&&"Couldn't load font, check font file name");
     }
 
     FT_Set_Pixel_Sizes(face, 0, 192); // change size later
@@ -44,30 +45,12 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name)
             std::cout << "bmp->num_grays: " << bmp->num_grays << std::endl;
         }*/
 
-        mGlyphTextures[sAllowedGlyphs[i]] = Texture(glyph->bitmap.buffer, glyph->bitmap.width, glyph->bitmap.rows,
-                                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest,
-                                    Texture::pixel_format::red, // internal format
-                                    Texture::pixel_format::red,
-                                    true);  // format
+        mGlyphDrawInfo[character] = { glyph->bitmap_left, glyph->bitmap_top, { glyph->advance.x, glyph->advance.y } };
     }
 }
 
 Texture GUIFontRenderer::getTextureAtlas()
 {
-    /*FT_Library ft_library;
-    if(FT_Init_FreeType(&ft_library)) {
-        assert(false&&"Could not init freetype library");
-    }
-
-
-    if(FT_New_Face(ft_library, font_file_path, 0, &face)) {
-        assert(false&&"Could load font `IMFePIrm28P.ttf`");
-    }
-
-
-    FT_Library &ft_library = mFTlibary;
-
-    */
     FT_Face &face = mFontFace;
     FT_Set_Pixel_Sizes(face, 0, 96); // change size later
 
@@ -132,20 +115,6 @@ Texture GUIFontRenderer::getTextureAtlas()
                    Texture::pixel_format::red, // internal format
                    Texture::pixel_format::red,
                    true);  // format
-}
-
-
-Texture GUIFontRenderer::getTexture(char glyph)
-{
-    auto search = mGlyphTextures.find(glyph);
-    if(search != mGlyphTextures.end())
-    {
-        return search->second;
-    }
-    else
-    {
-        assert(false&&"could not find texture for glyph");
-    }
 }
 
 } // namespace gui

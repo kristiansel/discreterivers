@@ -164,9 +164,6 @@ int main(int argc, char *argv[])
 
     gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf");
 
-    // PITCH issues
-    gfx::Texture r_texture = guiFontRenderer.getTexture('/');
-
     gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas();
 
     gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");

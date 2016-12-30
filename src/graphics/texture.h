@@ -55,10 +55,8 @@ public:
     // No rule of five/lifecycle methods need to be implemented
     // that is handled by Resource::RefCounted<Texture> base class
 
-public:
-    // stupid language that needs this????? get rid of unordered_map<char, Texture> in font renderer...
-    Texture() : Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)) {} // texture zero should always be safe to call opengl on
-    // what happens when you draw with this?
+private:
+    Texture();
 
 public:
     // provide the cleanup function to be used by the

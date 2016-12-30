@@ -20,6 +20,7 @@
 #include "gui/guinode.h"
 #include "gui/guishader.h"
 #include "gui/guitextshader.h"
+#include "gui/guitextvertices.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -72,7 +73,7 @@ public:
     //inline void addGUINode(Args... args);
 
     inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text = "",
-                std::initializer_list<gui::GUINode> &&children = {}, const gfx::Texture &texture = gfx::Texture());
+                std::initializer_list<gui::GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
@@ -81,6 +82,8 @@ public:
     void draw(const Camera &camera) const;
 
     void resize(int w, int h);
+
+    inline gui::GUITextVertices bakeGUIText(std::string &&text) { return mGUITextShader.bakeGUIText(std::move(text)); }
 
 private:
     // global render flags

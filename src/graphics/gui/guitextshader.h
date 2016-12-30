@@ -29,6 +29,8 @@ public:
     inline void drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const;
     //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
+    inline GUITextVertices bakeGUIText(std::string &&text) { return mGUIFontRenderer.bakeGUIText(std::move(text)); }
+
 private:
     GLuint mShaderProgramID;
 
@@ -37,7 +39,7 @@ private:
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
 
-    //GUIFontRenderer mGUIFontRenderer;
+    GUIFontRenderer mGUIFontRenderer;
 };
 
 /*inline void GUITextShader::drawGUI(const std::vector<GUINode> &gui_nodes) const

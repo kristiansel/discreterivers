@@ -6,6 +6,7 @@
 
 #include "guitransform.h"
 #include "guielement.h"
+#include "guitextvertices.h"
 #include "../texture.h"
 #include "../../common/gfx_primitives.h"
 #include "../../common/resmanager/refcounted.h"
@@ -20,16 +21,16 @@ namespace gui {
 class GUINode : public Resource::RefCounted<GUINode>
 {
 public: // practically immutable?
-    GUINode(vmath::Vector4 &&color, GUITransform &&gui_transform, std::string &&text = "",
-            std::initializer_list<GUINode> &&children = {}, const Texture &texture = Texture()) :
-        mColor(std::move(color)), mGUITransform(std::move(gui_transform)), mText(std::move(text)),
-        mChildren(std::move(children)), mTexture(texture) {}
+    inline GUINode(vmath::Vector4 &&color, GUITransform &&gui_transform, std::string &&text = "",
+            std::initializer_list<GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));
+
     // vector init needs copy constructor... strange? Ah, it is because of initializer list
     // elements of the list are always passed as const reference 18.9 in standard
 
     GUINode(GUINode &&gn) : Resource::RefCounted<GUINode>(std::move(gn)),
         mColor(gn.mColor), mGUITransform(gn.mGUITransform), mText(std::move(gn.mText)),
-        mChildren(std::move(gn.mChildren)), mTexture(std::move(gn.mTexture)) {}
+        mChildren(std::move(gn.mChildren)), mTexture(std::move(gn.mTexture))//, mGUITextVertices(std::move(gn.mGUITextVertices))
+    {}
 
     GUINode(const GUINode &gn) = default;
     //GUINode(const GUINode &gn) : Resource::RefCounted<GUINode>(gn),
@@ -53,14 +54,24 @@ private:
 
     std::vector<GUINode> mChildren;
 
+    // TODO: Get rid of the text, convert it to vertices upon construction
     std::string mText;
 
     vmath::Vector4 mColor;
 
     GUITransform mGUITransform;
-
+    //GUITextVertices mGUITextVertices;
     Texture mTexture;
+
 };
+
+inline GUINode::GUINode(vmath::Vector4 &&color, GUITransform &&gui_transform, std::string &&text,
+            std::initializer_list<GUINode> &&children, const Texture &texture) :
+    mColor(std::move(color)), mGUITransform(std::move(gui_transform)), mText(std::move(text)),
+    mChildren(std::move(children)), mTexture(texture)//, mGUITextVertices(std::move(text))
+{
+
+}
 
 } // gui
 
