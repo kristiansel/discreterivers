@@ -158,9 +158,10 @@ int main(int argc, char *argv[])
     // Opengl renderer
     gfx::OpenGLRenderer opengl_renderer(width, height);
 
+    const gfx::gui::GUIFontRenderer &font_renderer = opengl_renderer.getFontRenderer();
+
     // add some gui
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
-
 
     gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf");
 
@@ -171,12 +172,13 @@ int main(int argc, char *argv[])
     opengl_renderer.addGUINode(
         vmath::Vector4(color_gui_base),
         gfx::gui::GUITransform({0.33f, 0.33f}, {0.5f, 0.5f}),
-        "",
+        &font_renderer, "",
         {
             gfx::gui::GUINode(
                 vmath::Vector4{1.0, 1.0, 1.0, 1.0},
                 gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f}),
-                "The Quick Brown Fox Jumps Over The Lazy Dog", {}, earth_tex
+                &font_renderer, "The Quick Brown Fox Jumps Over The Lazy Dog",
+                {}, earth_tex
             ),
         }
     );
@@ -184,7 +186,7 @@ int main(int argc, char *argv[])
     opengl_renderer.addGUINode(
                 vmath::Vector4(2.0f*color_gui_base),
                 gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
-                "", {}, font_atlas_tex);
+                &font_renderer, "", {}, font_atlas_tex);
 
 
 

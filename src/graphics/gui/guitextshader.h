@@ -29,8 +29,6 @@ public:
     inline void drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const;
     //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
-    inline GUITextVertices bakeGUIText(std::string &&text) { return mGUIFontRenderer.bakeGUIText(std::move(text)); }
-
 private:
     GLuint mShaderProgramID;
 
@@ -38,8 +36,6 @@ private:
 
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
-
-    GUIFontRenderer mGUIFontRenderer;
 };
 
 /*inline void GUITextShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
@@ -64,6 +60,23 @@ private:
 inline void GUITextShader::drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const
 {
     //std::cout << "drawing gui text" << std::endl;
+    //glUseProgram(mShaderProgramID);
+    /*glDisable(GL_DEPTH_TEST);
+
+    vmath::Matrix4 mv = vmath::Matrix4::identity();
+
+    glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gui_node.getFontAtlasTextureID());
+
+    // Bind vertex array
+    glBindVertexArray(gui_node.getGUITextVertices().getVertexArrayObject());
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4*gui_node.getGUITextVertices().getNumCharacters());
+
+    glEnable(GL_DEPTH_TEST);
+    */
 }
 
 } // namespace gui

@@ -21,6 +21,7 @@
 #include "gui/guishader.h"
 #include "gui/guitextshader.h"
 #include "gui/guitextvertices.h"
+#include "gui/guifontrenderer.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -72,8 +73,9 @@ public:
     //template <typename ...Args>
     //inline void addGUINode(Args... args);
 
-    inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text = "",
-                std::initializer_list<gui::GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));
+    inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
+                           const gui::GUIFontRenderer * const font_renderer, std::string &&text = "",
+                           std::initializer_list<gui::GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
@@ -83,7 +85,7 @@ public:
 
     void resize(int w, int h);
 
-    inline gui::GUITextVertices bakeGUIText(std::string &&text) { return mGUITextShader.bakeGUIText(std::move(text)); }
+    inline const gui::GUIFontRenderer &getFontRenderer() const { return mGUIFontRenderer; }
 
 private:
     // global render flags
@@ -105,6 +107,7 @@ private:
     // GUI shader stuff
     gui::GUIShader mGUIShader;
     gui::GUITextShader mGUITextShader;
+    gui::GUIFontRenderer mGUIFontRenderer;
 
     std::vector<gui::GUINode> mGUINodesVector;
 
@@ -258,10 +261,11 @@ private:
 // Effective Modern C++ book this situation as one of the perfect forwarding failure cases. As he said in the
 // book, one simple workaround is to use auto:"
 
-inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform, std::string &&text,
-            std::initializer_list<gui::GUINode> &&children, const gfx::Texture &texture)
+inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
+                                       const gui::GUIFontRenderer * const font_renderer, std::string &&text,
+                                       std::initializer_list<gui::GUINode> &&children, const gfx::Texture &texture)
 {
-    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), std::move(text), std::move(children), texture);
+    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), font_renderer, std::move(text), std::move(children), texture);
 }
 
 

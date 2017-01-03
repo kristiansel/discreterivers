@@ -32,7 +32,8 @@ Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
-OpenGLRenderer::OpenGLRenderer(int w, int h)
+OpenGLRenderer::OpenGLRenderer(int w, int h)  :
+    mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf")
 {
     // OpenGL context needs to be valid at this point
 
@@ -157,9 +158,9 @@ void OpenGLRenderer::draw(const Camera &camera) const
                 RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
 
                 mMainShader.addDrawObject(scene_node.transform.getTransformMatrix(),
-                                             scene_object.mMaterial.getDrawData(),
-                                             scene_object.mGeometry.getDrawData(),
-                                             combined_flags);
+                                          scene_object.mMaterial.getDrawData(),
+                                          scene_object.mGeometry.getDrawData(),
+                                          combined_flags);
             }
         }
     }

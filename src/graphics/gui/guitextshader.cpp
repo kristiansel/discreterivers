@@ -4,8 +4,7 @@ namespace gfx {
 
 namespace gui {
 
-GUITextShader::GUITextShader() :
-     mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf")
+GUITextShader::GUITextShader()
 {
     // set up shaders
     const char * vertex_shader_src =
@@ -50,20 +49,6 @@ GUITextShader::GUITextShader() :
 
     // Check for errors:
     common:checkOpenGLErrors("GUIShader::GUIShader()");
-
-
-    // create the rectangle buffer used as instance for all rectangular objects
-    glGenVertexArrays(1, &mVertexArrayObject);
-    glBindVertexArray(mVertexArrayObject);
-
-    const GLfloat vertices[] = {
-        0.0f, -2.0f, 0.0f, 0.0f, 2.0f, -2.0f, 2.0f, 0.0f };
-
-    glGenBuffers(1, &mPositionArrayBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mPositionArrayBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 GUITextShader::~GUITextShader()

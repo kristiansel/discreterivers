@@ -10,6 +10,7 @@
 
 
 #include "guitextvertices.h"
+#include "guitransform.h"
 #include "../texture.h"
 #include "../../common/macro/macrodebugassert.h"
 
@@ -27,14 +28,17 @@ public:
     struct GlyphDrawInfo {
         int bitmap_left;
         int bitmap_top;
+        struct { unsigned int width, rows; } bitmap;
         struct { long x, y; } advance;
     };
 
     inline GlyphDrawInfo getGlyphDrawInfo(char glyph);
 
-    Texture getTextureAtlas();
+    Texture getTextureAtlas() const;
 
-    inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
+    //inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
+
+    GUITextVertices render(const std::string &text, const GUITransform &gui_transform) const;
 
 private:
     FT_Library mFTlibary;
@@ -44,10 +48,16 @@ private:
 
     std::unordered_map<char, GlyphDrawInfo> mGlyphDrawInfo;
 
-    std::vector<unsigned char> mTexAtlasData;
-    unsigned int mTexAtlasWidth;
-    unsigned int mTexAtlasRows;
+    struct TexAtlasPos {
+        std::array<float, 2> texco_begin;
+        std::array<float, 2> texco_end;
+    };
 
+    std::unordered_map<char, TexAtlasPos> mTexAtlasPosInfo;
+
+    Texture mTexAtlas;
+
+    static Texture createTextureAtlas(const char * font_file_name, std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_out);
 };
 
 } // namespace gui

@@ -20,6 +20,7 @@ public:
     inline GLuint getVertexArrayObject() const       {return mVertexArrayObject;}
     inline GLuint getPositionArrayBuffer() const     {return mPositionArrayBuffer;}
     inline GLuint getTexCoordArrayBuffer() const     {return mTexCoordArrayBuffer;}
+    inline int getNumCharacters() const              {return mNumCharacters;}
 
 // used by Resource::RefCounted<TextVertices>
     inline void resourceDestruct();
@@ -33,11 +34,14 @@ private:
     GLuint mVertexArrayObject;
     GLuint mPositionArrayBuffer;
     GLuint mTexCoordArrayBuffer;
+
+    int mNumCharacters;
 };
 
 
 inline GUITextVertices::GUITextVertices(const std::vector<vmath::Vector4> &position_data,
-                   const std::vector<gfx::TexCoords> &texcoord_data)
+                   const std::vector<gfx::TexCoords> &texcoord_data) :
+    mNumCharacters(position_data.size())
 {
     init(position_data, texcoord_data);
 }
@@ -45,6 +49,7 @@ inline GUITextVertices::GUITextVertices(const std::vector<vmath::Vector4> &posit
 inline void GUITextVertices::init(const std::vector<vmath::Vector4> &position_data,
             const std::vector<gfx::TexCoords> &texcoord_data)
 {
+    DEBUG_ASSERT(position_data.size()==texcoord_data.size());
     // potentially more optimizations:
     //
     // http://stackoverflow.com/questions/27027602/glvertexattribpointer-gl-invalid-operation-invalid-vao-vbo-pointer-usage
@@ -79,7 +84,6 @@ inline void GUITextVertices::init(const std::vector<vmath::Vector4> &position_da
     glVertexAttribPointer(1, sizeof(gfx::TexCoords)/sizeof(float), GL_FLOAT, GL_FALSE, 0, NULL);
 
     glBindVertexArray(0);
-
 
     checkOpenGLErrors("TextVertices::TextVertices");
 }
