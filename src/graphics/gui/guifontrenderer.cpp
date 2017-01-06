@@ -4,8 +4,8 @@ namespace gfx {
 
 namespace gui {
 
-GUIFontRenderer::GUIFontRenderer(const char * font_file_name) :
-    mTexAtlas(createTextureAtlas(font_file_name, mTexAtlasPosInfo))
+GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size) :
+    mTexAtlas(createTextureAtlas(font_file_name, size, mTexAtlasPosInfo, mLineHeight))
 
 {
     FT_Library &ft_library = mFTlibary;
@@ -19,7 +19,7 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name) :
         assert(false&&"Couldn't load font, check font file name");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 192); // change size later
+    FT_Set_Pixel_Sizes(face, 0, size); // change size later
 
     int n_chars = strlen( sAllowedGlyphs );
 
@@ -59,7 +59,10 @@ Texture GUIFontRenderer::getTextureAtlas() const
 }
 
 
-Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name, std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_info_out)
+Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
+                                            unsigned int size,
+                                            std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_info_out,
+                                            unsigned int &line_height)
 {
     FT_Library ft_library;
     if(FT_Init_FreeType(&ft_library)) {
@@ -72,7 +75,7 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name, std::un
         assert(false&&"Couldn't load font, check font file name");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 192); // change size later
+    FT_Set_Pixel_Sizes(face, 0, size); // change size later
 
     int n_chars = strlen( sAllowedGlyphs );
 
@@ -93,6 +96,9 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name, std::un
     int max_chars_per_row = 10;
     unsigned int tex_atlas_width = max_chars_per_row * max_width;
     unsigned int tex_atlas_rows = (n_chars/max_chars_per_row + 1)*max_rows;
+
+    // set the line height to equal the tallest character (this may not be high enough?)
+    line_height = max_rows;
 
     std::cout << "atlas width: " << tex_atlas_width << std::endl;
     std::cout << "atlas rows: " << tex_atlas_rows << std::endl;
@@ -118,21 +124,25 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name, std::un
             }
         }
 
-        tex_atlas_pos_info_out[character] = { { static_cast<float>(glyph_col * max_width)/static_cast<float>(tex_atlas_width),
-                                          static_cast<float>(glyph_row * max_rows)/static_cast<float>(tex_atlas_rows) },
-                                        { static_cast<float>((glyph_col+1) * max_width)/static_cast<float>(tex_atlas_width),
-                                          static_cast<float>((glyph_row+1) * max_rows)/static_cast<float>(tex_atlas_rows) } };
+        tex_atlas_pos_info_out[character] = {
+            { static_cast<float>(glyph_col * max_width)/static_cast<float>(tex_atlas_width),
+              static_cast<float>(glyph_row * max_rows)/static_cast<float>(tex_atlas_rows) },
 
-        if (glyph_col < max_chars_per_row)
+            { static_cast<float>(glyph_col * max_width + bmp.width)/static_cast<float>(tex_atlas_width),
+              static_cast<float>(glyph_row * max_rows + bmp.rows)/static_cast<float>(tex_atlas_rows) }
+        };
+
+        if (glyph_col < max_chars_per_row-1)
         {
             glyph_col++;
         }
         else
         {
+            //std::cout << "switching rows on :" << sAllowedGlyphs[i] << std::endl;
             glyph_col = 0;
             glyph_row++;
         }
-    }
+    } // for (int i = 0; i < n_chars; i++)
 
     return Texture(&tex_atlas_data[0], tex_atlas_width, tex_atlas_rows,
                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest,
@@ -149,7 +159,7 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, const GUITransf
     std::vector<vmath::Vector4> position_data;
     std::vector<gfx::TexCoords> texcoord_data;
 
-    float x=0; float y=0; float sx = 1; float sy=1;
+    float x=0; float y=0; float sx = 2.0f/1000.0f; float sy=2.0f/800.0f;
 
     for (const char c : text)
     {
@@ -166,15 +176,23 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, const GUITransf
         if (pos_info_it == mTexAtlasPosInfo.end()) assert(false&&"wat2?");
         const TexAtlasPos &pos_info = pos_info_it->second;
 
-        position_data.push_back(vmath::Vector4{x2,     -y2,     0,    1});
-        position_data.push_back(vmath::Vector4{x2 + w, -y2,     0,    1});
-        position_data.push_back(vmath::Vector4{x2,     -y2 - h, 0,    1});
-        position_data.push_back(vmath::Vector4{x2 + w, -y2 - h, 0,    1});
+        // quad of two triangles
+        position_data.push_back(vmath::Vector4{x2,     -y2,     0,    1}); // 0
+        position_data.push_back(vmath::Vector4{x2 + w, -y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2,     -y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2,     -y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2 + w, -y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2 + w, -y2 - h, 0,    1}); // 3
 
-        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]});
-        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});
-        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]});
-        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]});
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]});   // 0
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});   // 1
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]});     // 2
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]});     // 2
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});   // 1
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]});     // 3
+ // 0
+        x += (draw_info.advance.x/64) * sx;
+        y += (draw_info.advance.y/64) * sy;
 
 
         /*if (c == 'r' || c == 'R')
@@ -185,6 +203,10 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, const GUITransf
             std::cout << "draw_info.bitmap.width: " << draw_info.bitmap.width << std::endl;
             std::cout << "pos_info.texco_begin: " << pos_info.texco_begin[0] << ", " << pos_info.texco_begin[1] << std::endl;
             std::cout << "pos_info.texco_end: " << pos_info.texco_end[0] << ", " << pos_info.texco_end[1] << std::endl;
+            std::cout << "v1: "; vmath::print(vmath::Vector4{x2,     -y2,     0,    1}); std::cout << std::endl;
+            std::cout << "v2: "; vmath::print(vmath::Vector4{x2 + w, -y2,     0,    1}); std::cout << std::endl;
+            std::cout << "v3: "; vmath::print(vmath::Vector4{x2,     -y2 - h, 0,    1}); std::cout << std::endl;
+            std::cout << "v4: "; vmath::print(vmath::Vector4{x2 + w, -y2 - h, 0,    1}); std::cout << std::endl;
         }*/
     }
 

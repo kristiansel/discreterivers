@@ -23,7 +23,7 @@ namespace gui {
 class GUIFontRenderer
 {
 public:
-    GUIFontRenderer(const char * font_file_name);
+    GUIFontRenderer(const char * font_file_name, unsigned int size);
 
     struct GlyphDrawInfo {
         int bitmap_left;
@@ -44,7 +44,8 @@ private:
     FT_Library mFTlibary;
     FT_Face mFontFace;
 
-    static constexpr char const * sAllowedGlyphs = R"(' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~)";
+    // non-literals location --------------------------vv----vv-----------------------------------------------------------------------------------------vv
+    static constexpr char const * sAllowedGlyphs = "' !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n";
 
     std::unordered_map<char, GlyphDrawInfo> mGlyphDrawInfo;
 
@@ -54,10 +55,14 @@ private:
     };
 
     std::unordered_map<char, TexAtlasPos> mTexAtlasPosInfo;
+    unsigned int mLineHeight;
 
     Texture mTexAtlas;
 
-    static Texture createTextureAtlas(const char * font_file_name, std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_out);
+    static Texture createTextureAtlas(const char * font_file_name,
+                                      unsigned int size,
+                                      std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_out,
+                                      unsigned int &line_height_out);
 };
 
 } // namespace gui

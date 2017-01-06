@@ -33,7 +33,7 @@ Camera::Camera(int width, int height)
 }
 
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
-    mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf")
+    mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)
 {
     // OpenGL context needs to be valid at this point
 
@@ -170,7 +170,6 @@ void OpenGLRenderer::draw(const Camera &camera) const
     // render the gui
     // TODO: Complete this
 
-    glUseProgram(mGUIShader.getProgramID());
     glDisable(GL_DEPTH_TEST);
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();

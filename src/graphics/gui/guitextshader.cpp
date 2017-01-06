@@ -29,9 +29,10 @@ GUITextShader::GUITextShader()
     "out vec4 frag_color;"
 
     "uniform sampler2D tex;"
+    "uniform vec4 color;"
 
     "void main() {"
-    "  frag_color = texture(tex, tex_coords);"
+    "  frag_color = vec4(1, 1, 1, texture2D(tex, tex_coords).r) * color;"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
@@ -43,6 +44,7 @@ GUITextShader::GUITextShader()
 
     mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
+    mUniforms.color = glGetUniformLocation(mShaderProgramID, "color");
 
     // Set shader uniform value
     glUniform1i(mUniforms.tex, 0); // ALWAYS CHANNEL 0

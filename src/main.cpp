@@ -131,10 +131,10 @@ int main(int argc, char *argv[])
 
     // SDL2 window code:
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
-    //int width = 1000;
-    //int height = 800;
+    int width = 1000;
+    int height = 800;
 
-    int width = 2800;    int height = 1600;
+    //int width = 2800;    int height = 1600;
 
     SDL_Window * mainWindow = SDL_CreateWindow("Discrete rivers", // window name
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos x
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     // add some gui
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
-    gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf");
+    gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf", 24);
 
     gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas();
 
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
             gfx::gui::GUINode(
                 vmath::Vector4{1.0, 1.0, 1.0, 1.0},
                 gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f}),
-                &font_renderer, "The Quick Brown Fox Jumps Over The Lazy Dog",
+                &font_renderer, "Some day I want to \nRender fonts",
                 {}, earth_tex
             ),
         }

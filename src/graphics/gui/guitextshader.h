@@ -24,6 +24,7 @@ public:
     {
         GLint mv;
         GLint tex;
+        GLint color;
     };
 
     inline void drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const;
@@ -38,34 +39,21 @@ private:
     GLuint mPositionArrayBuffer;
 };
 
-/*inline void GUITextShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
-{
-    glUseProgram(mShaderProgramID);
-    glDisable(GL_DEPTH_TEST);
-
-    for (const auto &gui_node : gui_nodes)
-    {
-        vmath::Matrix4 mv = gui_node.getTransform().getTransformMatrix();
-
-        glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
-        glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(gui_node.getColor()));
-
-        glBindVertexArray(mVertexArrayObject);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    }
-
-    glEnable(GL_DEPTH_TEST);
-}*/
-
 inline void GUITextShader::drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const
 {
     //std::cout << "drawing gui text" << std::endl;
-    //glUseProgram(mShaderProgramID);
-    /*glDisable(GL_DEPTH_TEST);
+    glUseProgram(mShaderProgramID);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     vmath::Matrix4 mv = vmath::Matrix4::identity();
+    //vmath::Matrix4 mv = parent_transform;
+    //vmath::print(parent_transform);
+
+    vmath::Vector4 color = vmath::Vector4{0.0, 0.0, 0.0, 1.0};
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
+    glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(color));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gui_node.getFontAtlasTextureID());
@@ -73,10 +61,7 @@ inline void GUITextShader::drawGUINodeText(const GUINode &gui_node, const vmath:
     // Bind vertex array
     glBindVertexArray(gui_node.getGUITextVertices().getVertexArrayObject());
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4*gui_node.getGUITextVertices().getNumCharacters());
-
-    glEnable(GL_DEPTH_TEST);
-    */
+    glDrawArrays(GL_TRIANGLES, 0, 6*gui_node.getGUITextVertices().getNumCharacters());
 }
 
 } // namespace gui

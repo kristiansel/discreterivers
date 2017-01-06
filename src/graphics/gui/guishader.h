@@ -27,11 +27,11 @@ public:
 
     };
 
-    inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
+    //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
     inline vmath::Matrix4 drawGUINode(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
 
-    inline void drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
+    //inline void drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
 
 private:
     GLuint mShaderProgramID;
@@ -48,6 +48,9 @@ private:
 
 inline vmath::Matrix4 GUIShader::drawGUINode(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {
+
+    glUseProgram(mShaderProgramID);
+
     vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
@@ -61,7 +64,7 @@ inline vmath::Matrix4 GUIShader::drawGUINode(const GUINode &gui_node, vmath::Mat
 
     return mv;
 }
-
+/*
 inline void GUIShader::drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {
     vmath::Matrix4 mv = drawGUINode(gui_node, parent_transform);
@@ -85,7 +88,7 @@ inline void GUIShader::drawGUI(const std::vector<GUINode> &gui_nodes) const
     }
 
     glEnable(GL_DEPTH_TEST);
-}
+}*/
 
 } // namespace gui
 
