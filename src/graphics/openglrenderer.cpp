@@ -37,8 +37,14 @@ OpenGLRenderer::OpenGLRenderer(int w, int h)  :
 {
     // OpenGL context needs to be valid at this point
 
+    // depth
     glEnable(GL_DEPTH_TEST); // Is this necessary?
     glDepthFunc(GL_LESS); // Is this necessary?
+
+    // stencil
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_EQUAL, 1, 0xFF);
+
 
     // Hi DPI
     //glLineWidth(2.2f*1.2f);
@@ -167,10 +173,31 @@ void OpenGLRenderer::draw(const Camera &camera) const
 
     mMainShader.drawDrawObjects(camera);
 
+    drawGUI();
+
+
+}
+
+
+inline void OpenGLRenderer::drawGUI() const
+{
     // render the gui
     // TODO: Complete this
 
-    glDisable(GL_DEPTH_TEST);
+    // drawing gui should not be affected by what is currently in the depth and stencil buffers
+    glDisable(GL_DEPTH_TEST); // this should be enabled for own gui z buffer? Should perhaps just clear here? or sort nodes on same level by z?
+    glDisable(GL_STENCIL_TEST); // probably move this
+
+    // disable writing to color and depth buffers
+    //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    //glDepthMask(GL_FALSE);
+
+    // set stencil writing stuff
+    //glStencilFunc(GL_ALWAYS, 1, 0xFF); // Set any stencil to 1
+    //glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    //glStencilMask(0xFF); // Write to stencil buffer
+
+    glClear(GL_STENCIL_BUFFER_BIT);
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 
@@ -179,9 +206,18 @@ void OpenGLRenderer::draw(const Camera &camera) const
         drawGUIRecursive(gui_node, screen_space);
     }
 
-    glEnable(GL_DEPTH_TEST);
-}
+    // re-enable writing to color and depth buffers
+    // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    // glDepthMask(GL_TRUE);
 
+    // reset stencil writing stuff
+    // glStencilFunc(GL_EQUAL, 1, 0xFF); // Pass test if stencil value is 1
+    // glStencilMask(0x00); // Don't write anything to stencil buffer
+
+
+    glEnable(GL_DEPTH_TEST); // probably move this
+    glEnable(GL_STENCIL_TEST); // probably move this
+}
 
 inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {

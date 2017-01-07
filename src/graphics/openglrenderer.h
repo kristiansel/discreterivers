@@ -111,6 +111,7 @@ private:
 
     std::vector<gui::GUINode> mGUINodesVector;
 
+    inline void drawGUI() const;
     inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const;
 };
 
