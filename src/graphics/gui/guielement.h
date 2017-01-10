@@ -1,19 +1,15 @@
 #ifndef GUIELEMENT_H
 #define GUIELEMENT_H
 
+#include "../../common/either.h"
+#include "textelement/textelement.h"
+#include "bgelement/bgelement.h"
+
 namespace gfx {
 
 namespace gui {
 
-/*class GUIElement
-{
-public:
-    GUIElement(GUITransform && gui_transform) : mGUITransform(gui_transform) {}
-
-private:
-    GUIElement();
-
-};*/
+using GUIElement = stdext::either<TextElement, BackgroundElement/*, ImageElement*/>;
 
 } // gui
 

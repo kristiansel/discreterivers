@@ -38,7 +38,7 @@ public:
 
     //inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
 
-    GUITextVertices render(const std::string &text, const GUITransform &gui_transform) const;
+    GUITextVertices render(const std::string &text, unsigned int res_x, unsigned int res_y) const;
 
 private:
     FT_Library mFTlibary;

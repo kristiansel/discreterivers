@@ -151,7 +151,7 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
                    true);  // format
 }
 
-GUITextVertices GUIFontRenderer::render(const std::string &text, const GUITransform &gui_transform) const
+GUITextVertices GUIFontRenderer::render(const std::string &text, unsigned int res_x, unsigned int res_y) const
 {
     /*std::cout << "in text render" << std::endl;
     std::cout << text << std::endl;*/
@@ -176,13 +176,15 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, const GUITransf
         if (pos_info_it == mTexAtlasPosInfo.end()) assert(false&&"wat2?");
         const TexAtlasPos &pos_info = pos_info_it->second;
 
+        float y0 = (float)(mLineHeight) * sy; // translate text down one line...
+
         // quad of two triangles
-        position_data.push_back(vmath::Vector4{x2,     -y2,     0,    1}); // 0
-        position_data.push_back(vmath::Vector4{x2 + w, -y2,     0,    1}); // 1
-        position_data.push_back(vmath::Vector4{x2,     -y2 - h, 0,    1}); // 2
-        position_data.push_back(vmath::Vector4{x2,     -y2 - h, 0,    1}); // 2
-        position_data.push_back(vmath::Vector4{x2 + w, -y2,     0,    1}); // 1
-        position_data.push_back(vmath::Vector4{x2 + w, -y2 - h, 0,    1}); // 3
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2,     0,    1}); // 0
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2 - h, 0,    1}); // 3
 
         texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]});   // 0
         texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});   // 1

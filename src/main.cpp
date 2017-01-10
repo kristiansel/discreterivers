@@ -134,62 +134,98 @@ int main(int argc, char *argv[])
     int width = 1000;
     int height = 800;
 
-    //int width = 2800;    int height = 1600;
 
+
+    //SDL_Init( SDL_INIT_VIDEO );
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    //int width = 2800;    int height = 1600;
     SDL_Window * mainWindow = SDL_CreateWindow("Discrete rivers", // window name
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos x
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
     std::cout << "Found graphics card: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
+    // Opengl renderer // GLEW is init here...
+    gfx::OpenGLRenderer opengl_renderer(width, height);
+
+
+    // stencil debugging
+    /*int stencil_size;
+    int sdl_get_ret = SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_size);
+    std::cout << "SDL2 stencil buffer bit depth: " << stencil_size << std::endl;
+    std::cout << "sdl_get_ret: " << sdl_get_ret << std::endl;
+
+    gfx::checkOpenGLErrors("stenc1");
+
+    GLint stencil_bits = 0;
+    glGetIntegerv(GL_STENCIL_BITS, &stencil_bits);
+    std::cout << "OpenGL stencil buffer bit depth: " << stencil_bits << std::endl;
+
+    gfx::checkOpenGLErrors("stenc2");
+
+    GLint stencilSize = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+        GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencilSize);
+    std::cout << "OpenGL CORE stencil buffer bit depth: " << stencilSize << std::endl;
+
+
+    gfx::checkOpenGLErrors("stenc3");*/
+
+    // stencil stuff
+
 
     // Camera
     gfx::Camera camera(width, height);
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 
-    // Opengl renderer
-    gfx::OpenGLRenderer opengl_renderer(width, height);
 
-    const gfx::gui::GUIFontRenderer &font_renderer = opengl_renderer.getFontRenderer();
+    //const gfx::gui::GUIFontRenderer &font_renderer = opengl_renderer.getFontRenderer();
 
     // add some gui
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
-    gfx::gui::GUIFontRenderer guiFontRenderer("res/fonts/IMFePIrm28P.ttf", 24);
+    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 24);
 
-    gfx::Texture font_atlas_tex = guiFontRenderer.getTextureAtlas();
+    gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
 
     gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
 
-    opengl_renderer.addGUINode(
-        vmath::Vector4(color_gui_base),
-        gfx::gui::GUITransform({0.33f, 0.33f}, {0.5f, 0.5f}),
-        &font_renderer, "",
-        {
-            gfx::gui::GUINode(
-                vmath::Vector4{1.0, 1.0, 1.0, 1.0},
-                gfx::gui::GUITransform({0.1f, 0.1f}, {0.8f, 0.8f}),
-                &font_renderer, "Some day I want to \nRender fonts",
-                {}, earth_tex
-            ),
-        }
-    );
+    gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
+    font_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( color_gui_base ), font_atlas_tex ) );
 
-    opengl_renderer.addGUINode(
-                vmath::Vector4(2.0f*color_gui_base),
-                gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}),
-                &font_renderer, "", {}, font_atlas_tex);
+    gfx::gui::GUINodeHandle menu_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.65f, 0.65f}, {0.3f, 0.3f}) );
+    menu_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
+    menu_node->addElement( gfx::gui::TextElement(
+                               font_renderer.render("TODO:", width, height),
+                               font_atlas_tex) );
+
+    menu_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.25f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Fix text color", width, height),
+                         font_atlas_tex) );
+
+    menu_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Fix line wrap", width, height),
+                         font_atlas_tex) );
 
 
+    gfx::gui::GUINodeHandle test_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
+    test_node->addElement( gfx::gui::BackgroundElement(vmath::Vector4(2.0f*color_gui_base)) );
+    test_node->addElement( gfx::gui::TextElement(
+                                font_renderer.render("Inside GUI element", width, height),
+                                font_atlas_tex) );
 
+    gfx::gui::GUINodeHandle test_child = test_node->addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
+    test_child->addElement( gfx::gui::BackgroundElement(vmath::Vector4(3.0f*color_gui_base)) );
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();

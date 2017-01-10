@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <vector>
+#include <list>
 #include <algorithm>
 #include <iostream>
 
@@ -70,12 +71,12 @@ public:
 
     //inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform);
 
-    //template <typename ...Args>
-    //inline void addGUINode(Args... args);
+    template <typename ...Args>
+    inline gui::GUINodeHandle addGUINode(Args... args);
 
-    inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
+    /*inline gui::GUINodeHandle addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
                            const gui::GUIFontRenderer * const font_renderer, std::string &&text = "",
-                           std::initializer_list<gui::GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));
+                           std::initializer_list<gui::GUINode> &&children = {}, const Texture &texture = Texture(vmath::Vector4(1.0, 0.0, 0.0, 1.0)));*/
 
     SceneNode * getSceneNodePtr(scenenode_id id);
 
@@ -85,7 +86,7 @@ public:
 
     void resize(int w, int h);
 
-    inline const gui::GUIFontRenderer &getFontRenderer() const { return mGUIFontRenderer; }
+    //inline const gui::GUIFontRenderer &getFontRenderer() const { return mGUIFontRenderer; }
 
 private:
     // global render flags
@@ -107,9 +108,9 @@ private:
     // GUI shader stuff
     gui::GUIShader mGUIShader;
     gui::GUITextShader mGUITextShader;
-    gui::GUIFontRenderer mGUIFontRenderer;
+    //gui::GUIFontRenderer mGUIFontRenderer;
 
-    std::vector<gui::GUINode> mGUINodesVector;
+    std::list<gui::GUINode> mGUINodesList;
 
     inline void drawGUI() const;
     inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const;
@@ -250,11 +251,12 @@ private:
 }*/
 
 
-//template <typename ...Args>
-//inline void OpenGLRenderer::addGUINode(Args... args)
-//{
-//    mGUINodesVector.emplace_back( std::forward<Args>(args)... );
-//}
+template <typename ...Args>
+inline gui::GUINodeHandle OpenGLRenderer::addGUINode(Args... args)
+{
+    mGUINodesList.emplace_back( std::forward<Args>(args)... );
+    return (--mGUINodesList.end());
+}
 
 // nice template doesn't deduce type arguments.... :(
 
@@ -262,12 +264,13 @@ private:
 // Effective Modern C++ book this situation as one of the perfect forwarding failure cases. As he said in the
 // book, one simple workaround is to use auto:"
 
-inline void OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
+/*inline gui::GUINodeHandle OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
                                        const gui::GUIFontRenderer * const font_renderer, std::string &&text,
                                        std::initializer_list<gui::GUINode> &&children, const gfx::Texture &texture)
 {
-    mGUINodesVector.emplace_back(std::move(color), std::move(gui_transform), font_renderer, std::move(text), std::move(children), texture);
-}
+    mGUINodesList.emplace_back(std::move(color), std::move(gui_transform), font_renderer, std::move(text), std::move(children), texture);
+    return (--mGUINodesList.end());
+}*/
 
 
 } // namespace gfx

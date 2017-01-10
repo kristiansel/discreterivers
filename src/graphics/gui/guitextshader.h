@@ -5,6 +5,7 @@
 //#include "../primitives.h"
 #include "guinode.h"
 #include "guifontrenderer.h"
+#include "textelement/textelement.h"
 
 namespace gfx {
 
@@ -27,8 +28,7 @@ public:
         GLint color;
     };
 
-    inline void drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const;
-    //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
+    inline void drawTextElement(const TextElement &text_element, const GUITransform::Position &pos) const;
 
 private:
     GLuint mShaderProgramID;
@@ -39,30 +39,30 @@ private:
     GLuint mPositionArrayBuffer;
 };
 
-inline void GUITextShader::drawGUINodeText(const GUINode &gui_node, const vmath::Matrix4 &parent_transform) const
+inline void GUITextShader::drawTextElement(const TextElement &text_element, const GUITransform::Position &pos) const
 {
     //std::cout << "drawing gui text" << std::endl;
     glUseProgram(mShaderProgramID);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vmath::Matrix4 mv = vmath::Matrix4::identity();
-    //vmath::Matrix4 mv = parent_transform;
-    //vmath::print(parent_transform);
+    //vmath::Matrix4 mv = vmath::Matrix4::identity();
+    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos[0], pos[1], 0.0f));
 
-    vmath::Vector4 color = vmath::Vector4{0.0, 0.0, 0.0, 1.0};
+    vmath::Vector4 color = vmath::Vector4{0.2, 0.2, 0.2, 1.0};
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(color));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gui_node.getFontAtlasTextureID());
+    glBindTexture(GL_TEXTURE_2D, text_element.getFontAtlasTextureID());
 
     // Bind vertex array
-    glBindVertexArray(gui_node.getGUITextVertices().getVertexArrayObject());
+    glBindVertexArray(text_element.getGUITextVertices().getVertexArrayObject());
 
-    glDrawArrays(GL_TRIANGLES, 0, 6*gui_node.getGUITextVertices().getNumCharacters());
+    glDrawArrays(GL_TRIANGLES, 0, 6*text_element.getGUITextVertices().getNumCharacters());
 }
+
 
 } // namespace gui
 

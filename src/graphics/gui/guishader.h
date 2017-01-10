@@ -4,6 +4,7 @@
 #include "../gfxcommon.h"
 //#include "../primitives.h"
 #include "guinode.h"
+#include "bgelement/bgelement.h"
 
 namespace gfx {
 
@@ -29,10 +30,9 @@ public:
 
     //inline void drawGUI(const std::vector<GUINode> &gui_nodes) const;
 
-    inline vmath::Matrix4 drawGUINode(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
+    //inline vmath::Matrix4 drawGUINode(const GUINode &gui_node, const vmath::Matrix4 &parent_transform = vmath::Matrix4::identity()) const;
 
-    //inline void drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform = vmath::Matrix4::identity()) const;
-
+    inline void drawBGElement(const BackgroundElement &bg_element, const vmath::Matrix4 &transform) const;
 private:
     GLuint mShaderProgramID;
 
@@ -46,7 +46,7 @@ private:
 
 };
 
-inline vmath::Matrix4 GUIShader::drawGUINode(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
+/*inline vmath::Matrix4 GUIShader::drawGUINode(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {
 
     glUseProgram(mShaderProgramID);
@@ -63,7 +63,25 @@ inline vmath::Matrix4 GUIShader::drawGUINode(const GUINode &gui_node, vmath::Mat
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     return mv;
+}*/
+
+inline void GUIShader::drawBGElement(const BackgroundElement &bg_element, const vmath::Matrix4 &transform) const
+{
+
+    glUseProgram(mShaderProgramID);
+
+    vmath::Matrix4 mv = transform;
+
+    glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
+    glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(bg_element.getColor()));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, bg_element.getTextureID());
+
+    glBindVertexArray(mVertexArrayObject);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
+
 /*
 inline void GUIShader::drawRecursive(const GUINode &gui_node, vmath::Matrix4 parent_transform) const
 {
