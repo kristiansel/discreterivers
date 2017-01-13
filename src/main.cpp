@@ -130,16 +130,54 @@ int main(int argc, char *argv[])
 
 
     // SDL2 window code:
+    if (SDL_Init(SDL_INIT_VIDEO) != 0){
+        std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+
+    // get main window resolution and dpi
+    int maindisp_width, maindisp_height, maindisp_dpi;
+    if (SDL_GetNumVideoDisplays() > 0)
+    {
+        int disp_index = 0;
+        SDL_DisplayMode disp_mode;
+        if (SDL_GetCurrentDisplayMode(disp_index, &disp_mode) != 0)
+        {
+            std::cerr << "Could not get display mode for video display " << disp_index << ": " << SDL_GetError() << std::endl;
+            return 1;
+        }
+        else
+        {
+            float ddpi, hdpi, vdpi;
+            if(SDL_GetDisplayDPI(disp_index, &ddpi, &hdpi, &vdpi) != 0)
+            {
+                std::cerr << "Could not get display dpi for video display " << disp_index << ": " << SDL_GetError() << std::endl;
+                return 1;
+            }
+            else
+            {
+                maindisp_width = disp_mode.w;
+                maindisp_height = disp_mode.h;
+                maindisp_dpi = ddpi; // implicitly rounded
+            }
+        }
+    }
+    else
+    {
+        std::cerr << "no displays detected, aborting." << std::endl;
+        return 1;
+    }
+
+    int width = std::min(maindisp_width, maindisp_dpi * 14);
+    int height = std::min(maindisp_height, maindisp_dpi * 10);
+    int dpi = maindisp_dpi;
+
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
-    int width = 1000;
-    int height = 800;
 
 
-
-    //SDL_Init( SDL_INIT_VIDEO );
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint*/
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     //int width = 2800;    int height = 1600;
@@ -150,6 +188,12 @@ int main(int argc, char *argv[])
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
+    // DPI settings
+    int current_display = SDL_GetWindowDisplayIndex(mainWindow);
+
+    std::cout << "Checking SDL error: " << SDL_GetError() << std::endl;
+
+
     std::cout << "Found graphics card: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
@@ -158,26 +202,25 @@ int main(int argc, char *argv[])
 
 
     // stencil debugging
-    /*int stencil_size;
+    int stencil_size;
     int sdl_get_ret = SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_size);
     std::cout << "SDL2 stencil buffer bit depth: " << stencil_size << std::endl;
     std::cout << "sdl_get_ret: " << sdl_get_ret << std::endl;
 
     gfx::checkOpenGLErrors("stenc1");
 
-    GLint stencil_bits = 0;
-    glGetIntegerv(GL_STENCIL_BITS, &stencil_bits);
-    std::cout << "OpenGL stencil buffer bit depth: " << stencil_bits << std::endl;
-
-    gfx::checkOpenGLErrors("stenc2");
-
     GLint stencilSize = 0;
     glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
         GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencilSize);
     std::cout << "OpenGL CORE stencil buffer bit depth: " << stencilSize << std::endl;
 
+    GLint depthSize = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+        GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depthSize);
+    std::cout << "OpenGL CORE depth buffer bit depth: " << depthSize << std::endl;
 
-    gfx::checkOpenGLErrors("stenc3");*/
+
+    gfx::checkOpenGLErrors("stenc3");
 
     // stencil stuff
 
@@ -192,7 +235,7 @@ int main(int argc, char *argv[])
     // add some gui
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
-    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 24);
+    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
 
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
 
@@ -222,7 +265,8 @@ int main(int argc, char *argv[])
     test_node->addElement( gfx::gui::BackgroundElement(vmath::Vector4(2.0f*color_gui_base)) );
     test_node->addElement( gfx::gui::TextElement(
                                 font_renderer.render("Inside GUI element", width, height),
-                                font_atlas_tex) );
+                                font_atlas_tex,
+                                vmath::Vector4(1.0, 1.0, 1.0, 1.0)) );
 
     gfx::gui::GUINodeHandle test_child = test_node->addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
     test_child->addElement( gfx::gui::BackgroundElement(vmath::Vector4(3.0f*color_gui_base)) );
@@ -544,6 +588,7 @@ int main(int argc, char *argv[])
 
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(mainWindow);
+    SDL_Quit();
 
     return 0;
 }

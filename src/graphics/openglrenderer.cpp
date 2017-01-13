@@ -42,8 +42,8 @@ OpenGLRenderer::OpenGLRenderer(int w, int h)  /*:
     glDepthFunc(GL_LESS); // Is this necessary?
 
     // stencil
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_EQUAL, 1, 0xFF);
+    //glEnable(GL_STENCIL_TEST);
+    //glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 
     // Hi DPI
@@ -208,7 +208,7 @@ inline void OpenGLRenderer::drawGUI() const
 */
     // -END-PRE GUI DRAW STAGE-----------------------------------------------------
 
-    glClear(GL_STENCIL_BUFFER_BIT);
+    //glClear(GL_STENCIL_BUFFER_BIT);
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 

@@ -111,15 +111,7 @@ public:
     {
         static_assert(get_type_index<T, Types...>::value != invalid_value, "could not get type index, check that the type of the constructor argument is a part of the `either`");
 
-        std::cout << "sizeof other" << sizeof(other) << std::endl;
-        std::cout << "sizeof data_" << sizeof(data_) << std::endl;
-
-        std::cout << "&data_[0]" << (long)(&data_) << std::endl;
-        std::cout << "is it four byte aligned?" << std::endl;
-
         new(&data_) T(other);
-
-        std::cout << "got type index: " << type_index_ << std::endl;
     }
 
     inline ~either()

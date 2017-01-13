@@ -159,7 +159,7 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, unsigned int re
     std::vector<vmath::Vector4> position_data;
     std::vector<gfx::TexCoords> texcoord_data;
 
-    float x=0; float y=0; float sx = 2.0f/1000.0f; float sy=2.0f/800.0f;
+    float x=0; float y=0; float sx = 2.0f/static_cast<float>(res_x); float sy=2.0f/static_cast<float>(res_y);
 
     for (const char c : text)
     {

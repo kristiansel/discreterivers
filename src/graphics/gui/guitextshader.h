@@ -49,7 +49,7 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     //vmath::Matrix4 mv = vmath::Matrix4::identity();
     vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos[0], pos[1], 0.0f));
 
-    vmath::Vector4 color = vmath::Vector4{0.2, 0.2, 0.2, 1.0};
+    vmath::Vector4 color = text_element.getColor();
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniform4fv(mUniforms.color, 1, (const GLfloat*)&(color));
