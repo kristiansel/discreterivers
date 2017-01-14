@@ -238,38 +238,58 @@ int main(int argc, char *argv[])
     gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
 
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
+    //gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
+    gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
 
-    gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
+    gfx::gui::GUINodeHandle main_bg_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.30f, 0.08f}, {0.39f, 0.66f}) );
+    main_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
 
-    gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
-    font_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( color_gui_base ), font_atlas_tex ) );
+    gfx::gui::GUINodeHandle main_img_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.33f, 0.1f}, {0.33f, 0.25f}) );
+    main_img_node->addElement( gfx::gui::ImageElement(main_bg_tex) );
 
-    gfx::gui::GUINodeHandle menu_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.65f, 0.65f}, {0.3f, 0.3f}) );
-    menu_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    menu_node->addElement( gfx::gui::TextElement(
+    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Option 1", width, height),
+                         font_atlas_tex) );
+
+    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.585f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Option 2", width, height),
+                         font_atlas_tex) );
+
+    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.67f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Option 3", width, height),
+                         font_atlas_tex) );
+
+    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.75f}, {1.0f, 1.0f} ))
+        ->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Option 4", width, height),
+                         font_atlas_tex) );
+
+    //gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
+    //font_node->addElement( gfx::gui::ImageElement(font_atlas_tex));
+
+    vmath::Vector4 todo_color = vmath::Vector4{0.75, 0.0, 0.0, 1.0};
+
+    gfx::gui::GUINodeHandle todo_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
+    todo_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
+    todo_node->addElement( gfx::gui::TextElement(
                                font_renderer.render("TODO:", width, height),
-                               font_atlas_tex) );
+                               font_atlas_tex,
+                               todo_color) );
 
-    menu_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.25f}, {1.0f, 1.0f} ))
+    todo_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.25f}, {1.0f, 1.0f} ))
         ->addElement( gfx::gui::TextElement(
                          font_renderer.render("Fix text color", width, height),
-                         font_atlas_tex) );
+                         font_atlas_tex,
+                         todo_color ) );
 
-    menu_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
+    todo_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
         ->addElement( gfx::gui::TextElement(
                          font_renderer.render("Fix line wrap", width, height),
-                         font_atlas_tex) );
-
-
-    gfx::gui::GUINodeHandle test_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
-    test_node->addElement( gfx::gui::BackgroundElement(vmath::Vector4(2.0f*color_gui_base)) );
-    test_node->addElement( gfx::gui::TextElement(
-                                font_renderer.render("Inside GUI element", width, height),
-                                font_atlas_tex,
-                                vmath::Vector4(1.0, 1.0, 1.0, 1.0)) );
-
-    gfx::gui::GUINodeHandle test_child = test_node->addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
-    test_child->addElement( gfx::gui::BackgroundElement(vmath::Vector4(3.0f*color_gui_base)) );
+                         font_atlas_tex,
+                         todo_color) );
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -546,7 +566,10 @@ int main(int argc, char *argv[])
                                     event.window.windowID, event.window.data1,
                                     event.window.data2);*/
                             resizing_this_frame = true;
-                            opengl_renderer.resize(event.window.data1, event.window.data2);
+                            int resize_width = event.window.data1;
+                            int resize_height = event.window.data2;
+                            opengl_renderer.resize(resize_width, resize_height);
+
                             break;
                         }
                     } // switch (event.window.event)

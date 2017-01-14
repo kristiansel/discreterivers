@@ -32,7 +32,8 @@ Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
-OpenGLRenderer::OpenGLRenderer(int w, int h)  /*:
+OpenGLRenderer::OpenGLRenderer(int w, int h)  :
+    mGUITextShader(w, h) /*,
     mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
     // OpenGL context needs to be valid at this point
@@ -64,6 +65,7 @@ OpenGLRenderer::OpenGLRenderer(int w, int h)  /*:
 
 void OpenGLRenderer::resize(int w, int h)
 {
+    mGUITextShader.resize(w, h);
     glViewport(0, 0, w, h);
 }
 
@@ -271,6 +273,11 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
         case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
             {
                 mGUIShader.drawBGElement(child_element.get<gui::BackgroundElement>(), mv);
+            }
+            break;
+        case (gui::GUIElement::is_a<gui::ImageElement>::value):
+            {
+                mGUIImageShader.drawImageElement(child_element.get<gui::ImageElement>(), mv);
             }
             break;
         default:

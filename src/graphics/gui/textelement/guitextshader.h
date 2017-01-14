@@ -1,11 +1,9 @@
 #ifndef GUITEXTSHADER_H
 #define GUITEXTSHADER_H
 
-#include "../gfxcommon.h"
-//#include "../primitives.h"
-#include "guinode.h"
-#include "guifontrenderer.h"
-#include "textelement/textelement.h"
+#include "../../gfxcommon.h"
+#include "../guitransform.h"
+#include "textelement.h"
 
 namespace gfx {
 
@@ -13,7 +11,7 @@ namespace gui {
 
 class GUITextShader {
 public:
-    GUITextShader();
+    GUITextShader(int w, int h);
     ~GUITextShader();
 
     GLuint getProgramID() const { return mShaderProgramID; }
@@ -30,7 +28,16 @@ public:
 
     inline void drawTextElement(const TextElement &text_element, const GUITransform::Position &pos) const;
 
+    inline void resize(int w, int h);
+
 private:
+    struct {
+        int width;
+        int height;
+    } mOriginalResolution;
+
+    vmath::Matrix4 mRescaleMatrix;
+
     GLuint mShaderProgramID;
 
     Uniforms mUniforms;
@@ -47,7 +54,7 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //vmath::Matrix4 mv = vmath::Matrix4::identity();
-    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos[0], pos[1], 0.0f));
+    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos[0], pos[1], 0.0f)) * mRescaleMatrix;
 
     vmath::Vector4 color = text_element.getColor();
 
@@ -61,6 +68,14 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     glBindVertexArray(text_element.getGUITextVertices().getVertexArrayObject());
 
     glDrawArrays(GL_TRIANGLES, 0, 6*text_element.getGUITextVertices().getNumCharacters());
+}
+
+
+inline void GUITextShader::resize(int w, int h)
+{
+    float inv_width_scale = float(mOriginalResolution.width)/float(w);
+    float inv_height_scale = float(mOriginalResolution.height)/float(h);
+    mRescaleMatrix = vmath::Matrix4::scale(vmath::Vector3{inv_width_scale, inv_height_scale, 1.0f});
 }
 
 

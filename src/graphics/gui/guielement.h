@@ -4,12 +4,13 @@
 #include "../../common/either.h"
 #include "textelement/textelement.h"
 #include "bgelement/bgelement.h"
+#include "imageelement/imageelement.h"
 
 namespace gfx {
 
 namespace gui {
 
-using GUIElement = stdext::either<TextElement, BackgroundElement/*, ImageElement*/>;
+using GUIElement = stdext::either<TextElement, ImageElement, BackgroundElement>;
 
 } // gui
 

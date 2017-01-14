@@ -19,8 +19,9 @@
 #include "shader.h"
 #include "renderflags.h"
 #include "gui/guinode.h"
-#include "gui/guishader.h"
-#include "gui/guitextshader.h"
+#include "gui/bgelement/guishader.h"
+#include "gui/textelement/guitextshader.h"
+#include "gui/imageelement/guiimageshader.h"
 #include "gui/guitextvertices.h"
 #include "gui/guifontrenderer.h"
 
@@ -108,6 +109,7 @@ private:
     // GUI shader stuff
     gui::GUIShader mGUIShader;
     gui::GUITextShader mGUITextShader;
+    gui::GUIImageShader mGUIImageShader;
     //gui::GUIFontRenderer mGUIFontRenderer;
 
     std::list<gui::GUINode> mGUINodesList;

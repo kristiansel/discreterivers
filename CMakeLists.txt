@@ -61,16 +61,12 @@ include_directories(
     ${FREETYPE_INCLUDE_DIRS}
 )
 
-# Create compilation database
+# Create compilation database (for code completion tools)
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
 file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-
-add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 
 target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARY}
@@ -81,6 +77,11 @@ target_link_libraries(${PROJECT_NAME}
     ${GLEW_LIBRARIES}
     ${FREETYPE_LIBRARIES}
 )
+
+#copy resource files into build directory
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 
 # message(STATUS "SDL2_LIBRARY: " ${SDL2_LIBRARY})
 # message(STATUS "OPENGL_LIBRARIES: " ${OPENGL_LIBRARIES})

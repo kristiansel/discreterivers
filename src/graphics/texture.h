@@ -174,22 +174,27 @@ inline void Texture::loadTextureFromFile(const char * filename)
 
     SDL_Surface *image;
     image = IMG_Load(filename);
-    if(!image)
+
+    if(image)
+    {
+        // report success
+        std::cout << filename << " successfully loaded" << std::endl;
+        //std::cout << "height: " << image->h << std::endl;
+        //std::cout << "width: " << image->w << std::endl;
+        //std::cout << "pitch: " << image->pitch << std::endl;
+
+        loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
+    }
+    else
     {
         // image failed to load
-        std::cout << "IMG_Load: " << IMG_GetError() << std::endl;
-        std::cout << filename << " format not supported, or the image data is corrupted" << std::endl;
-        assert(false);
+        std::cerr << "IMG_Load: " << IMG_GetError() << std::endl;
+
+        // load backup texture
+        loadDefaultTexture();
     }
-    // report success
-    std::cout << filename << " successfully loaded" << std::endl;
-    std::cout << "height: " << image->h << std::endl;
-    std::cout << "width: " << image->w << std::endl;
-    std::cout << "pitch: " << image->pitch << std::endl;
 
-    loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
-
-    // free the loaded image
+    // free the loaded image (if loaded, if not, should be safe to free null)
     SDL_FreeSurface(image);
 }
 
