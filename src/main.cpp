@@ -17,7 +17,8 @@
 #include "common/gfx_primitives.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
-#include "graphics/gui/guifontrenderer.h"
+#include "graphics/guirender/guifontrenderer.h"
+#include "gui/gui.h"
 
 
 // point3 is not what is needed here. vector4 is the only one for rendering
@@ -233,38 +234,50 @@ int main(int argc, char *argv[])
     //const gfx::gui::GUIFontRenderer &font_renderer = opengl_renderer.getFontRenderer();
 
     // add some gui
-    vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
+
+
+
+    /*vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
 
     gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
 
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
-    //gfx::Texture earth_tex = gfx::Texture("res/textures/earthlike.png");
     gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
 
-    gfx::gui::GUINodeHandle main_bg_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.30f, 0.08f}, {0.39f, 0.66f}) );
-    main_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
+    gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
 
-    gfx::gui::GUINodeHandle main_img_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.33f, 0.1f}, {0.33f, 0.25f}) );
+    gfx::gui::GUINodeHandle main_bg_node = gui_root_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}) );
+    main_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 3*color_gui_base ) ) );
+
+    gfx::gui::GUINodeHandle main_img_node = main_bg_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
     main_img_node->addElement( gfx::gui::ImageElement(main_bg_tex) );
 
-    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Option 1", width, height),
+    auto new_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
+                                                  gfx::gui::VertPos(0.5f)}, {0.5f, 0.05f} ));
+    new_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    new_btn_node->addElement( gfx::gui::TextElement(
+                         font_renderer.render("New", width, height),
                          font_atlas_tex) );
 
-    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.585f}, {1.0f, 1.0f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Option 2", width, height),
+    auto load_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
+                                                   gfx::gui::VertPos(0.585f)}, {0.5f, 0.05f} ));
+    load_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    load_btn_node->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Load", width, height),
                          font_atlas_tex) );
 
-    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.67f}, {1.0f, 1.0f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Option 3", width, height),
+    auto opts_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
+                                                   gfx::gui::VertPos(0.67f)}, {0.5f, 0.05f} ));
+    opts_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    opts_btn_node->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Options", width, height),
                          font_atlas_tex) );
 
-    main_bg_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.75f}, {1.0f, 1.0f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Option 4", width, height),
+    auto exit_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
+                                                   gfx::gui::VertPos(0.75f)}, {0.5f, 0.05f} ));
+    exit_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    exit_btn_node->addElement( gfx::gui::TextElement(
+                         font_renderer.render("Exit", width, height),
                          font_atlas_tex) );
 
     //gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
@@ -279,17 +292,21 @@ int main(int argc, char *argv[])
                                font_atlas_tex,
                                todo_color) );
 
-    todo_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.25f}, {1.0f, 1.0f} ))
+    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.25f}, {0.10f, 0.10f} ))
         ->addElement( gfx::gui::TextElement(
                          font_renderer.render("Fix text color", width, height),
                          font_atlas_tex,
-                         todo_color ) );
+                         todo_color) );
 
-    todo_node->addGUINode( gfx::gui::GUITransform({0.1f, 0.50f}, {1.0f, 1.0f} ))
+    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.50f}, {0.1f, 0.1f} ))
         ->addElement( gfx::gui::TextElement(
                          font_renderer.render("Fix line wrap", width, height),
                          font_atlas_tex,
-                         todo_color) );
+                         todo_color) );*/
+
+    gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
+    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
+    gui::createGUI(gui_root_node, font_renderer, width, height);
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -530,6 +547,7 @@ int main(int argc, char *argv[])
                 case SDL_MOUSEBUTTONDOWN: {
                     lmb_down = event.button.button == SDL_BUTTON_LEFT;
                     rmb_down = event.button.button == SDL_BUTTON_RIGHT;
+                    if (lmb_down) opengl_renderer.handleMouseClick(event.button.x, event.button.y);
                     break;
                 }
                 case SDL_MOUSEBUTTONUP: {

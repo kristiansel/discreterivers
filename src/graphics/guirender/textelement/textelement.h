@@ -2,6 +2,7 @@
 #define TEXTELEMENT_H
 
 #include "../guitextvertices.h"
+#include "../guitransform.h"
 #include "../../texture.h"
 
 namespace gfx {
@@ -24,6 +25,9 @@ private:
     GUITextVertices mTextVertices;
     Texture mFontTextureAtlas;
     vmath::Vector4 mColor;
+
+    //HorzAnchor mHorzAlign;
+    //VertAnchor mVertAlign;
 };
 
 }

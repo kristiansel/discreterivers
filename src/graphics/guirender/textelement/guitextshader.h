@@ -54,7 +54,7 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //vmath::Matrix4 mv = vmath::Matrix4::identity();
-    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos[0], pos[1], 0.0f)) * mRescaleMatrix;
+    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos.x.value, pos.y.value, 0.0f)) * mRescaleMatrix;
 
     vmath::Vector4 color = text_element.getColor();
 

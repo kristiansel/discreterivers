@@ -33,6 +33,7 @@ Camera::Camera(int width, int height)
 }
 
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
+    mWidth(w), mHeight(h),
     mGUITextShader(w, h) /*,
     mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
@@ -65,6 +66,8 @@ OpenGLRenderer::OpenGLRenderer(int w, int h)  :
 
 void OpenGLRenderer::resize(int w, int h)
 {
+    mWidth = w;
+    mHeight = h;
     mGUITextShader.resize(w, h);
     glViewport(0, 0, w, h);
 }
@@ -266,7 +269,7 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             // render text
             {
                 vmath::Vector3 transl = mv.getTranslation();
-                gui::GUITransform::Position pos = { transl[0], transl[1] };
+                gui::GUITransform::Position pos = { float(transl[0]), float(transl[1]) };
                 mGUITextShader.drawTextElement(child_element.get<gui::TextElement>(), pos);
             }
             break;

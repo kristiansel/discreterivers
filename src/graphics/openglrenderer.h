@@ -18,12 +18,12 @@
 #include "transform.h"
 #include "shader.h"
 #include "renderflags.h"
-#include "gui/guinode.h"
-#include "gui/bgelement/guishader.h"
-#include "gui/textelement/guitextshader.h"
-#include "gui/imageelement/guiimageshader.h"
-#include "gui/guitextvertices.h"
-#include "gui/guifontrenderer.h"
+#include "guirender/guinode.h"
+#include "guirender/bgelement/guishader.h"
+#include "guirender/textelement/guitextshader.h"
+#include "guirender/imageelement/guiimageshader.h"
+#include "guirender/guitextvertices.h"
+#include "guirender/guifontrenderer.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -87,9 +87,19 @@ public:
 
     void resize(int w, int h);
 
-    //inline const gui::GUIFontRenderer &getFontRenderer() const { return mGUIFontRenderer; }
+    void handleMouseClick(uint16_t x, uint16_t y)
+    {
+        // transform pixels to gui coordinates
+        float gui_x = (float)(x)/(float)(mWidth);
+        float gui_y = (float)(y)/(float)(mHeight);
+        //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
+        for (auto &gn : mGUINodesList) gn.handleMouseClick(gui_x, gui_y);
+    }
 
 private:
+    int mWidth;
+    int mHeight;
+
     // global render flags
     RenderFlags mRenderFlags;
 
