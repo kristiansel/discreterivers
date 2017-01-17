@@ -19,6 +19,7 @@
 #include "graphics/openglrenderer.h"
 #include "graphics/guirender/guifontrenderer.h"
 #include "gui/gui.h"
+#include "events/events.h"
 
 
 // point3 is not what is needed here. vector4 is the only one for rendering
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
     //gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
     gfx::gui::GUINode &gui_root_node = opengl_renderer.getGUIRoot();
     gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
-    gui::createGUI(gui_root_node, font_renderer, width, height);
+    gfx::gui::GUIElementHandle fps_counter_element = gui::createGUI(gui_root_node, font_renderer, width, height);
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -382,7 +383,7 @@ int main(int argc, char *argv[])
     SDL_Event event;
     bool done = false;
 
-    const auto dt_fixed = std::chrono::microseconds(8333);
+    const auto dt_fixed = std::chrono::microseconds(8000);
     float planet_rotation = 0.0f;
     float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
@@ -397,8 +398,13 @@ int main(int argc, char *argv[])
     bool fullscreen = false;
 
     int frame_counter = 0;
+    float fps_filtered_val = 0.0f;
+    float fps_filter_weight = 0.05f;
     while(!done)
     {
+        // start timer for fps counting
+        auto frame_start_time = std::chrono::system_clock::now();
+
         ++frame_counter;
 
         bool resizing_this_frame = false;
@@ -532,19 +538,52 @@ int main(int argc, char *argv[])
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
+        // interaction with gui and other parts of the system might have caused events
+        // these events are processed here...
+        events::EventQueue &evt_queue = events::getEventQueue();
+        while (!evt_queue.empty())
+        {
+            events::Event &evt = evt_queue.front();
+            // do something with evt
+            switch(evt.get_type())
+            {
+            case (events::Event::is_a<events::QuitEvent>::value):
+                {
+                    done = true;
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+            }
+
+            evt_queue.pop();
+        }
+
         if (!resizing_this_frame)
         {
             // draw
             opengl_renderer.draw(camera);
 
+            // end of work
+            auto frame_end_time = std::chrono::system_clock::now();
+            std::chrono::duration<double, std::micro> busy_frame_time = frame_end_time - frame_start_time;
+            double busy_frame_microsecs = busy_frame_time.count();
+            auto working_fps = 1000000.0/busy_frame_microsecs;
+            //std::cout << "busy frame rate = " << working_fps << "" << std::endl;
+            fps_filtered_val = (1.0f-fps_filter_weight) * fps_filtered_val + fps_filter_weight * working_fps;
+            //std::cout << "filtered FPS = " << fps_filtered_val << std::endl;
+
+            // Uncommenting the below causes openGL error and unexpected results
+            std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
+            //gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
+            //fps_counter_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+
+            // update the FPS counter text element
+
             // goes in drawing code:
-            SDL_GL_SwapWindow(mainWindow);
-
-
-            // sleep as to not consume 100% CPU
-            // could perhaps subtract the frame time here...
-            std::this_thread::sleep_for(dt_fixed);
-
+            SDL_GL_SwapWindow(mainWindow); // woops: This sleeps!
         }
 
     }   // End while(!done)

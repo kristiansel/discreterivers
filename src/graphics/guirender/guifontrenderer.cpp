@@ -156,6 +156,8 @@ GUITextVertices GUIFontRenderer::render(const std::string &text, unsigned int re
     /*std::cout << "in text render" << std::endl;
     std::cout << text << std::endl;*/
 
+    // oh shit. This could be in tight loop for example for reference counter
+
     std::vector<vmath::Vector4> position_data;
     std::vector<gfx::TexCoords> texcoord_data;
 

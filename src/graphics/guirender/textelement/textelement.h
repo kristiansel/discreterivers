@@ -20,6 +20,7 @@ public:
     inline const GUITextVertices &getGUITextVertices() const { return mTextVertices; }
     inline const GLuint getFontAtlasTextureID() const { return mFontTextureAtlas.getTextureID(); }
     inline const vmath::Vector4 &getColor() const { return mColor; }
+    inline void setTextVertices(const GUITextVertices &text_vertices) { mTextVertices = text_vertices; }
 
 private:
     GUITextVertices mTextVertices;

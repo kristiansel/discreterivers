@@ -168,6 +168,11 @@ public:
         static constexpr std::size_t value = get_type_index<T, Types...>::value;
     };
 
+    //======================================================================================
+    // Get as type needs some work... could constrain valid arguments to Types...
+    // Could also add a debug_assert that the requested type and current type index matches.
+    //======================================================================================
+
     // should add safety to this
     template<typename T>
     T &get() { return reinterpret_cast<T&>(data_); }

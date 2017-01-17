@@ -1,11 +1,11 @@
 #include "gui.h"
+#include "../events/events.h"
 
 namespace gui {
 
-void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
+gfx::gui::GUIElementHandle createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
 {
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 0.6};
-
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
     gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
 
@@ -40,30 +40,12 @@ void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &fon
     auto new_btn_node       = createButton("New",     0.5f, 0.500f, [](){ std::cout << "Clicked new game!"      << std::endl; });
     auto load_btn_node      = createButton("Load",    0.5f, 0.585f, [](){ std::cout << "Clicked load game!"     << std::endl; });
     auto options_btn_node   = createButton("Options", 0.5f, 0.670f, [](){ std::cout << "Clicked options game!"  << std::endl; });
-    auto exit_btn_node      = createButton("Exit",    0.5f, 0.750f, [](){ std::cout << "Clicked exit game!"     << std::endl; });
+    auto exit_btn_node      = createButton("Exit",    0.5f, 0.750f, []()
+    {
+        events::emitEvent(events::QuitEvent());
+        std::cout << "Clicked exit game!"     << std::endl;
+    });
 
-
-    /*auto load_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.585f)}, {0.5f, 0.05f} ));
-    load_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    load_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Load", width, height),
-                         font_atlas_tex) );
-
-    auto opts_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.67f)}, {0.5f, 0.05f} ));
-    opts_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    opts_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Options", width, height),
-                         font_atlas_tex) );
-
-    auto exit_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.75f)}, {0.5f, 0.05f} ));
-    exit_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    exit_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Exit", width, height),
-                         font_atlas_tex) );
-*/
     //gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
     //font_node->addElement( gfx::gui::ImageElement(font_atlas_tex));
 
@@ -87,6 +69,16 @@ void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &fon
                          font_renderer.render("Fix line wrap", width, height),
                          font_atlas_tex,
                          todo_color) );
+
+    gfx::gui::GUINodeHandle fps_counter_node = gui_root.addGUINode(
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
+                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
+    //fps_counter_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
+    auto fps_text_element = fps_counter_node->addElement( gfx::gui::TextElement(
+                               font_renderer.render("FPS:", width, height),
+                               font_atlas_tex) );
+
+    return fps_text_element;
 }
 
 }
