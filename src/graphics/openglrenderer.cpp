@@ -34,7 +34,9 @@ Camera::Camera(int width, int height)
 
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
     mWidth(w), mHeight(h),
-    mGUITextShader(w, h) /*,
+    mGUITextShader(w, h),
+    mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
+    mPreviousHovered(&mGUIRoot)/*,
     mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
     // OpenGL context needs to be valid at this point
@@ -217,10 +219,12 @@ inline void OpenGLRenderer::drawGUI() const
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 
-    for (const auto &gui_node : mGUINodesList)
+    /*for (const auto &gui_node : mGUINodesList)
     {
         drawGUIRecursive(gui_node, screen_space);
-    }
+    }*/
+
+    drawGUIRecursive(mGUIRoot, screen_space);
 
     // -----POST GUI DRAW STAGE-----------------------------------------------------
 /*

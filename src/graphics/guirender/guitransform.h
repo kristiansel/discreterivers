@@ -85,7 +85,7 @@ public:
     void setPos(Position &&pos) { mPos = std::move(pos); }
     void setSize(Size &&size) { mSize = std::move(size); }
 
-    AABB getAABB()
+    AABB getAABB() const
     {
         std::array<float, 2> top_left = getTopLeftCorner();
         return { top_left[0], top_left[0] + mSize.x.value, top_left[1], top_left[1] + mSize.y.value };

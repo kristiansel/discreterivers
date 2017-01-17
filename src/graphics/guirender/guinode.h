@@ -23,6 +23,7 @@ namespace gui {
 class GUINode;
 using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
+using GUINodePtr = gui::GUINode*;
 
 class GUINode// : public Resource::RefCounted<GUINode> // why does this need to be refcounted. It has no pointer data that can be reused...
 {
@@ -39,8 +40,8 @@ public:
         inline void addCallback(CallbackT &&cb) { callbacks.emplace_back(std::move(cb)); }
         inline void addCallback(const CallbackT &cb) { callbacks.push_back(cb); }
         inline void handle(Args... a) { }
-    private:
         inline void invokeCallbacks(Args... a) { for (const auto &c : callbacks) { c(a...); } }
+    private:
         std::vector<CallbackT> callbacks;
     };
     //friend class GUIEventHandler;
@@ -63,6 +64,32 @@ public:
         // if x inside this frame
         //      call event handlers
         //      call children event handlers
+    }
+
+    GUINodePtr getDeepestHovered(float x, float y, bool debug = false)
+    {
+        gui::AABB aabb = mGUITransform.getAABB();
+        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin))
+        {
+            //if (debug) std::cout << " inside: " << this << std::endl;
+            float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
+            float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
+
+            //if (debug) std::cout << " # children: " << mChildren.size() << std::endl;
+            GUINodePtr child_hovered = nullptr;
+            for (auto &child : mChildren)
+            {
+                GUINodePtr result = child.getDeepestHovered(x_rel, y_rel);
+                child_hovered = result ? result : child_hovered;
+            }
+            //if (debug) std::cout << " child_hovered: " << (child_hovered ? true : false) << std::endl;
+            return (child_hovered != nullptr) ? child_hovered : this;
+        }
+        else
+        {
+            //if (debug) std::cout << " not inside: " << this << std::endl;
+            return nullptr;
+        }
     }
 
     // to handle mouse leave, keep track of the deepest node that the mouse was in previously

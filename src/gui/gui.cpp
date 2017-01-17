@@ -2,14 +2,14 @@
 
 namespace gui {
 
-void createGUI(gfx::gui::GUINodeHandle &gui_root_hdl, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
+void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
 {
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 0.6};
 
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
     gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
 
-    gfx::gui::GUINodeHandle main_bg_node = gui_root_hdl->addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}) );
+    gfx::gui::GUINodeHandle main_bg_node = gui_root.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}) );
     main_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
 
     gfx::gui::GUINodeHandle main_img_node = main_bg_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
@@ -19,11 +19,21 @@ void createGUI(gfx::gui::GUINodeHandle &gui_root_hdl, const gfx::gui::GUIFontRen
     {
         auto btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(x, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
                                                       gfx::gui::VertPos(y)}, {0.5f, 0.05f} ));
-        btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
+        auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
         btn_node->addElement( gfx::gui::TextElement(
                              font_renderer.render(std::move(text), width, height),
                              font_atlas_tex) );
         btn_node->mouseClick.addCallback( std::move(callback) );
+        btn_node->mouseEnter.addCallback( [bg_element, color_gui_base]()
+            {
+                bg_element->get<gfx::gui::BackgroundElement>().setColor(vmath::Vector4( 4*color_gui_base ));
+            }
+        );
+        btn_node->mouseLeave.addCallback( [bg_element, color_gui_base]()
+            {
+                bg_element->get<gfx::gui::BackgroundElement>().setColor(vmath::Vector4( 2*color_gui_base ));
+            }
+        );
         return btn_node;
     };
 
@@ -59,7 +69,7 @@ void createGUI(gfx::gui::GUINodeHandle &gui_root_hdl, const gfx::gui::GUIFontRen
 
     vmath::Vector4 todo_color = vmath::Vector4{0.75, 0.0, 0.0, 1.0};
 
-    gfx::gui::GUINodeHandle todo_node = gui_root_hdl->addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
+    gfx::gui::GUINodeHandle todo_node = gui_root.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
     todo_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
     todo_node->addElement( gfx::gui::TextElement(
                                font_renderer.render("TODO:", width, height),

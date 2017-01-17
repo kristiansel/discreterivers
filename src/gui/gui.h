@@ -5,7 +5,7 @@
 
 namespace gui {
 
-void createGUI(gfx::gui::GUINodeHandle &gui_root_hdl, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height);
+void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height);
 
 }
 

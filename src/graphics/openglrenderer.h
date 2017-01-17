@@ -72,8 +72,14 @@ public:
 
     //inline void addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform);
 
-    template <typename ...Args>
-    inline gui::GUINodeHandle addGUINode(Args... args);
+    /*template <typename ...Args>
+    inline gui::GUINodeHandle addGUINode(Args... args);*/
+
+    gfx::gui::GUINode &getGUIRoot()
+    {
+        std::cout << " root node ptr: " << (&mGUIRoot) << std::endl;
+        return mGUIRoot;
+    }
 
     /*inline gui::GUINodeHandle addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
                            const gui::GUIFontRenderer * const font_renderer, std::string &&text = "",
@@ -93,7 +99,26 @@ public:
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        for (auto &gn : mGUINodesList) gn.handleMouseClick(gui_x, gui_y);
+        mGUIRoot.handleMouseClick(gui_x, gui_y);
+    }
+
+    void handleMouseMoved(uint16_t x, uint16_t y)
+    {
+        // transform pixels to gui coordinates
+        float gui_x = (float)(x)/(float)(mWidth);
+        float gui_y = (float)(y)/(float)(mHeight);
+
+        gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y);
+        if (current_hovered != mPreviousHovered)
+        {
+            //std::cout << "Hovered element changed!" << std::endl;
+            //std::cout << "    old: " << mPreviousHovered << ", new: " << current_hovered  << std::endl;
+
+            //auto unused = mGUIRoot.getDeepestHovered(gui_x, gui_y, true);
+            if (mPreviousHovered) mPreviousHovered->mouseLeave.invokeCallbacks();
+            if (current_hovered) current_hovered->mouseEnter.invokeCallbacks();
+            mPreviousHovered = current_hovered;
+        }
     }
 
 private:
@@ -122,7 +147,10 @@ private:
     gui::GUIImageShader mGUIImageShader;
     //gui::GUIFontRenderer mGUIFontRenderer;
 
-    std::list<gui::GUINode> mGUINodesList;
+    //std::list<gui::GUINode> mGUINodesList;
+
+    gui::GUINode    mGUIRoot;
+    gui::GUINodePtr mPreviousHovered;
 
     inline void drawGUI() const;
     inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const;
@@ -263,12 +291,12 @@ private:
 }*/
 
 
-template <typename ...Args>
+/*template <typename ...Args>
 inline gui::GUINodeHandle OpenGLRenderer::addGUINode(Args... args)
 {
     mGUINodesList.emplace_back( std::forward<Args>(args)... );
     return (--mGUINodesList.end());
-}
+}*/
 
 // nice template doesn't deduce type arguments.... :(
 

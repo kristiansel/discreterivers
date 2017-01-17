@@ -14,6 +14,7 @@ public:
         : mColor(color) {}
 
     inline const vmath::Vector4 &getColor() const { return mColor; }
+    inline void setColor(const vmath::Vector4 &color) { mColor = color; }
 
 private:
     vmath::Vector4 mColor;

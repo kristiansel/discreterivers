@@ -230,81 +230,10 @@ int main(int argc, char *argv[])
     gfx::Camera camera(width, height);
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 
-
-    //const gfx::gui::GUIFontRenderer &font_renderer = opengl_renderer.getFontRenderer();
-
     // add some gui
 
-
-
-    /*vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 1.0};
-
-    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
-
-    gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
-    gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
-
-    gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
-
-    gfx::gui::GUINodeHandle main_bg_node = gui_root_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}) );
-    main_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 3*color_gui_base ) ) );
-
-    gfx::gui::GUINodeHandle main_img_node = main_bg_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
-    main_img_node->addElement( gfx::gui::ImageElement(main_bg_tex) );
-
-    auto new_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                  gfx::gui::VertPos(0.5f)}, {0.5f, 0.05f} ));
-    new_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
-    new_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("New", width, height),
-                         font_atlas_tex) );
-
-    auto load_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.585f)}, {0.5f, 0.05f} ));
-    load_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
-    load_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Load", width, height),
-                         font_atlas_tex) );
-
-    auto opts_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.67f)}, {0.5f, 0.05f} ));
-    opts_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
-    opts_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Options", width, height),
-                         font_atlas_tex) );
-
-    auto exit_btn_node = main_bg_node->addGUINode( gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                                   gfx::gui::VertPos(0.75f)}, {0.5f, 0.05f} ));
-    exit_btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
-    exit_btn_node->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Exit", width, height),
-                         font_atlas_tex) );
-
-    //gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
-    //font_node->addElement( gfx::gui::ImageElement(font_atlas_tex));
-
-    vmath::Vector4 todo_color = vmath::Vector4{0.75, 0.0, 0.0, 1.0};
-
-    gfx::gui::GUINodeHandle todo_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
-    todo_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    todo_node->addElement( gfx::gui::TextElement(
-                               font_renderer.render("TODO:", width, height),
-                               font_atlas_tex,
-                               todo_color) );
-
-    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.25f}, {0.10f, 0.10f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Fix text color", width, height),
-                         font_atlas_tex,
-                         todo_color) );
-
-    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.50f}, {0.1f, 0.1f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Fix line wrap", width, height),
-                         font_atlas_tex,
-                         todo_color) );*/
-
-    gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
+    //gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
+    gfx::gui::GUINode &gui_root_node = opengl_renderer.getGUIRoot();
     gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
     gui::createGUI(gui_root_node, font_renderer, width, height);
 
@@ -453,7 +382,7 @@ int main(int argc, char *argv[])
     SDL_Event event;
     bool done = false;
 
-    const auto dt_fixed = std::chrono::milliseconds(16);
+    const auto dt_fixed = std::chrono::microseconds(8333);
     float planet_rotation = 0.0f;
     float planet_rotation_speed = -2.0f*M_PI/64.0f; // radians/sec
     //float planet_rotation_speed = 0.0f; // radians/sec
@@ -567,6 +496,8 @@ int main(int argc, char *argv[])
                                 vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
                                 planet_scene_node->transform.rotation;
                     }
+
+                    opengl_renderer.handleMouseMoved(event.motion.x, event.motion.y);
 
                     // update previous mouse position
                     prev_mouse_x = event.motion.x;
