@@ -90,7 +90,7 @@ inline void GUITextVertices::init(const std::vector<vmath::Vector4> &position_da
 
 inline void GUITextVertices::resourceDestruct()
 {
-    std::cout << "deleting text vertices: " << mVertexArrayObject << std::endl;
+    //std::cout << "deleting text vertices: " << mVertexArrayObject << std::endl;
     glDeleteBuffers(1, &mTexCoordArrayBuffer);
     glDeleteBuffers(1, &mPositionArrayBuffer);
     glDeleteVertexArrays(1, &mVertexArrayObject);

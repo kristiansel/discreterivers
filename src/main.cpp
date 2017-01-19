@@ -20,13 +20,21 @@
 #include "graphics/guirender/guifontrenderer.h"
 #include "gui/gui.h"
 #include "events/events.h"
-
+#include "common/intrusivelist.h"
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 
+//struct ListNode
+//{
+//    int data;
+//    stdext::intrusive_list::node list1Node;
+//};
+
 int main(int argc, char *argv[])
 {
+    //ListNode a1(1);
+
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
     AltPlanet::Shape::Torus torus(3.0f, 1.0f);
@@ -399,7 +407,7 @@ int main(int argc, char *argv[])
 
     int frame_counter = 0;
     float fps_filtered_val = 0.0f;
-    float fps_filter_weight = 0.05f;
+    float fps_filter_weight = 0.03f;
     while(!done)
     {
         // start timer for fps counting
@@ -568,17 +576,19 @@ int main(int argc, char *argv[])
 
             // end of work
             auto frame_end_time = std::chrono::system_clock::now();
-            std::chrono::duration<double, std::micro> busy_frame_time = frame_end_time - frame_start_time;
-            double busy_frame_microsecs = busy_frame_time.count();
-            auto working_fps = 1000000.0/busy_frame_microsecs;
-            //std::cout << "busy frame rate = " << working_fps << "" << std::endl;
-            fps_filtered_val = (1.0f-fps_filter_weight) * fps_filtered_val + fps_filter_weight * working_fps;
-            //std::cout << "filtered FPS = " << fps_filtered_val << std::endl;
+            auto busy_frame_time =  std::chrono::duration<double, std::micro>(frame_end_time - frame_start_time);
 
-            // Uncommenting the below causes openGL error and unexpected results
+            double busy_frame_microsecs = busy_frame_time.count();
+            double working_fps          = 1000000.0/busy_frame_microsecs;
+            fps_filtered_val = (1.0f-fps_filter_weight) * fps_filtered_val + fps_filter_weight * working_fps;
+
+            // TODO: Implement a monospace text element that sends updated text as texture coordinate updates
+            // either that, or some dynamic text element, that just updates the buffer data in the gui, text element
+            // or both...
+
             std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
-            //gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
-            //fps_counter_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+            gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
+            fps_counter_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
 
             // update the FPS counter text element
 
