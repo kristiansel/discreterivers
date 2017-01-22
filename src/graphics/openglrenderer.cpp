@@ -34,9 +34,7 @@ Camera::Camera(int width, int height)
 
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
     mWidth(w), mHeight(h),
-    mGUITextShader(w, h),
-    mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-    mPreviousHovered(&mGUIRoot)/*,
+    mGUITextShader(w, h)/*,
     mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
     // OpenGL context needs to be valid at this point
@@ -112,7 +110,7 @@ LightHandle SceneNode::addLight(const vmath::Vector4 &color,
 
 }
 
-void OpenGLRenderer::draw(const Camera &camera) const
+void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) const
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -180,13 +178,11 @@ void OpenGLRenderer::draw(const Camera &camera) const
 
     mMainShader.drawDrawObjects(camera);
 
-    drawGUI();
-
-
+    drawGUI(gui_root);
 }
 
 
-inline void OpenGLRenderer::drawGUI() const
+inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
 {
     // render the gui
     // TODO: Complete this
@@ -224,7 +220,7 @@ inline void OpenGLRenderer::drawGUI() const
         drawGUIRecursive(gui_node, screen_space);
     }*/
 
-    drawGUIRecursive(mGUIRoot, screen_space);
+    drawGUIRecursive(gui_root, screen_space);
 
     // -----POST GUI DRAW STAGE-----------------------------------------------------
 /*

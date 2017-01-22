@@ -4,6 +4,7 @@
 #include "../guitextvertices.h"
 #include "../guitransform.h"
 #include "../../texture.h"
+#include "../guifontmanager.h"
 
 namespace gfx {
 
@@ -16,6 +17,10 @@ public:
                        const Texture &tex_atlas,
                        const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
         : mTextVertices(text_vertices), mFontTextureAtlas(tex_atlas), mColor(color) {}
+
+    /*inline TextElement(const std::string &text,
+                       const vmath::Vector4 &color = vmath::Vector4(1.0, 1.0, 1.0, 1.0),
+                       const font::Font &font = font::Font::getDefault(), const unsigned int size = font::FontSize::getDefault());*/
 
     inline const GUITextVertices &getGUITextVertices() const { return mTextVertices; }
     inline const GLuint getFontAtlasTextureID() const { return mFontTextureAtlas.getTextureID(); }

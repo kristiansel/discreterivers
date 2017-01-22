@@ -15,6 +15,7 @@ public:
     {
     public:
         node() : next_(nullptr), prev_(nullptr) {}
+        node(intrusive_list &list) { list.insert_front(this); }
         ~node() { remove(); }
 
     private:
@@ -51,8 +52,6 @@ public:
       prev->next_ = nd_ptr;
 
     }
-
-
 
     inline void insert_front(node * nd_ptr)
     {

@@ -1,9 +1,13 @@
 #include "gui.h"
-#include "../events/events.h"
+#include "../events/queuedevents.h"
+#include "../events/immediateevents.h"
 
 namespace gui {
 
-gfx::gui::GUIElementHandle createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
+namespace ImEvt = events::Immediate;
+namespace QuEvt = events::Queued;
+
+void createGUI(gfx::gui::GUINode &gui_root, const gfx::gui::GUIFontRenderer &font_renderer, int width, int height)
 {
     vmath::Vector4 color_gui_base = vmath::Vector4{0.06, 0.09, 0.12, 0.6};
     gfx::Texture font_atlas_tex = font_renderer.getTextureAtlas();
@@ -42,7 +46,7 @@ gfx::gui::GUIElementHandle createGUI(gfx::gui::GUINode &gui_root, const gfx::gui
     auto options_btn_node   = createButton("Options", 0.5f, 0.670f, [](){ std::cout << "Clicked options game!"  << std::endl; });
     auto exit_btn_node      = createButton("Exit",    0.5f, 0.750f, []()
     {
-        events::emitEvent(events::QuitEvent());
+        events::Queued::emitEvent(events::Queued::QuitEvent());
         std::cout << "Clicked exit game!"     << std::endl;
     });
 
@@ -74,11 +78,17 @@ gfx::gui::GUIElementHandle createGUI(gfx::gui::GUINode &gui_root, const gfx::gui
         gfx::gui::GUITransform( {gfx::gui::HorzPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
                                  gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
     //fps_counter_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    auto fps_text_element = fps_counter_node->addElement( gfx::gui::TextElement(
+    gfx::gui::GUIElementHandle fps_text_element = fps_counter_node->addElement( gfx::gui::TextElement(
                                font_renderer.render("FPS:", width, height),
                                font_atlas_tex) );
 
-    return fps_text_element;
+    events::Immediate::Dispatcher<events::FPSUpdateEvent>::get().addCallback(
+    [fps_text_element, &font_renderer, width, height] (const events::FPSUpdateEvent &evt) {
+        float fps_filtered_val = evt.fps;
+        std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
+        gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
+        fps_text_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+    });
 }
 
 }

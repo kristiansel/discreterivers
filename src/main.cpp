@@ -19,21 +19,32 @@
 #include "graphics/openglrenderer.h"
 #include "graphics/guirender/guifontrenderer.h"
 #include "gui/gui.h"
-#include "events/events.h"
+#include "events/queuedevents.h"
+#include "events/immediateevents.h"
 #include "common/intrusivelist.h"
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 
-//struct ListNode
-//{
-//    int data;
-//    stdext::intrusive_list::node list1Node;
-//};
+class ListNode
+{
+    int mData;
+    stdext::intrusive_list::node mListNode;
+public:
+    ListNode(int data, stdext::intrusive_list &list) : mData(data), mListNode(list) {}
+private:
+    ListNode();
+};
 
 int main(int argc, char *argv[])
 {
-    //ListNode a1(1);
+    stdext::intrusive_list list1;
+    ListNode a1(1, list1);
+    ListNode a2(2, list1);
+    ListNode a3(3, list1);
+    ListNode a4(4, list1);
+
+    // how to iterate?
 
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
@@ -242,9 +253,10 @@ int main(int argc, char *argv[])
     // add some gui
 
     //gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
-    gfx::gui::GUINode &gui_root_node = opengl_renderer.getGUIRoot();
+    gui::GUI gui(width, height, dpi); // declare a new gui
+    gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
     gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
-    gfx::gui::GUIElementHandle fps_counter_element = gui::createGUI(gui_root_node, font_renderer, width, height);
+    gui::createGUI(gui_root_node, font_renderer, width, height);
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -490,7 +502,7 @@ int main(int argc, char *argv[])
                 case SDL_MOUSEBUTTONDOWN: {
                     lmb_down = event.button.button == SDL_BUTTON_LEFT;
                     rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-                    if (lmb_down) opengl_renderer.handleMouseClick(event.button.x, event.button.y);
+                    if (lmb_down) gui.handleMouseClick(event.button.x, event.button.y);
                     break;
                 }
                 case SDL_MOUSEBUTTONUP: {
@@ -511,7 +523,7 @@ int main(int argc, char *argv[])
                                 planet_scene_node->transform.rotation;
                     }
 
-                    opengl_renderer.handleMouseMoved(event.motion.x, event.motion.y);
+                    gui.handleMouseMoved(event.motion.x, event.motion.y);
 
                     // update previous mouse position
                     prev_mouse_x = event.motion.x;
@@ -531,7 +543,12 @@ int main(int argc, char *argv[])
                             resizing_this_frame = true;
                             int resize_width = event.window.data1;
                             int resize_height = event.window.data2;
+
+                            // apply resize
                             opengl_renderer.resize(resize_width, resize_height);
+                            gui.resize(resize_width, resize_height);
+
+                            //propagate a resize event?
 
                             break;
                         }
@@ -548,14 +565,14 @@ int main(int argc, char *argv[])
 
         // interaction with gui and other parts of the system might have caused events
         // these events are processed here...
-        events::EventQueue &evt_queue = events::getEventQueue();
+        events::Queued::EventQueue &evt_queue = events::Queued::getEventQueue();
         while (!evt_queue.empty())
         {
-            events::Event &evt = evt_queue.front();
+            events::Queued::Event &evt = evt_queue.front();
             // do something with evt
             switch(evt.get_type())
             {
-            case (events::Event::is_a<events::QuitEvent>::value):
+            case (events::Queued::Event::is_a<events::Queued::QuitEvent>::value):
                 {
                     done = true;
                     break;
@@ -572,7 +589,7 @@ int main(int argc, char *argv[])
         if (!resizing_this_frame)
         {
             // draw
-            opengl_renderer.draw(camera);
+            opengl_renderer.draw(camera, gui_root_node);
 
             // end of work
             auto frame_end_time = std::chrono::system_clock::now();
@@ -586,9 +603,7 @@ int main(int argc, char *argv[])
             // either that, or some dynamic text element, that just updates the buffer data in the gui, text element
             // or both...
 
-            std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
-            gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
-            fps_counter_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+            events::Immediate::Dispatcher<events::FPSUpdateEvent>::get().broadcast({fps_filtered_val});
 
             // update the FPS counter text element
 

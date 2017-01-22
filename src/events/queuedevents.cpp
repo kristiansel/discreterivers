@@ -1,6 +1,9 @@
-#include "events.h"
+#include "queuedevents.h"
 
 namespace events {
+
+namespace Queued {
+
 
 EventQueue &getEventQueue()
 {
@@ -13,4 +16,6 @@ void emitEvent(Event e)
     getEventQueue().push(e);
 }
 
-}
+} // namespace Queued
+
+} // namespace event

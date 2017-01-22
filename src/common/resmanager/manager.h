@@ -58,6 +58,12 @@ public:
             DEBUG_ASSERT((ResIDInternal(res_id)<mResources.size()));
             auto new_count = (--mResources[ResIDInternal(res_id)]);
             //std::cout << "RES DECR count: " << new_count << std::endl;
+            /*if (new_count == 0) // remove counter when the last reference is destroyed
+            {
+                mResources.erase(mResources.begin() + ResIDInternal(res_id));
+            }*/ // Shit cannot do this as the indices become invalidated when vector is resized....
+            // So if objects are just recreated, the refcounter leaks....
+
             return new_count;
         }
     }
