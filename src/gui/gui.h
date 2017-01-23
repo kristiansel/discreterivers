@@ -5,16 +5,16 @@
 
 namespace gui {
 
-void createGUI(gfx::gui::GUINode &gui_root,
-               const gfx::gui::GUIFontRenderer &font_renderer,
-               int width, int height);
+class GUI;
+
+void createGUI(GUI &gui_root);
 
 class GUI
 {
 public:
     GUI(int w, int h, int dpi) : mWidth(w), mHeight(h), mDPI(dpi),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mPreviousHovered(&mGUIRoot) {}
+        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi) {}
 
     gfx::gui::GUINode &getGUIRoot()
     {
@@ -56,6 +56,10 @@ public:
         mHeight = h;
     }
 
+    inline int getWidth() const { return mWidth; }
+    inline int getHeight() const { return mHeight; }
+    inline const gfx::gui::GUIFontRenderer &getFontRenderer() const { return mFontRenderer; }
+
 private:
     GUI();
 
@@ -64,8 +68,7 @@ private:
 
     int mDPI;
 
-    // could put DPI info here?
-    // yes, should be a good idea...
+    gfx::gui::GUIFontRenderer mFontRenderer;
 
     gfx::gui::GUINode    mGUIRoot;
     gfx::gui::GUINodePtr mPreviousHovered;

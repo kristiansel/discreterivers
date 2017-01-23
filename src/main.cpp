@@ -254,9 +254,9 @@ int main(int argc, char *argv[])
 
     //gfx::gui::GUINodeHandle gui_root_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f}) );
     gui::GUI gui(width, height, dpi); // declare a new gui
-    gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
-    gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
-    gui::createGUI(gui_root_node, font_renderer, width, height);
+    //gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
+    //gfx::gui::GUIFontRenderer font_renderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi);
+    gui::createGUI(gui);
 
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
@@ -494,7 +494,8 @@ int main(int argc, char *argv[])
                                 break;
                             }
                             case(SDLK_ESCAPE):
-                                done = true;
+                                // done = true;
+                                events::Immediate::broadcast(events::ToggleMainMenuEvent());
                                 break;
                         }
                     }
@@ -589,7 +590,7 @@ int main(int argc, char *argv[])
         if (!resizing_this_frame)
         {
             // draw
-            opengl_renderer.draw(camera, gui_root_node);
+            opengl_renderer.draw(camera, gui.getGUIRoot());
 
             // end of work
             auto frame_end_time = std::chrono::system_clock::now();
@@ -603,7 +604,7 @@ int main(int argc, char *argv[])
             // either that, or some dynamic text element, that just updates the buffer data in the gui, text element
             // or both...
 
-            events::Immediate::Dispatcher<events::FPSUpdateEvent>::get().broadcast({fps_filtered_val});
+            events::Immediate::broadcast(events::FPSUpdateEvent{fps_filtered_val});
 
             // update the FPS counter text element
 

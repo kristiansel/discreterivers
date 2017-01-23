@@ -215,11 +215,6 @@ inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 
-    /*for (const auto &gui_node : mGUINodesList)
-    {
-        drawGUIRecursive(gui_node, screen_space);
-    }*/
-
     drawGUIRecursive(gui_root, screen_space);
 
     // -----POST GUI DRAW STAGE-----------------------------------------------------
@@ -252,46 +247,48 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
 {
     //vmath::Matrix4 mv = mGUIShader.drawGUINode(gui_node, parent_transform);
     //mGUITextShader.drawGUINodeText(gui_node, parent_transform);
-
-    vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
-
-    for (const gui::GUIElement &child_element : gui_node.getElements())
+    if (gui_node.isVisible())
     {
-        /*std::cout << "drawing elements" << std::endl;
+        vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
 
-        std::cout << "type_index of element: " << child_element.get_type() << std::endl;
-        std::cout << "type_index of TextElement: " << gui::GUIElement::is_a<gui::TextElement>::value << std::endl;
-        std::cout << "type_index of BackGroundElement: " << gui::GUIElement::is_a<gui::BackGroundElement>::value << std::endl;*/
-
-        switch (child_element.get_type())
+        for (const gui::GUIElement &child_element : gui_node.getElements())
         {
-        case (gui::GUIElement::is_a<gui::TextElement>::value):
-            // render text
-            {
-                vmath::Vector3 transl = mv.getTranslation();
-                gui::GUITransform::Position pos = { float(transl[0]), float(transl[1]) };
-                mGUITextShader.drawTextElement(child_element.get<gui::TextElement>(), pos);
-            }
-            break;
-        case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
-            {
-                mGUIShader.drawBGElement(child_element.get<gui::BackgroundElement>(), mv);
-            }
-            break;
-        case (gui::GUIElement::is_a<gui::ImageElement>::value):
-            {
-                mGUIImageShader.drawImageElement(child_element.get<gui::ImageElement>(), mv);
-            }
-            break;
-        default:
-            break;
-            // do nothing
-        }
-    }
+            /*std::cout << "drawing elements" << std::endl;
 
-    for (const gui::GUINode &child_node : gui_node.getChildren())
-    {
-        drawGUIRecursive(child_node, mv);
+            std::cout << "type_index of element: " << child_element.get_type() << std::endl;
+            std::cout << "type_index of TextElement: " << gui::GUIElement::is_a<gui::TextElement>::value << std::endl;
+            std::cout << "type_index of BackGroundElement: " << gui::GUIElement::is_a<gui::BackGroundElement>::value << std::endl;*/
+
+            switch (child_element.get_type())
+            {
+            case (gui::GUIElement::is_a<gui::TextElement>::value):
+                // render text
+                {
+                    vmath::Vector3 transl = mv.getTranslation();
+                    gui::GUITransform::Position pos = { float(transl[0]), float(transl[1]) };
+                    mGUITextShader.drawTextElement(child_element.get<gui::TextElement>(), pos);
+                }
+                break;
+            case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
+                {
+                    mGUIShader.drawBGElement(child_element.get<gui::BackgroundElement>(), mv);
+                }
+                break;
+            case (gui::GUIElement::is_a<gui::ImageElement>::value):
+                {
+                    mGUIImageShader.drawImageElement(child_element.get<gui::ImageElement>(), mv);
+                }
+                break;
+            default:
+                break;
+                // do nothing
+            }
+        }
+
+        for (const gui::GUINode &child_node : gui_node.getChildren())
+        {
+            drawGUIRecursive(child_node, mv);
+        }
     }
 }
 

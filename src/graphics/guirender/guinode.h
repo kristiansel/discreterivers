@@ -35,6 +35,8 @@ public:
     template<typename F, typename... Args>
     struct GUIEventHandler
     {
+        GUIEventHandler() = default;
+        GUIEventHandler(GUIEventHandler &&other) : callbacks(std::move(other.callbacks)) {}
         using CallbackT = std::function<F(Args...)>;
         friend class GUINode;
         inline void addCallback(CallbackT &&cb) { callbacks.emplace_back(std::move(cb)); }
@@ -48,7 +50,7 @@ public:
 
     void handleMouseClick(float x, float y) {
         gui::AABB aabb = mGUITransform.getAABB();
-        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin))
+        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin) && mVisible)
         {
             //std::cout << "clicked inside child " << x << ", " << y << std::endl;
             mouseClick.invokeCallbacks();
@@ -69,7 +71,7 @@ public:
     GUINodePtr getDeepestHovered(float x, float y, bool debug = false)
     {
         gui::AABB aabb = mGUITransform.getAABB();
-        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin))
+        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin) && mVisible)
         {
             //if (debug) std::cout << " inside: " << this << std::endl;
             float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
@@ -97,17 +99,17 @@ public:
     // fire a.leave() and b.enter()
     // should perhaps reside in the gui class, or be a static? No, static is just wrong... keep in renderer for now
 
-    inline GUINode(const GUITransform &gui_transform);
+    explicit inline GUINode(const GUITransform &gui_transform);
 
     // vector init needs copy constructor... strange? Ah, it is because of initializer list
     // elements of the list are always passed as const reference 18.9 in standard
 
-    GUINode(GUINode &&gn) : //Resource::RefCounted<GUINode>(std::move(gn)),
-        mGUITransform(gn.mGUITransform), mChildren(std::move(gn.mChildren)), mElements(std::move(gn.mElements))
-    {}
+    inline GUINode(GUINode &&gn) : //Resource::RefCounted<GUINode>(std::move(gn)),
+        mGUITransform(gn.mGUITransform), mChildren(std::move(gn.mChildren)), mElements(std::move(gn.mElements)),
+        mVisible(gn.mVisible), mouseEnter(std::move(gn.mouseEnter)), mouseLeave(std::move(gn.mouseLeave)),
+        mouseClick(std::move(gn.mouseClick)) {}
 
-    GUINode(const GUINode &gn) = default;
-
+    inline GUINode(const GUINode &gn) = default;
 
     template <typename ...Args>
     inline GUINodeHandle addGUINode(Args... args)
@@ -123,23 +125,32 @@ public:
         return (--mElements.end());
     }
 
+    // read methods
     inline const std::list<GUINode> &getChildren() const { return mChildren; }
     inline const std::list<GUIElement> &getElements() const { return mElements; }
     inline const GUITransform &getTransform() const { return mGUITransform; }
+    inline const bool isVisible() const { return mVisible; }
 
+    // mutate methods
+    inline void hide() { mVisible = false; }
+    inline void show() { mVisible = true; }
+    inline void toggleShow() { mVisible = !mVisible; }
+
+public:
     GUIEventHandler<void> mouseEnter;
     GUIEventHandler<void> mouseLeave;
     GUIEventHandler<void> mouseClick;
 
     // Resource::RefCounted<GUINode>
-    void resourceDestruct() { std::cout << "deleting gui node" << std::endl; }
+    // inline void resourceDestruct() { std::cout << "deleting gui node" << std::endl; }
 
 private:
     GUINode();
 
     // private some operators?
-
     GUITransform mGUITransform;
+
+    bool mVisible;
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;
@@ -147,9 +158,9 @@ private:
 
 
 inline GUINode::GUINode(const GUITransform &gui_transform) :
-    mGUITransform(gui_transform)
+    mGUITransform(gui_transform), mVisible(true)
 {
-
+    // value ctor
 }
 
 } // gui

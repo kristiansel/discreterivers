@@ -4,13 +4,6 @@
 namespace gfx {
 
 struct RenderFlags {
-/*private:
-    typedef unsigned char Flags;
-public:
-    static const Flags Default      = 0b00000000;
-    static const Flags Wireframe    = 0b00000001;
-    static const Flags Hidden       = 0b00000010;
-  */
     enum Flags {
         Default      = 0b00000000,
         Wireframe    = 0b00000001,

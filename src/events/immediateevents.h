@@ -12,9 +12,15 @@ template<typename EventType>
 class Dispatcher
 {
 private:
+    template<typename BroadCastEvtType>
+    friend void broadcast(const BroadCastEvtType &evt);
+
+    template<typename CallbackEvtType>
+    friend void add_callback(std::function<void(CallbackEvtType)> &&callback);
+
     Dispatcher() {} // singleton type
     std::list<std::function<void(EventType)>> mCallbacks;
-public:
+
     static Dispatcher &get()
     {
         static Dispatcher sDispatcher;
@@ -39,14 +45,35 @@ public:
     }
 };
 
+template<typename EventType>
+void broadcast(const EventType &evt)
+{
+    Dispatcher<EventType>::get().broadcast(evt);
+}
+
+template<typename EventType>
+void add_callback(std::function<void(EventType)> &&callback)
+{
+    Dispatcher<EventType>::get().addCallback(std::move(callback));
+}
+
 } // namespace Immediate
 
+
 // Event types
+
+struct ToggleMainMenuEvent {};
+
+struct NewGameEvent {};
+
+struct LoadGameEvent {};
+
+struct OptionsEvent {};
+
 struct FPSUpdateEvent
 {
     float fps;
 };
-
 
 
 } // namespace events
