@@ -5,7 +5,7 @@ namespace gfx {
 namespace gui {
 
 GUITextShader::GUITextShader(int w, int h) :
-    mOriginalResolution{w, h}, mRescaleMatrix(vmath::Matrix4::identity())
+    /*mOriginalResolution{w, h},*/ mRescaleMatrix(vmath::Matrix4::identity())
 {
     // set up shaders
     const char * vertex_shader_src =

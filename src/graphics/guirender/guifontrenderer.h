@@ -23,7 +23,14 @@ namespace gui {
 class GUIFontRenderer
 {
 public:
-    GUIFontRenderer(const char * font_file_name, unsigned int size);
+
+    struct StdResolution
+    {
+        static const int width = 1080;
+        static const int height = 1920;
+    };
+
+    GUIFontRenderer(const char * font_file_name, unsigned int size, unsigned int dpi);
 
     struct GlyphDrawInfo {
         int bitmap_left;
@@ -38,7 +45,7 @@ public:
 
     //inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
 
-    GUITextVertices render(const std::string &text, unsigned int res_x, unsigned int res_y) const;
+    GUITextVertices render(const std::string &text) const;
 
 private:
     FT_Library mFTlibary;
@@ -61,6 +68,7 @@ private:
 
     static Texture createTextureAtlas(const char * font_file_name,
                                       unsigned int size,
+                                      unsigned int dpi,
                                       std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_out,
                                       unsigned int &line_height_out);
 };

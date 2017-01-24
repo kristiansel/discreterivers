@@ -14,7 +14,7 @@ class GUI
 public:
     GUI(int w, int h, int dpi) : mWidth(w), mHeight(h), mDPI(dpi),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 0.25*dpi) {}
+        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi) {}
 
     gfx::gui::GUINode &getGUIRoot()
     {
@@ -56,8 +56,8 @@ public:
         mHeight = h;
     }
 
-    inline int getWidth() const { return mWidth; }
-    inline int getHeight() const { return mHeight; }
+    //inline int getWidth() const { return mWidth; }
+    //inline int getHeight() const { return mHeight; }
     inline const gfx::gui::GUIFontRenderer &getFontRenderer() const { return mFontRenderer; }
 
 private:

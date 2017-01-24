@@ -3,6 +3,7 @@
 
 #include "../../gfxcommon.h"
 #include "../guitransform.h"
+#include "../guifontrenderer.h"
 #include "textelement.h"
 
 namespace gfx {
@@ -31,10 +32,10 @@ public:
     inline void resize(int w, int h);
 
 private:
-    struct {
+    /*struct {
         int width;
         int height;
-    } mOriginalResolution;
+    } mOriginalResolution;*/
 
     vmath::Matrix4 mRescaleMatrix;
 
@@ -73,8 +74,8 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
 
 inline void GUITextShader::resize(int w, int h)
 {
-    float inv_width_scale = float(mOriginalResolution.width)/float(w);
-    float inv_height_scale = float(mOriginalResolution.height)/float(h);
+    float inv_width_scale = float(GUIFontRenderer::StdResolution::width)/float(w);
+    float inv_height_scale = float(GUIFontRenderer::StdResolution::height)/float(h);
     mRescaleMatrix = vmath::Matrix4::scale(vmath::Vector3{inv_width_scale, inv_height_scale, 1.0f});
 }
 

@@ -4,10 +4,12 @@ namespace gfx {
 
 namespace gui {
 
-GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size) :
-    mTexAtlas(createTextureAtlas(font_file_name, size, mTexAtlasPosInfo, mLineHeight))
+GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size, unsigned int dpi) :
+    mTexAtlas(createTextureAtlas(font_file_name, size, dpi, mTexAtlasPosInfo, mLineHeight))
 
 {
+    unsigned int size_dpi_scaled = float(size)/float(100) * dpi;
+
     FT_Library &ft_library = mFTlibary;
     if(FT_Init_FreeType(&ft_library)) {
         assert(false&&"Could not init freetype library");
@@ -19,7 +21,7 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size)
         assert(false&&"Couldn't load font, check font file name");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, size); // change size later
+    FT_Set_Pixel_Sizes(face, 0, size_dpi_scaled); // change size later
 
     int n_chars = strlen( sAllowedGlyphs );
 
@@ -61,9 +63,12 @@ Texture GUIFontRenderer::getTextureAtlas() const
 
 Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
                                             unsigned int size,
+                                            unsigned int dpi,
                                             std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_info_out,
                                             unsigned int &line_height)
 {
+    unsigned int size_dpi_scaled = float(size)/float(100) * dpi;
+
     FT_Library ft_library;
     if(FT_Init_FreeType(&ft_library)) {
         assert(false&&"Could not init freetype library");
@@ -75,7 +80,7 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
         assert(false&&"Couldn't load font, check font file name");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, size); // change size later
+    FT_Set_Pixel_Sizes(face, 0, size_dpi_scaled); // change size later
 
     int n_chars = strlen( sAllowedGlyphs );
 
@@ -151,12 +156,15 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
                    true);  // format
 }
 
-GUITextVertices GUIFontRenderer::render(const std::string &text, unsigned int res_x, unsigned int res_y) const
+GUITextVertices GUIFontRenderer::render(const std::string &text) const
 {
     /*std::cout << "in text render" << std::endl;
     std::cout << text << std::endl;*/
 
     // oh shit. This could be in tight loop for example for reference counter
+
+    unsigned int res_x = GUIFontRenderer::StdResolution::width;
+    unsigned int res_y = GUIFontRenderer::StdResolution::height;
 
     std::vector<vmath::Vector4> position_data;
     std::vector<gfx::TexCoords> texcoord_data;

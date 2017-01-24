@@ -10,8 +10,6 @@ namespace gui {
 
 inline void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
 {
-    int width = gui.getWidth();
-    int height = gui.getHeight();
     const gfx::gui::GUIFontRenderer &font_renderer = gui.getFontRenderer();
 
     vmath::Vector4 color_gui_base = styling::colorGuiBase();
@@ -39,7 +37,7 @@ inline void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
                                                       gfx::gui::VertPos(y)}, {0.5f, 0.05f} ));
         auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
         btn_node->addElement( gfx::gui::TextElement(
-                             font_renderer.render(std::move(text), width, height),
+                             font_renderer.render(std::move(text)),
                              font_atlas_tex) );
         btn_node->mouseClick.addCallback( std::move(callback) );
         btn_node->mouseEnter.addCallback( [bg_element, color_gui_base]()
@@ -75,48 +73,6 @@ inline void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
         events::Queued::emitEvent(events::Queued::QuitEvent());
         std::cout << "Clicked exit game!"     << std::endl;
     });
-
-    //gfx::gui::GUINodeHandle font_node = opengl_renderer.addGUINode( gfx::gui::GUITransform({0.15f, 0.15f}, {0.25f, 0.25f}) );
-    //font_node->addElement( gfx::gui::ImageElement(font_atlas_tex));
-    /*
-    //vmath::Vector4 todo_color = vmath::Vector4{0.75, 0.0, 0.0, 1.0};
-
-    gfx::gui::GUINodeHandle todo_node = gui_root.addGUINode( gfx::gui::GUITransform({0.75f, 0.15f}, {0.15f, 0.15f}) );
-    todo_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    todo_node->addElement( gfx::gui::TextElement(
-                               font_renderer.render("TODO:", width, height),
-                               font_atlas_tex,
-                               todo_color) );
-
-    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.25f}, {0.10f, 0.10f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Fix text color", width, height),
-                         font_atlas_tex,
-                         todo_color) );
-
-    todo_node->addGUINode( gfx::gui::GUITransform({0.5f, 0.50f}, {0.1f, 0.1f} ))
-        ->addElement( gfx::gui::TextElement(
-                         font_renderer.render("Fix line wrap", width, height),
-                         font_atlas_tex,
-                         todo_color) );
-
-    gfx::gui::GUINodeHandle fps_counter_node = gui_root.addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
-                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
-    //fps_counter_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 2*color_gui_base ) ) );
-    gfx::gui::GUIElementHandle fps_text_element = fps_counter_node->addElement( gfx::gui::TextElement(
-                               font_renderer.render("FPS:", width, height),
-                               font_atlas_tex) );
-
-    events::Immediate::add_callback<events::FPSUpdateEvent>(
-    [fps_text_element, &font_renderer, width, height] (const events::FPSUpdateEvent &evt) {
-        float fps_filtered_val = evt.fps;
-        std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
-        gfx::gui::GUITextVertices fps_text_verts = font_renderer.render(fps_text, width, height);
-        fps_text_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
-    });*/
-
-    //return main_menu_node;
 }
 
 
