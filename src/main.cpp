@@ -22,11 +22,13 @@
 #include "events/queuedevents.h"
 #include "events/immediateevents.h"
 #include "common/intrusivelist.h"
+#include "common/freelistset.h"
+#include "common/indirectionset.h"
 
 // point3 is not what is needed here. vector4 is the only one for rendering
 namespace vmath = Vectormath::Aos;
 
-class ListNode
+/*class ListNode
 {
     int mData;
     stdext::intrusive_list::node mListNode;
@@ -36,15 +38,32 @@ private:
     ListNode();
 };
 
+struct Test
+{
+    double d1, d2, d3;
+};*/
+
 int main(int argc, char *argv[])
 {
-    stdext::intrusive_list list1;
+    /*stdext::intrusive_list list1;
     ListNode a1(1, list1);
     ListNode a2(2, list1);
     ListNode a3(3, list1);
     ListNode a4(4, list1);
 
-    // how to iterate?
+    stdext::freelist_set<Test, 512> fls_tests;
+    fls_tests.create();
+    auto fls_h = fls_tests.create();
+    fls_tests.create();
+    fls_tests.destroy(fls_h);
+    fls_tests.create();
+
+    stdext::indirection_set<Test, 512> ids_tests;
+    ids_tests.create();
+    auto ids_h = ids_tests.create();
+    ids_tests.create();
+    ids_tests.destroy(ids_h);
+    ids_tests.create();*/
 
     //AltPlanet::Shape::Disk disk(3.0f);
     AltPlanet::Shape::Sphere sphere(3.0f);
