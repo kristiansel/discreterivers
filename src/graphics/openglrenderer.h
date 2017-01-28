@@ -78,6 +78,9 @@ public:
 
     void resize(int w, int h);
 
+    int getWidth() const { return mWidth; }
+    int getHeight() const { return mHeight; }
+
 private:
     int mWidth;
     int mHeight;

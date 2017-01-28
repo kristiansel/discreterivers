@@ -39,6 +39,21 @@ OpenGLRenderer::OpenGLRenderer(int w, int h)  :
 {
     // OpenGL context needs to be valid at this point
 
+    // needs GLEW INIT!!!
+    gfx::checkOpenGLErrors("stenc1");
+
+    GLint stencilSize = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+        GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencilSize);
+    std::cout << "OpenGL CORE stencil buffer bit depth: " << stencilSize << std::endl;
+
+    GLint depthSize = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+        GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depthSize);
+    std::cout << "OpenGL CORE depth buffer bit depth: " << depthSize << std::endl;
+    //gfx::checkOpenGLErrors("stenc3");
+
+
     // depth
     glEnable(GL_DEPTH_TEST); // Is this necessary?
     glDepthFunc(GL_LESS); // Is this necessary?

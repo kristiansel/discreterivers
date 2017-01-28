@@ -164,7 +164,7 @@ inline void Texture::loadTextureFromPixels(void * pixels, int w, int h, gl_type 
 
     if (unpack_alignment) glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, getPixelFormat(internal_format), w, h, 0, getPixelFormat(internal_format), GL_TYPE_TYPE(type), pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, getPixelFormat(internal_format), w, h, 0, getPixelFormat(format), GL_TYPE_TYPE(type), pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
