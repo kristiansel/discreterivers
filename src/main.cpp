@@ -15,18 +15,20 @@
 #include "events/queuedevents.h"
 #include "events/immediateevents.h"
 #include "engine/engine.h"
+#include "engine/fpscounter.h"
 #include "createscene.h"
 
-// point3 is not what is needed here. vector4 is the only one for rendering
-namespace vmath = Vectormath::Aos;
+// to be removed
+#include "common/flags.h"
 
+namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
 
     SceneData scene_data = createPlanetData();
 
-    // SDL2 window code:
+    // SDL2 window code
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
@@ -89,12 +91,8 @@ int main(int argc, char *argv[])
 
     std::cout << "Checking SDL error: " << SDL_GetError() << std::endl;
 
-
     std::cout << "Found graphics card: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
-
-    // Opengl renderer // GLEW is init here...
-    //gfx::OpenGLRenderer opengl_renderer(width, height);
 
     // stencil debugging
     int stencil_size;
@@ -102,11 +100,12 @@ int main(int argc, char *argv[])
     std::cout << "SDL2 stencil buffer bit depth: " << stencil_size << std::endl;
     std::cout << "sdl_get_ret: " << sdl_get_ret << std::endl;
 
-    // add some gui
-    Engine engine(width, height, dpi);
+    //=================================//
+    //           Initialize            //
+    //=================================//
+    engine::Engine engine(width, height, dpi);
 
-
-
+    // create a scene
     createScene(engine.getRenderer(), scene_data);
 
     // SDL event loop
@@ -114,94 +113,71 @@ int main(int argc, char *argv[])
     bool done = false;
 
     // test mouse
-    bool lmb_down = false;
-    bool rmb_down = false;
-
-    int32_t prev_mouse_x = 0;
-    int32_t prev_mouse_y = 0;
-
     bool fullscreen = false;
 
-    int frame_counter = 0;
-    float fps_filtered_val = 0.0f;
-    float fps_filter_weight = 0.03f;
+    // fps counter
+    float filter_weight = 0.03f;
+    engine::FPSCounter fps_counter(filter_weight);
+
     while(!done)
     {
         // start timer for fps counting
-        auto frame_start_time = std::chrono::system_clock::now();
-
-        ++frame_counter;
+        fps_counter.startFrame();
 
         bool resizing_this_frame = false;
 
+        //=================================//
+        //             PREPARE             //
+        //=================================//
+        engine.prepareFrame();
+
+        // handle continuous events
+        SDL_PumpEvents();
+        const Uint8 * keyboard_state = SDL_GetKeyboardState(nullptr);
+        engine.handleKeyboardState(keyboard_state);
+
+        // handle discrete events
         while( SDL_PollEvent(&event) )
         {
             switch(event.type)
             {
-                case SDL_KEYDOWN:
-                    if (event.key.repeat == 0)
-                    {
-                        engine.handleKeyDownEvent(event.key.keysym.sym);
+            case SDL_KEYDOWN:
+                if (event.key.repeat == 0) engine.handleKeyPressEvents(event.key.keysym.sym);
+                break;
+            case SDL_MOUSEBUTTONDOWN:   // nice
+            case SDL_MOUSEBUTTONUP:     // case
+            case SDL_MOUSEMOTION:       // fall
+            case SDL_MOUSEWHEEL:        // thru
+                engine.handleMouseEvent(event);
+                break;
+            case SDL_WINDOWEVENT: {
+                switch (event.window.event) {
+                    case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general resize event
+                        resizing_this_frame = true;
+                        int resize_width = event.window.data1;
+                        int resize_height = event.window.data2;
+
+                        engine.resize(resize_width, resize_height);
+                        break;
                     }
-                    break;
-                case SDL_MOUSEBUTTONDOWN: {
-                    lmb_down = event.button.button == SDL_BUTTON_LEFT;
-                    rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-                    if (lmb_down) engine.getGui().handleMouseClick(event.button.x, event.button.y);
-                    break;
-                }
-                case SDL_MOUSEBUTTONUP: {
-                    lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : lmb_down;
-                    rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : rmb_down;
-                    break;
-                }
-                case SDL_MOUSEMOTION: {
-                    if (lmb_down || rmb_down) {
-                        int32_t mouse_delta_x = prev_mouse_x - event.motion.x;
-                        int32_t mouse_delta_y = prev_mouse_y - event.motion.y;
-                        float mouse_angle_x = -static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
-                        float mouse_angle_y = -static_cast<float>(mouse_delta_y)*0.0062832f;
-
-                        /*planet_scene_node->transform.rotation =
-                                vmath::Quat::rotation(mouse_angle_x, vmath::Vector3(0.0, 1.0, 0.0))*
-                                vmath::Quat::rotation(mouse_angle_y, vmath::Vector3(1.0, 0.0, 0.0))*
-                                planet_scene_node->transform.rotation;*/
-                    }
-
-                    engine.getGui().handleMouseMoved(event.motion.x, event.motion.y);
-
-                    // update previous mouse position
-                    prev_mouse_x = event.motion.x;
-                    prev_mouse_y = event.motion.y;
-                    break;
-                }
-                case SDL_MOUSEWHEEL: {
-                    //camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
-                    break;
-                }
-                case SDL_WINDOWEVENT: {
-                    switch (event.window.event) {
-                        case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general resize event
-                            resizing_this_frame = true;
-                            int resize_width = event.window.data1;
-                            int resize_height = event.window.data2;
-
-                            engine.resize(resize_width, resize_height);
-                            break;
-                        }
-                    } // switch (event.window.event)
-                    break;
-                } // case SDL_WINDOWEVENT:
-                case SDL_QUIT:
-                    done = true;
-                    break;
-                default:
-                    break;
+                } // switch (event.window.event)
+                break;
+            } // case SDL_WINDOWEVENT:
+            case SDL_QUIT:
+                done = true;
+                break;
+            default:
+                break;
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
+        //=================================//
+        //             UPDATE              //
+        //=================================//
+        engine.update();
+
         // interaction with gui and other parts of the system might have caused events
-        // these events are processed here...
+        // related to SDL and the window system. These events are processed here...
         events::Queued::EventQueue &evt_queue = events::Queued::getEventQueue();
         while (!evt_queue.empty())
         {
@@ -214,6 +190,12 @@ int main(int argc, char *argv[])
                     done = true;
                     break;
                 }
+            case (events::Queued::Event::is_a<events::Queued::ToggleFullscreenEvent>::value):
+                {
+                    SDL_SetWindowFullscreen(mainWindow, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
+                    fullscreen = !fullscreen;
+                    break;
+                }
             default:
                 {
                     break;
@@ -223,18 +205,16 @@ int main(int argc, char *argv[])
             evt_queue.pop();
         }
 
+
         if (!resizing_this_frame)
         {
-            // draw
+            //=================================//
+            //              DRAW               //
+            //=================================//
             engine.draw();
 
             // end of work
-            auto frame_end_time = std::chrono::system_clock::now();
-            auto busy_frame_time =  std::chrono::duration<double, std::micro>(frame_end_time - frame_start_time);
-
-            double busy_frame_microsecs = busy_frame_time.count();
-            double working_fps          = 1000000.0/busy_frame_microsecs;
-            fps_filtered_val = (1.0f-fps_filter_weight) * fps_filtered_val + fps_filter_weight * working_fps;
+            float fps_filtered_val = fps_counter.getFrameFPSFiltered();
 
             // TODO: Implement a monospace text element that sends updated text as texture coordinate updates
             // either that, or some dynamic text element, that just updates the buffer data in the gui, text element
@@ -242,15 +222,15 @@ int main(int argc, char *argv[])
 
             events::Immediate::broadcast(events::FPSUpdateEvent{fps_filtered_val});
 
-            // update the FPS counter text element
-
-            // goes in drawing code:
             SDL_GL_SwapWindow(mainWindow); // woops: This sleeps!
         }
 
     }   // End while(!done)
 
 
+    //=================================//
+    //              QUIT               //
+    //=================================//
     gfx::checkOpenGLErrors("program end");
 
     // safe to clean up these before destructors are called?

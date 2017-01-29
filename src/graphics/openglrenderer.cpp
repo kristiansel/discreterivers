@@ -12,19 +12,17 @@ Camera::Camera(int width, int height)
     // camera
     // projection matrix
     float aspect_ratio = (float)(width)/(float)(height);
-//    mCamera.mProjectionMatrix = vmath::Matrix4::perspective(
-//        M_PI_4,                         // field of view (radians)
-//        aspect_ratio,                   // aspect ratio
-//        0.1f,                           // znear
-//        100.0f                          // zfar
-//    );
-
-    float half_height = 3.5f;
-
-
-    mProjectionMatrix = vmath::Matrix4::orthographic(
-        -aspect_ratio*half_height, aspect_ratio*half_height, -half_height, half_height, 0.1f, 100.0f
+    mProjectionMatrix = vmath::Matrix4::perspective(
+        M_PI_4,                         // field of view (radians)
+        aspect_ratio,                   // aspect ratio
+        0.1f,                           // znear
+        100.0f                          // zfar
     );
+
+//    float half_height = 3.5f;
+//    mProjectionMatrix = vmath::Matrix4::orthographic(
+//        -aspect_ratio*half_height, aspect_ratio*half_height, -half_height, half_height, 0.1f, 100.0f
+//    );
 
 
 

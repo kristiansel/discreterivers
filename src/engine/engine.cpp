@@ -1,11 +1,14 @@
 #include "engine.h"
 
+namespace engine {
+
 Engine::Engine(int w, int h, int dpi) :
     mRenderer(w, h),
     mGUI(w, h, dpi),
 
     // to be moved
-    camera(w, h)
+    camera(w, h),
+    mCameraController(&camera)
 
 {
     gui::createGUI(mGUI);
@@ -14,21 +17,68 @@ Engine::Engine(int w, int h, int dpi) :
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 }
 
-void Engine::handleKeyDownEvent(SDL_Keycode k)
+
+void Engine::handleKeyboardState(const Uint8 *keyboard_state)
+{
+    // to move
+    /*float speed = 0.1f;
+
+    if (keyboard_state[SDL_SCANCODE_LSHIFT])
+    {
+        speed = 4.0f*speed;
+    }*/
+    if (keyboard_state[SDL_SCANCODE_LSHIFT])
+    {
+        mCameraController.sendSignal(mech::CameraController::SpeedUp);
+    }
+
+    // is there any point in trying to eliminate the branches here?
+    // or is that taken care of by the optimizer anyway?
+    if (keyboard_state[SDL_SCANCODE_W])
+    {
+        mCameraController.sendSignal(mech::CameraController::Forward);
+        //camera.mTransform.position += speed * camera.mTransform.getForwardDir();
+    }
+    if (keyboard_state[SDL_SCANCODE_S])
+    {
+        mCameraController.sendSignal(mech::CameraController::Backward);
+        //camera.mTransform.position -= speed * camera.mTransform.getForwardDir();
+    }
+    if (keyboard_state[SDL_SCANCODE_A])
+    {
+        mCameraController.sendSignal(mech::CameraController::Left);
+        //camera.mTransform.position -= speed * camera.mTransform.getRightDir();
+    }
+    if (keyboard_state[SDL_SCANCODE_D])
+    {
+        mCameraController.sendSignal(mech::CameraController::Right);
+        //camera.mTransform.position += speed * camera.mTransform.getRightDir();
+    }
+    if (keyboard_state[SDL_SCANCODE_X])
+    {
+        mCameraController.sendSignal(mech::CameraController::Down);
+        //camera.mTransform.position -= speed * vmath::Vector3(0.0f, 1.0f, 0.0f);
+    }
+    if (keyboard_state[SDL_SCANCODE_Z])
+    {
+        mCameraController.sendSignal(mech::CameraController::Up);
+        //camera.mTransform.position += speed * vmath::Vector3(0.0f, 1.0f, 0.0f);
+    }
+}
+
+void Engine::handleKeyPressEvents(SDL_Keycode k)
 {
     switch(k)
     {
-        case(SDLK_f):
-            mRenderer.toggleWireframe();
-            break;
-        case(SDLK_q):
-            events::Queued::emitEvent(events::Queued::QuitEvent());
-            break;
-        case(SDLK_h):
-            //alt_planet_triangles_so->toggleVisible();
-            break;
-        case(SDLK_u): {
-            // do an iteration of repulsion
+
+    case(SDLK_f):
+        mRenderer.toggleWireframe();
+        break;
+    case(SDLK_h):
+        //alt_planet_triangles_so->toggleVisible();
+        break;
+    case(SDLK_u): {
+        // do an iteration of repulsion
 //                                AltPlanet::pointsRepulse(alt_planet_points, planet_shape, 0.003f);
 
 //                                // update the scene object geometry
@@ -46,36 +96,63 @@ void Engine::handleKeyDownEvent(SDL_Keycode k)
 //                                gfx::Primitives primitives = gfx::Primitives(primitives_data);
 
 //                                alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
+        break;
+    }
+    case (SDLK_F11): {
+        events::Queued::emitEvent(events::Queued::ToggleFullscreenEvent());
+        break;
+    }
+    case(SDLK_ESCAPE):
+        // done = true;
+        events::Immediate::broadcast(events::ToggleMainMenuEvent());
+        break;
+    } // switch k
+}
+
+void Engine::handleMouseEvent(const SDL_Event &event)
+{
+    switch(event.type)
+    {
+        case SDL_MOUSEBUTTONDOWN: {
+            mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT;
+            mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT;
+            if (mMouseState.lmb_down) mGUI.handleMouseClick(event.button.x, event.button.y);
             break;
         }
-        case(SDLK_r): {
-            //SDL_SetWindowSize(mainWindow, 1500, 800);
+        case SDL_MOUSEBUTTONUP: {
+            mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : mMouseState.lmb_down;
+            mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : mMouseState.rmb_down;
             break;
         }
-        case(SDLK_UP): {
-            camera.mTransform.position -= vmath::Vector3(0.0f, 0.1f, 0.0f);
+        case SDL_MOUSEMOTION: {
+            if (mMouseState.lmb_down || mMouseState.rmb_down) {
+                int32_t mouse_delta_x = mMouseState.prev_mouse_x - event.motion.x;
+                int32_t mouse_delta_y = mMouseState.prev_mouse_y - event.motion.y;
+                float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
+                float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
+
+                mCameraController.sendTurnSignals({mouse_angle_x, mouse_angle_y});
+
+            }
+
+            mGUI.handleMouseMoved(event.motion.x, event.motion.y);
+
+            // update previous mouse position
+            mMouseState.prev_mouse_x = event.motion.x;
+            mMouseState.prev_mouse_y = event.motion.y;
             break;
         }
-        case(SDLK_DOWN): {
-            camera.mTransform.position += vmath::Vector3(0.0f, 0.1f, 0.0f);
+        case SDL_MOUSEWHEEL: {
+            //camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
             break;
         }
-        case(SDLK_RIGHT): {
-            camera.mTransform.position -= vmath::Vector3(0.1f, 0.0f, 0.0f);
-            break;
-        }
-        case(SDLK_LEFT): {
-            camera.mTransform.position += vmath::Vector3(0.1f, 0.0f, 0.0f);
-            break;
-        }
-        case (SDLK_F11): {
-            //SDL_SetWindowFullscreen(mainWindow, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
-            //fullscreen = !fullscreen;
-            break;
-        }
-        case(SDLK_ESCAPE):
-            // done = true;
-            events::Immediate::broadcast(events::ToggleMainMenuEvent());
-            break;
     }
 }
+
+void Engine::update()
+{
+    mCameraController.update();
+}
+
+
+} // namespace Engine

@@ -18,6 +18,24 @@ struct Transform
     {
         return vmath::Matrix4::translation(position) * vmath::Matrix4::rotation(rotation) * vmath::Matrix4::scale(scale);
     }
+
+    inline vmath::Vector3 getForwardDir() const
+    {
+        vmath::Vector4 v4 = getTransformMatrix() * vmath::Vector4{0.0f, 0.0f, -1.0f, 0.0f};
+        return vmath::Vector3(v4[0], v4[1], v4[2]);
+    }
+
+    inline vmath::Vector3 getRightDir() const
+    {
+        vmath::Vector4 v4 = getTransformMatrix() * vmath::Vector4{1.0f, 0.0f, 0.0f, 0.0f};
+        return vmath::Vector3(v4[0], v4[1], v4[2]);
+    }
+
+    inline vmath::Vector3 getUpDir() const
+    {
+        vmath::Vector4 v4 = getTransformMatrix() * vmath::Vector4{0.0f, 1.0f, 0.0f, 0.0f};
+        return vmath::Vector3(v4[0], v4[1], v4[2]);
+    }
 };
 
 }

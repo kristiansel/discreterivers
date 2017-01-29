@@ -11,11 +11,14 @@ namespace Queued
 {
 
 struct QuitEvent {};
-//struct ResizeEvent { int width, height; };
-struct OtherEvent {};
+struct ToggleFullscreenEvent {};
 
 // should specialize either for empty types...
-using Event = stdext::either<QuitEvent, /*ResizeEvent,*/ OtherEvent>;
+using Event = stdext::either<
+    QuitEvent,
+    ToggleFullscreenEvent
+>;
+
 using EventQueue = std::queue<Event>;
 
 EventQueue &getEventQueue();

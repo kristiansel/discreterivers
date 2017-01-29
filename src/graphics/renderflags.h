@@ -30,6 +30,8 @@ private:
     unsigned char mFlags;
 };
 
+
+
 }
 
 #endif // RENDERFLAGS_H
