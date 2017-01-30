@@ -10,12 +10,11 @@ class Flags
 {
     static_assert(std::is_enum<FlagBits>::value, "FlagBits must be enum type");
 public:
-    Flags() : mFlags(Default) {}
-
     using Flag = FlagBits;
-private:
+
+    Flags() : mFlags(Default) {}
     Flags(FlagBits flags) : mFlags(flags) {}
-public:
+
     inline static Flags combine(Flags flags1, Flags flags2)
     {
         return Flags(static_cast<FlagBits>(flags1.mFlags | flags2.mFlags));

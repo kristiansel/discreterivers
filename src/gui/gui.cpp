@@ -3,6 +3,7 @@
 #include "../events/immediateevents.h"
 
 #include "mainmenu.h"
+#include "newgamemenu.h"
 #include "profilingpane.h"
 
 namespace gui {
@@ -15,6 +16,8 @@ void createGUI(GUI &gui)
     gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
 
     createMainMenu(gui, gui_root_node);
+
+    createNewGameMenu(gui, gui_root_node);
 
     createProfilingPane(gui, gui_root_node);
 

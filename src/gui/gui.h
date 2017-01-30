@@ -14,7 +14,10 @@ class GUI
 public:
     GUI(int w, int h, int dpi) : mWidth(w), mHeight(h), mDPI(dpi),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi) {}
+        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi)
+    {
+        mGUIRoot.clickPassThru();
+    }
 
     gfx::gui::GUINode &getGUIRoot()
     {
@@ -22,13 +25,15 @@ public:
         return mGUIRoot;
     }
 
-    void handleMouseClick(uint16_t x, uint16_t y)
+    bool handleMouseClick(uint16_t x, uint16_t y)
     {
         // transform pixels to gui coordinates
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        mGUIRoot.handleMouseClick(gui_x, gui_y);
+        bool hasCapturedMouse = mGUIRoot.handleMouseClick(gui_x, gui_y);
+
+        return hasCapturedMouse;
     }
 
     void handleMouseMoved(uint16_t x, uint16_t y)

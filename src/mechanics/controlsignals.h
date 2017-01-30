@@ -7,6 +7,8 @@ namespace mech {
 
 
 // move signals, loosely related to what happens to controlled legs/movement
+
+
 enum MoveSignal
 {
     Idle         = 0b00000000,
@@ -21,7 +23,7 @@ enum MoveSignal
     Unused7      = 0b10000000,
 };
 
-using MoveSignalFlags = stdext::Flags<MoveSignal, StandStill>;
+using MoveSignalFlags = stdext::Flags<MoveSignal, Idle>;
 
 // need some signals for rotation of mouse..
 

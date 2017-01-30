@@ -25,6 +25,7 @@ class Engine
     // to be moved
     gfx::Camera camera; // init order important!
     mech::CameraController mCameraController;
+    bool mGUICapturedMouse;
 
     MouseState mMouseState; // should be in some sort of input handler...
 

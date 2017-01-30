@@ -25,7 +25,6 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-
     SceneData scene_data = createPlanetData();
 
     // SDL2 window code

@@ -66,6 +66,8 @@ struct ToggleMainMenuEvent {};
 
 struct NewGameEvent {};
 
+struct SaveGameEvent {};
+
 struct LoadGameEvent {};
 
 struct OptionsEvent {};

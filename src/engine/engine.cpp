@@ -8,7 +8,8 @@ Engine::Engine(int w, int h, int dpi) :
 
     // to be moved
     camera(w, h),
-    mCameraController(&camera)
+    mCameraController(&camera),
+    mGUICapturedMouse(false)
 
 {
     gui::createGUI(mGUI);
@@ -20,49 +21,35 @@ Engine::Engine(int w, int h, int dpi) :
 
 void Engine::handleKeyboardState(const Uint8 *keyboard_state)
 {
-    // to move
-    /*float speed = 0.1f;
-
-    if (keyboard_state[SDL_SCANCODE_LSHIFT])
-    {
-        speed = 4.0f*speed;
-    }*/
+    // is there any point in trying to eliminate the branches here?
+    // or is that taken care of by the optimizer anyway?
     if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
         mCameraController.sendSignal(mech::CameraController::SpeedUp);
     }
-
-    // is there any point in trying to eliminate the branches here?
-    // or is that taken care of by the optimizer anyway?
     if (keyboard_state[SDL_SCANCODE_W])
     {
         mCameraController.sendSignal(mech::CameraController::Forward);
-        //camera.mTransform.position += speed * camera.mTransform.getForwardDir();
     }
     if (keyboard_state[SDL_SCANCODE_S])
     {
         mCameraController.sendSignal(mech::CameraController::Backward);
-        //camera.mTransform.position -= speed * camera.mTransform.getForwardDir();
     }
     if (keyboard_state[SDL_SCANCODE_A])
     {
         mCameraController.sendSignal(mech::CameraController::Left);
-        //camera.mTransform.position -= speed * camera.mTransform.getRightDir();
     }
     if (keyboard_state[SDL_SCANCODE_D])
     {
         mCameraController.sendSignal(mech::CameraController::Right);
-        //camera.mTransform.position += speed * camera.mTransform.getRightDir();
     }
     if (keyboard_state[SDL_SCANCODE_X])
     {
         mCameraController.sendSignal(mech::CameraController::Down);
-        //camera.mTransform.position -= speed * vmath::Vector3(0.0f, 1.0f, 0.0f);
     }
     if (keyboard_state[SDL_SCANCODE_Z])
     {
         mCameraController.sendSignal(mech::CameraController::Up);
-        //camera.mTransform.position += speed * vmath::Vector3(0.0f, 1.0f, 0.0f);
     }
 }
 
@@ -116,23 +103,27 @@ void Engine::handleMouseEvent(const SDL_Event &event)
         case SDL_MOUSEBUTTONDOWN: {
             mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT;
             mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-            if (mMouseState.lmb_down) mGUI.handleMouseClick(event.button.x, event.button.y);
+            if (mMouseState.lmb_down)
+            {
+                mGUICapturedMouse = mGUI.handleMouseClick(event.button.x, event.button.y);
+                std::cout << "mouse captured: " << mGUICapturedMouse << std::endl;
+            }
             break;
         }
         case SDL_MOUSEBUTTONUP: {
             mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : mMouseState.lmb_down;
             mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : mMouseState.rmb_down;
+            mGUICapturedMouse = false;
             break;
         }
         case SDL_MOUSEMOTION: {
-            if (mMouseState.lmb_down || mMouseState.rmb_down) {
+            if ((mMouseState.lmb_down || mMouseState.rmb_down) && !mGUICapturedMouse) {
                 int32_t mouse_delta_x = mMouseState.prev_mouse_x - event.motion.x;
                 int32_t mouse_delta_y = mMouseState.prev_mouse_y - event.motion.y;
                 float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                 float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
 
                 mCameraController.sendTurnSignals({mouse_angle_x, mouse_angle_y});
-
             }
 
             mGUI.handleMouseMoved(event.motion.x, event.motion.y);

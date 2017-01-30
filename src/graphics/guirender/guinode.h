@@ -10,6 +10,7 @@
 #include "guitextvertices.h"
 #include "guifontrenderer.h"
 #include "../texture.h"
+#include "../../common/flags.h"
 #include "../../common/gfx_primitives.h"
 #include "../../common/resmanager/refcounted.h"
 
@@ -27,6 +28,15 @@ using GUINodePtr = gui::GUINode*;
 
 class GUINode// : public Resource::RefCounted<GUINode> // why does this need to be refcounted. It has no pointer data that can be reused...
 {
+    // private class GUIFlags
+    enum GUIFlag
+    {
+        Default       = 0b00000000,
+        Hide          = 0b00000001,
+        ClickPassThru = 0b00000010
+    };
+
+    using GUIFlags = stdext::Flags<GUIFlag, GUIFlag::Default>;
 public:
     using MouseEnterHandler = std::function<void(void)>;
     using MouseLeaveHandler = std::function<void(void)>;
@@ -48,9 +58,11 @@ public:
     };
     //friend class GUIEventHandler;
 
-    void handleMouseClick(float x, float y) {
+    bool handleMouseClick(float x, float y) {
         gui::AABB aabb = mGUITransform.getAABB();
-        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin) && mVisible)
+        if ( (x < aabb.xMax && x > aabb.xMin) &&
+             (y < aabb.yMax && y > aabb.yMin) &&
+              !mGUIFlags.checkFlag(GUIFlag::Hide) )
         {
             //std::cout << "clicked inside child " << x << ", " << y << std::endl;
             mouseClick.invokeCallbacks();
@@ -58,20 +70,26 @@ public:
             float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
             float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
 
+            bool result = !mGUIFlags.checkFlag(GUIFlag::ClickPassThru);
             for (auto &child : mChildren)
             {
-                child.handleMouseClick(x_rel, y_rel);
+                bool child_solid = child.handleMouseClick(x_rel, y_rel);
+                result = result || child_solid;
             }
+            return result;
         }
-        // if x inside this frame
-        //      call event handlers
-        //      call children event handlers
+        else
+        {
+            return false;
+        }
     }
 
     GUINodePtr getDeepestHovered(float x, float y, bool debug = false)
     {
         gui::AABB aabb = mGUITransform.getAABB();
-        if ((x < aabb.xMax && x > aabb.xMin) && (y < aabb.yMax && y > aabb.yMin) && mVisible)
+        if ( (x < aabb.xMax && x > aabb.xMin) &&
+             (y < aabb.yMax && y > aabb.yMin) &&
+              !mGUIFlags.checkFlag(GUIFlag::Hide) )
         {
             //if (debug) std::cout << " inside: " << this << std::endl;
             float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
@@ -106,7 +124,7 @@ public:
 
     inline GUINode(GUINode &&gn) : //Resource::RefCounted<GUINode>(std::move(gn)),
         mGUITransform(gn.mGUITransform), mChildren(std::move(gn.mChildren)), mElements(std::move(gn.mElements)),
-        mVisible(gn.mVisible), mouseEnter(std::move(gn.mouseEnter)), mouseLeave(std::move(gn.mouseLeave)),
+        mGUIFlags(GUIFlag::Default), mouseEnter(std::move(gn.mouseEnter)), mouseLeave(std::move(gn.mouseLeave)),
         mouseClick(std::move(gn.mouseClick)) {}
 
     inline GUINode(const GUINode &gn) = default;
@@ -129,12 +147,16 @@ public:
     inline const std::list<GUINode> &getChildren() const { return mChildren; }
     inline const std::list<GUIElement> &getElements() const { return mElements; }
     inline const GUITransform &getTransform() const { return mGUITransform; }
-    inline const bool isVisible() const { return mVisible; }
+    inline const bool isVisible() const { return !mGUIFlags.checkFlag(GUIFlag::Hide); }
 
     // mutate methods
-    inline void hide() { mVisible = false; }
-    inline void show() { mVisible = true; }
-    inline void toggleShow() { mVisible = !mVisible; }
+    inline void hide()                  { mGUIFlags.setFlag(GUIFlag::Hide);             }
+    inline void show()                  { mGUIFlags.clearFlag(GUIFlag::Hide);           }
+    inline void toggleShow()            { mGUIFlags.toggleFlag(GUIFlag::Hide);          }
+
+    inline void clickSolid()            { mGUIFlags.clearFlag(GUIFlag::ClickPassThru);  }
+    inline void clickPassThru()         { mGUIFlags.setFlag(GUIFlag::ClickPassThru);    }
+    inline void toggleClickPassThru()   { mGUIFlags.toggleFlag(GUIFlag::ClickPassThru); }
 
 public:
     GUIEventHandler<void> mouseEnter;
@@ -149,16 +171,17 @@ private:
 
     // private some operators?
     GUITransform mGUITransform;
-
-    bool mVisible;
+    GUIFlags mGUIFlags;
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;
+
+
 };
 
 
 inline GUINode::GUINode(const GUITransform &gui_transform) :
-    mGUITransform(gui_transform), mVisible(true)
+    mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default)
 {
     // value ctor
 }
