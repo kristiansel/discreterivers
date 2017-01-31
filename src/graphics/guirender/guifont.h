@@ -1,5 +1,5 @@
-#ifndef GUIFONTRENDERER_H
-#define GUIFONTRENDERER_H
+#ifndef GUIFONT_H
+#define GUIFONT_H
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -20,7 +20,7 @@ namespace gfx {
 namespace gui {
 
 
-class GUIFontRenderer
+class GUIFont
 {
 public:
 
@@ -30,7 +30,7 @@ public:
         static const int height = 1920;
     };
 
-    GUIFontRenderer(const char * font_file_name, unsigned int size, unsigned int dpi);
+    GUIFont(const char * font_file_name, unsigned int size, unsigned int dpi);
 
     struct GlyphDrawInfo {
         int bitmap_left;
@@ -42,14 +42,13 @@ public:
     inline GlyphDrawInfo getGlyphDrawInfo(char glyph);
 
     Texture getTextureAtlas() const;
-
-    //inline GUITextVertices bakeGUIText(std::string &&text) { return GUITextVertices({}, {}); }
-
     GUITextVertices render(const std::string &text) const;
 
+    //static GUITextVertices renderText(const GUIFont &font, const std::string &text);
+
 private:
-    FT_Library mFTlibary;
-    FT_Face mFontFace;
+    /*FT_Library mFTlibary;
+    FT_Face mFontFace;*/
 
     // non-literals location --------------------------vv----vv-----------------------------------------------------------------------------------------vv
     static constexpr char const * sAllowedGlyphs = "' !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n";
@@ -65,12 +64,6 @@ private:
     unsigned int mLineHeight;
 
     Texture mTexAtlas;
-
-    static Texture createTextureAtlas(const char * font_file_name,
-                                      unsigned int size,
-                                      unsigned int dpi,
-                                      std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_out,
-                                      unsigned int &line_height_out);
 };
 
 } // namespace gui
@@ -78,4 +71,4 @@ private:
 } // namespace gfx
 
 
-#endif // GUIFONTRENDERER_H
+#endif // GUIFONT_H

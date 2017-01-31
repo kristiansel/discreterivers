@@ -33,7 +33,7 @@ Camera::Camera(int width, int height)
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
     mWidth(w), mHeight(h),
     mGUITextShader(w, h)/*,
-    mGUIFontRenderer("res/fonts/IMFePIrm28P.ttf", 24)*/
+    mGUIFont("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
     // OpenGL context needs to be valid at this point
 

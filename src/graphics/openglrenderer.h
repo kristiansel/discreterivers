@@ -23,7 +23,7 @@
 #include "guirender/textelement/guitextshader.h"
 #include "guirender/imageelement/guiimageshader.h"
 #include "guirender/guitextvertices.h"
-#include "guirender/guifontrenderer.h"
+#include "guirender/guifont.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -259,10 +259,10 @@ inline gui::GUINodeHandle OpenGLRenderer::addGUINode(Args... args)
 // book, one simple workaround is to use auto:"
 
 /*inline gui::GUINodeHandle OpenGLRenderer::addGUINode(vmath::Vector4 &&color, gui::GUITransform &&gui_transform,
-                                       const gui::GUIFontRenderer * const font_renderer, std::string &&text,
+                                       const gui::GUIFont * const font, std::string &&text,
                                        std::initializer_list<gui::GUINode> &&children, const gfx::Texture &texture)
 {
-    mGUINodesList.emplace_back(std::move(color), std::move(gui_transform), font_renderer, std::move(text), std::move(children), texture);
+    mGUINodesList.emplace_back(std::move(color), std::move(gui_transform), font, std::move(text), std::move(children), texture);
     return (--mGUINodesList.end());
 }*/
 

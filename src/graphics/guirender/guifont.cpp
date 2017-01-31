@@ -1,57 +1,12 @@
-#include "guifontrenderer.h"
+#include "guifont.h"
 
 namespace gfx {
 
 namespace gui {
 
-GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size, unsigned int dpi) :
-    mTexAtlas(createTextureAtlas(font_file_name, size, dpi, mTexAtlasPosInfo, mLineHeight))
+GUIFont::GUIFont(const char * font_file_name, unsigned int size, unsigned int dpi) :
+    mTexAtlas(vmath::Vector4{1.0, 1.0, 1.0, 1.0})
 
-{
-    unsigned int size_dpi_scaled = float(size)/float(100) * dpi;
-
-    FT_Library &ft_library = mFTlibary;
-    if(FT_Init_FreeType(&ft_library)) {
-        assert(false&&"Could not init freetype library");
-    }
-
-    FT_Face &face = mFontFace;
-    if(FT_New_Face(ft_library, font_file_name, 0, &face)) {
-        //std::cout << "font_file_name: " << font_file_name << std::endl;
-        assert(false&&"Couldn't load font, check font file name");
-    }
-
-    FT_Set_Pixel_Sizes(face, 0, size_dpi_scaled); // change size later
-
-    int n_chars = strlen( sAllowedGlyphs );
-
-    for (int i = 0; i < n_chars; i++)
-    {
-        char character = sAllowedGlyphs[i];
-        if(FT_Load_Char(face, character, FT_LOAD_RENDER))
-        {
-            std::cerr << "Could not load character `" << character << "`" << std::endl;
-            assert(false);
-        }
-        FT_GlyphSlot glyph = face->glyph;
-
-        mGlyphDrawInfo[character] = { glyph->bitmap_left, glyph->bitmap_top,
-                                    { glyph->bitmap.width, glyph->bitmap.rows },
-                                    { glyph->advance.x, glyph->advance.y } };
-    }
-}
-
-Texture GUIFontRenderer::getTextureAtlas() const
-{
-    return mTexAtlas;
-}
-
-
-Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
-                                            unsigned int size,
-                                            unsigned int dpi,
-                                            std::unordered_map<char, TexAtlasPos> &tex_atlas_pos_info_out,
-                                            unsigned int &line_height)
 {
     unsigned int size_dpi_scaled = float(size)/float(100) * dpi;
 
@@ -70,26 +25,36 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
 
     int n_chars = strlen( sAllowedGlyphs );
 
-    // create texture atlas
-    // first find max height and width
     unsigned int max_width = 0;
     unsigned int max_rows = 0;
+
     for (int i = 0; i < n_chars; i++)
     {
         char character = sAllowedGlyphs[i];
         if(FT_Load_Char(face, character, FT_LOAD_RENDER))
-            assert(false&&"GUIFontRenderer::getTextureAtlas failed to load font character");
+        {
+            std::cerr << "Could not load character `" << character << "`" << std::endl;
+            assert(false);
+        }
+        FT_GlyphSlot glyph = face->glyph;
 
-        auto &bmp = face->glyph->bitmap;
+        // populate the drawinfo
+        mGlyphDrawInfo[character] = { glyph->bitmap_left, glyph->bitmap_top,
+                                    { glyph->bitmap.width, glyph->bitmap.rows },
+                                    { glyph->advance.x, glyph->advance.y } };
+
+        // populate texture atlas info
+        auto &bmp = glyph->bitmap;
         max_width   = bmp.width >   max_width   ? bmp.width : max_width;
         max_rows    = bmp.rows  >   max_rows    ? bmp.rows  : max_rows;
     }
+
     int max_chars_per_row = 10;
     unsigned int tex_atlas_width = max_chars_per_row * max_width;
     unsigned int tex_atlas_rows = (n_chars/max_chars_per_row + 1)*max_rows;
 
     // set the line height to equal the tallest character (this may not be high enough?)
-    line_height = max_rows;
+    mLineHeight = max_rows;
 
     std::cout << "atlas width: " << tex_atlas_width << std::endl;
     std::cout << "atlas rows: " << tex_atlas_rows << std::endl;
@@ -115,7 +80,7 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
             }
         }
 
-        tex_atlas_pos_info_out[character] = {
+        mTexAtlasPosInfo[character] = {
             { static_cast<float>(glyph_col * max_width)/static_cast<float>(tex_atlas_width),
               static_cast<float>(glyph_row * max_rows)/static_cast<float>(tex_atlas_rows) },
 
@@ -135,22 +100,27 @@ Texture GUIFontRenderer::createTextureAtlas(const char * font_file_name,
         }
     } // for (int i = 0; i < n_chars; i++)
 
-    return Texture(&tex_atlas_data[0], tex_atlas_width, tex_atlas_rows,
+    mTexAtlas = Texture(&tex_atlas_data[0], tex_atlas_width, tex_atlas_rows,
                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest,
                    Texture::pixel_format::red, // internal format
                    Texture::pixel_format::red,
                    true);  // format
 }
 
-GUITextVertices GUIFontRenderer::render(const std::string &text) const
+Texture GUIFont::getTextureAtlas() const
+{
+    return mTexAtlas;
+}
+
+GUITextVertices GUIFont::render(const std::string &text) const
 {
     /*std::cout << "in text render" << std::endl;
     std::cout << text << std::endl;*/
 
     // oh shit. This could be in tight loop for example for reference counter
 
-    unsigned int res_x = GUIFontRenderer::StdResolution::width;
-    unsigned int res_y = GUIFontRenderer::StdResolution::height;
+    unsigned int res_x = GUIFont::StdResolution::width;
+    unsigned int res_y = GUIFont::StdResolution::height;
 
     std::vector<vmath::Vector4> position_data;
     std::vector<gfx::TexCoords> texcoord_data;

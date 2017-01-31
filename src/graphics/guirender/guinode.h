@@ -8,7 +8,7 @@
 #include "guielement.h"
 #include "guitransform.h"
 #include "guitextvertices.h"
-#include "guifontrenderer.h"
+#include "guifont.h"
 #include "../texture.h"
 #include "../../common/flags.h"
 #include "../../common/gfx_primitives.h"

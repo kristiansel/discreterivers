@@ -61,9 +61,10 @@ public:
         mHeight = h;
     }
 
-    //inline int getWidth() const { return mWidth; }
-    //inline int getHeight() const { return mHeight; }
-    inline const gfx::gui::GUIFontRenderer &getFontRenderer() const { return mFontRenderer; }
+
+
+    //inline const gfx::gui::GUIFont &getFontRenderer() const { return mFontRenderer; }
+    inline const gfx::gui::GUIFont &getDefaultFont() const { return mFontRenderer; }
 
 private:
     GUI();
@@ -73,7 +74,7 @@ private:
 
     int mDPI;
 
-    gfx::gui::GUIFontRenderer mFontRenderer;
+    gfx::gui::GUIFont mFontRenderer;
 
     gfx::gui::GUINode    mGUIRoot;
     gfx::gui::GUINodePtr mPreviousHovered;

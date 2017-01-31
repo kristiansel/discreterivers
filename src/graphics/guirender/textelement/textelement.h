@@ -13,10 +13,15 @@ namespace gui {
 class TextElement
 {
 public:
-    inline TextElement(const GUITextVertices &text_vertices,
+    /*inline TextElement(const GUITextVertices &text_vertices,
                        const Texture &tex_atlas,
                        const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
-        : mTextVertices(text_vertices), mFontTextureAtlas(tex_atlas), mColor(color) {}
+        : mTextVertices(text_vertices), mFontTextureAtlas(tex_atlas), mColor(color) {}*/
+
+    inline TextElement(const std::string &text, const GUIFont &font,
+                       const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
+        : mTextVertices(font.render(text)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color) {}
+
 
     /*inline TextElement(const std::string &text,
                        const vmath::Vector4 &color = vmath::Vector4(1.0, 1.0, 1.0, 1.0),

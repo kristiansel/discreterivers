@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "guifontrenderer.h"
+#include "guifont.h"
 
 namespace gfx {
 
@@ -20,7 +20,7 @@ public:
     inline FontManager &get()
     {
         static FontManager sFontManager(
-            std::unordered_map<std::string, GUIFontRenderer>(
+            std::unordered_map<std::string, GUIFont>(
                 "default", ""
         ));
         return sFontManager;
@@ -29,9 +29,9 @@ public:
     // add fonts to the manager with key to font hame and where to find the file name.
 
 private:
-    FontManager(std::unordered_map<std::string, GUIFontRenderer> &&font_renderer_map) : mFontRendererMap(font_renderer_map) {}
+    FontManager(std::unordered_map<std::string, GUIFont> &&font_map) : mFontRendererMap(font_map) {}
 
-    std::unordered_map<std::string, GUIFontRenderer> mFontRendererMap;
+    std::unordered_map<std::string, GUIFont> mFontRendererMap;
 
 };
 */
