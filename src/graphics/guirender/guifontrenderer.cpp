@@ -27,7 +27,6 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size,
 
     for (int i = 0; i < n_chars; i++)
     {
-        //assert(sAllowedGlyphs[i] <= 255);
         char character = sAllowedGlyphs[i];
         if(FT_Load_Char(face, character, FT_LOAD_RENDER))
         {
@@ -36,22 +35,9 @@ GUIFontRenderer::GUIFontRenderer(const char * font_file_name, unsigned int size,
         }
         FT_GlyphSlot glyph = face->glyph;
 
-        auto *bmp = &(glyph->bitmap);
-
-        /*if (character == 'r' || character == 'R')
-        {
-            std::cout << "character: " << character << std::endl;
-            std::cout << "bmp->rows: " << bmp->rows << std::endl;
-            std::cout << "bmp->width: " << bmp->width << std::endl;
-            std::cout << "bmp->pitch: " << bmp->pitch << std::endl;
-            std::cout << "bmp->buffer: " << std::size_t(bmp->buffer) << std::endl;
-            std::cout << "bmp->pixel_mode: " << static_cast<int>(bmp->pixel_mode) << std::endl;
-            std::cout << "bmp->num_grays: " << bmp->num_grays << std::endl;
-        }*/
-
         mGlyphDrawInfo[character] = { glyph->bitmap_left, glyph->bitmap_top,
-                                      { glyph->bitmap.width, glyph->bitmap.rows },
-                                      { glyph->advance.x, glyph->advance.y } };
+                                    { glyph->bitmap.width, glyph->bitmap.rows },
+                                    { glyph->advance.x, glyph->advance.y } };
     }
 }
 
