@@ -55,6 +55,7 @@ GUIFont::GUIFont(const char * font_file_name, unsigned int size, unsigned int dp
 
     // set the line height to equal the tallest character (this may not be high enough?)
     mLineHeight = max_rows;
+    mMonoWidth = max_width;
 
     std::cout << "atlas width: " << tex_atlas_width << std::endl;
     std::cout << "atlas rows: " << tex_atlas_rows << std::endl;
@@ -180,6 +181,97 @@ GUITextVertices GUIFont::render(const std::string &text) const
 
     return GUITextVertices(position_data, texcoord_data);
 }
+
+// copy and pad string
+GUITextVertices GUIFont::renderMonospace(std::string text, unsigned int buffersize) const
+{
+    if(buffersize > text.size()) // pad
+    {
+        text.resize(buffersize, ' ');
+    }
+    else if (buffersize < text.size()) // truncate
+    {
+        text.erase(buffersize, std::string::npos);
+    }
+
+    unsigned int res_x = GUIFont::StdResolution::width;
+    unsigned int res_y = GUIFont::StdResolution::height;
+
+    std::vector<vmath::Vector4> position_data;
+    std::vector<gfx::TexCoords> texcoord_data;
+
+    float x=0; float y=0; float sx = 2.0f/static_cast<float>(res_x); float sy=2.0f/static_cast<float>(res_y);
+
+    for (const char c : text)
+    {
+        const auto draw_info_it = mGlyphDrawInfo.find(c);
+        if (draw_info_it == mGlyphDrawInfo.end()) assert(false&&"wat1?");
+        const GlyphDrawInfo &draw_info = draw_info_it->second;
+
+        float x2 = x + draw_info.bitmap_left * sx;
+        float y2 = -y - draw_info.bitmap_top * sy;
+        float w = draw_info.bitmap.width * sx;
+        float h = draw_info.bitmap.rows * sy;
+
+        const auto pos_info_it = mTexAtlasPosInfo.find(c);
+        if (pos_info_it == mTexAtlasPosInfo.end()) assert(false&&"wat2?");
+        const TexAtlasPos &pos_info = pos_info_it->second;
+
+        float y0 = (float)(mLineHeight) * sy; // translate text down one line...
+
+        // quad of two triangles
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2,     0,    1}); // 0
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2,     -y0-y2 - h, 0,    1}); // 2
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2,     0,    1}); // 1
+        position_data.push_back(vmath::Vector4{x2 + w, -y0-y2 - h, 0,    1}); // 3
+
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]});   // 0
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});   // 1
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]});     // 2
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]});     // 2
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]});   // 1
+        texcoord_data.push_back(gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]});     // 3
+ // 0
+        x += mMonoWidth * sx;
+        y += (draw_info.advance.y/64) * sy;
+
+
+        /*if (c == 'r' || c == 'R')
+        {
+            std::cout << "character (c): " << c << std::endl;
+            std::cout << "draw_info.bitmap.rows: " << draw_info.bitmap.rows << std::endl;
+            std::cout << "draw_info.bitmap.width: " << draw_info.bitmap.width << std::endl;
+            std::cout << "draw_info.bitmap.width: " << draw_info.bitmap.width << std::endl;
+            std::cout << "pos_info.texco_begin: " << pos_info.texco_begin[0] << ", " << pos_info.texco_begin[1] << std::endl;
+            std::cout << "pos_info.texco_end: " << pos_info.texco_end[0] << ", " << pos_info.texco_end[1] << std::endl;
+            std::cout << "v1: "; vmath::print(vmath::Vector4{x2,     -y2,     0,    1}); std::cout << std::endl;
+            std::cout << "v2: "; vmath::print(vmath::Vector4{x2 + w, -y2,     0,    1}); std::cout << std::endl;
+            std::cout << "v3: "; vmath::print(vmath::Vector4{x2,     -y2 - h, 0,    1}); std::cout << std::endl;
+            std::cout << "v4: "; vmath::print(vmath::Vector4{x2 + w, -y2 - h, 0,    1}); std::cout << std::endl;
+        }*/
+    }
+
+    return GUITextVertices(position_data, texcoord_data);
+}
+
+void GUIFont::getMonospaceTexCoords(const char * text, TexCoords * tex_coords)
+{
+    // shiet, need to make sure that texcoords is allocated to the correct length before...
+    for (int i = 0; text[i]!=0; i++)
+    {
+        char c = text[i];
+        TexAtlasPos &pos_info = mTexAtlasPosInfo[c];
+        tex_coords[i*6 + 0] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]};   // 0
+        tex_coords[i*6 + 1] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
+        tex_coords[i*6 + 2] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]};     // 2
+        tex_coords[i*6 + 3] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]};     // 2
+        tex_coords[i*6 + 4] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
+        tex_coords[i*6 + 5] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]};     // 3
+    }
+}
+
 
 } // namespace gui
 

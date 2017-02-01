@@ -275,6 +275,7 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             switch (child_element.get_type())
             {
             case (gui::GUIElement::is_a<gui::TextElement>::value):
+            case (gui::GUIElement::is_a<gui::MonospaceTextElement>::value):
                 // render text
                 {
                     vmath::Vector3 transl = mv.getTranslation();

@@ -1,5 +1,6 @@
-#ifndef TEXTELEMENT_H
-#define TEXTELEMENT_H
+#ifndef MONOSPACETEXTELEMENT_H
+#define MONOSPACETEXTELEMENT_H
+
 
 #include "../guitextvertices.h"
 #include "../guitransform.h"
@@ -10,17 +11,17 @@ namespace gfx {
 
 namespace gui {
 
-class TextElement
+class MonospaceTextElement
 {
 public:
-    inline TextElement(const std::string &text, const GUIFont &font,
+    inline MonospaceTextElement(const std::string &text, const GUIFont &font, unsigned int buffersize = 16,
                        const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
-        : mTextVertices(font.render(text)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color) {}
+        : mTextVertices(font.renderMonospace(text, buffersize)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color) {}
 
     inline const GUITextVertices &getGUITextVertices() const { return mTextVertices; }
     inline const GLuint getFontAtlasTextureID() const { return mFontTextureAtlas.getTextureID(); }
     inline const vmath::Vector4 &getColor() const { return mColor; }
-    inline void setTextVertices(const GUITextVertices &text_vertices) { mTextVertices = text_vertices; }
+    inline void setText(const char * text) {}
 
 private:
     GUITextVertices mTextVertices;
@@ -35,4 +36,4 @@ private:
 
 }
 
-#endif // TEXTELEMENT_H
+#endif // MONOSPACETEXTELEMENT_H

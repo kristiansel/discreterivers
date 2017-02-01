@@ -24,15 +24,13 @@ public:
 
     inline RefCounted(RefCounted &&tx) : mResourceID(tx.mResourceID)
     {
-        tx.mResourceID = Resource::ResID::invalid();
+        tx.mResourceID = getManager().getInvalidResID();
         //std::cout << "RefCounted MOVE constructed: " << std::endl;
     }
 
     inline RefCounted& operator= (const RefCounted& tx)
     {
-        //std::cout << "RefCounted COPY ASSIGN operator: " << std::endl;
         destroyRef();
-        // should reuse copy here
         mResourceID = tx.mResourceID;
         getManager().incr(mResourceID);
         return *this;
@@ -42,11 +40,8 @@ public:
     inline RefCounted& operator= (RefCounted&& tx) noexcept
     {
         destroyRef();
-        // should reuse move here...
-        mResourceID = tx.mResourceID; //data = other.data;
-        //tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
-        tx.mResourceID = Resource::ResID::invalid(); //other.data = nullptr;
-        //std::cout << "RefCounted MOVE ASSIGN operator: " << std::endl;
+        mResourceID = tx.mResourceID;
+        tx.mResourceID = getManager().getInvalidResID();
         return *this;
     }
 
@@ -56,7 +51,7 @@ public:
         //std::cout << "RefCounted DESTRUCTOR" << std::endl;
     }
 private:
-    Resource::ResID mResourceID;
+    ResID mResourceID;
 
     inline void destroyRef()
     {

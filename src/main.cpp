@@ -25,7 +25,7 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    SceneData scene_data = createPlanetData();
+    //SceneData scene_data = createPlanetData();
 
     // SDL2 window code
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     engine::Engine engine(width, height, dpi);
 
     // create a scene
-    createScene(engine.getRenderer(), scene_data);
+    //createScene(engine.getRenderer(), scene_data);
 
     // SDL event loop
     SDL_Event event;

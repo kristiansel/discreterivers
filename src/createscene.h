@@ -135,9 +135,6 @@ inline SceneData createPlanetData()
     std::vector<gfx::TexCoords> alt_planet_texcoords = planet_shape.getUV(alt_planet_points);
     std::vector<gfx::TexCoords> clim_mat_texco = AltPlanet::Climate::getClimateCoords(alt_planet_irradiance, alt_planet_humidity);
 
-
-
-
     return SceneData{
         alt_planet_geometry.points,
         alt_planet_geometry.triangles,
