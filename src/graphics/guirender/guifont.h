@@ -43,10 +43,10 @@ public:
 
     Texture getTextureAtlas() const;
     GUITextVertices render(const std::string &text) const;
-    GUITextVertices renderMonospace(std::string text, unsigned int buffersize) const;
 
     // could go full template here, and use char array and tex coords array of related length?
-    void getMonospaceTexCoords(const char * text, TexCoords * tex_coords);
+    void updateText(const char * text, std::vector<vmath::Vector4> &points, std::vector<TexCoords> &tex_coords) const;
+    void updateTextPtrs(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data) const;
 
     //static GUITextVertices renderText(const GUIFont &font, const std::string &text);
 

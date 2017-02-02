@@ -13,7 +13,7 @@ inline void createProfilingPane(GUI &gui, gfx::gui::GUINode &profiling_pane_root
     const gfx::gui::GUIFont &font = gui.getDefaultFont();
 
     gfx::gui::GUINodeHandle fps_counter_node = profiling_pane_root.addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
                                  gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
 
     gfx::gui::GUIElementHandle fps_text_element = fps_counter_node->addElement(
@@ -23,12 +23,13 @@ inline void createProfilingPane(GUI &gui, gfx::gui::GUINode &profiling_pane_root
     [fps_text_element, &font] (const events::FPSUpdateEvent &evt) {
         float fps_filtered_val = evt.fps;
         std::string fps_text = std::to_string((int)(fps_filtered_val))+std::string(" FPS");
-        gfx::gui::GUITextVertices fps_text_verts = font.render(fps_text);
-        fps_text_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+        //gfx::gui::GUITextVertices fps_text_verts = font.render(fps_text);
+        //fps_text_element->get<gfx::gui::TextElement>().setTextVertices(fps_text_verts);
+        fps_text_element->get<gfx::gui::TextElement>().updateText(fps_text.c_str(), font, fps_text.size());
     });
 
     gfx::gui::GUINodeHandle frame_time_node = profiling_pane_root.addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
                                  gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.10f} ));
 
     gfx::gui::GUIElementHandle frame_time_text_element = frame_time_node->addElement(
@@ -38,8 +39,9 @@ inline void createProfilingPane(GUI &gui, gfx::gui::GUINode &profiling_pane_root
     [frame_time_text_element, &font] (const events::FPSUpdateEvent &evt) {
         float frame_time = 1000000.0f/(evt.fps); // microsec
         std::string frame_time_text = std::to_string((int)(frame_time))+std::string(" microsec.");
-        gfx::gui::GUITextVertices frame_time_text_verts = font.render(frame_time_text);
-        frame_time_text_element->get<gfx::gui::TextElement>().setTextVertices(frame_time_text_verts);
+        //gfx::gui::GUITextVertices frame_time_text_verts = font.render(frame_time_text);
+        //frame_time_text_element->get<gfx::gui::TextElement>().setTextVertices(frame_time_text_verts);
+        frame_time_text_element->get<gfx::gui::TextElement>().updateText(frame_time_text.c_str(), font, frame_time_text.size());
     });
 }
 

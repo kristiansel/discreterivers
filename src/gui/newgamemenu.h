@@ -32,7 +32,7 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
         gfx::gui::GUITransform( {gfx::gui::HorzPos(0.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
                                  gfx::gui::VertPos(0.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top)}, {0.15f, 0.10f} ));
 
-    title_node->addElement( gfx::gui::MonospaceTextElement( "New game -> World Generation", font, 32));
+    title_node->addElement( gfx::gui::TextElement( "New game -> World Generation", font));
 
     createButton(newgame_bg_node, "Sphere", font,
                  gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
