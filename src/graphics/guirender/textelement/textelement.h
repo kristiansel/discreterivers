@@ -38,10 +38,11 @@ inline void TextElement::updateText(const char * text, const GUIFont &font, unsi
 {
     unsigned int num_verts = 6*num_chars;
 
-    std::vector<vmath::Vector4> points;
-    std::vector<TexCoords> tex_coords;
+    std::vector<vmath::Vector4> points(num_verts);
+    std::vector<TexCoords> tex_coords(num_verts);
 
-    font.updateText(text, points, tex_coords);
+    //font.updateText(text, points, tex_coords);
+    font.updateTextData(text, &points[0], &tex_coords[0]);
 
     mTextVertices.updateText(&tex_coords[0], &points[0], num_verts);
 }
