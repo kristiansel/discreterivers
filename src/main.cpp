@@ -9,6 +9,7 @@
 #define _VECTORMATH_DEBUG
 
 #include "common/macro/macroprofile.h"
+#include "common/threads/threadpool.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
 #include "gui/gui.h"
@@ -25,7 +26,10 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    //SceneData scene_data = createPlanetData();
+    Threads::ThreadPool tp(5);
+
+    tp.push( [] (int id){ std::cout << "hello from " << id << '\n'; }); // lambda
+
 
     // SDL2 window code
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -104,8 +108,12 @@ int main(int argc, char *argv[])
     //=================================//
     engine::Engine engine(width, height, dpi);
 
-    // create a scene
-    //createScene(engine.getRenderer(), scene_data);
+    events::Immediate::add_callback<events::GenerateWorldEvent>(
+        [&engine] (const events::GenerateWorldEvent &evt) {
+            SceneData scene_data = createPlanetData();
+            createScene(engine.getRenderer(), scene_data);
+        }
+    );
 
     // SDL event loop
     SDL_Event event;

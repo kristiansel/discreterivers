@@ -1,6 +1,7 @@
 #include "altplanet.h"
 #include "triangulate.hpp"
 #include "incrtriangulate.hpp"
+#include "../common/macro/macrodebugassert.h"
 #include "../common/macro/macroprofile.h"
 #include "../common/procedural/noise3d.h"
 #include "../common/collision/projection.h"
@@ -25,8 +26,6 @@ namespace AltPlanet
 	std::vector<gfx::Triangle> triangulateAndOrient(const std::vector<vmath::Vector3> &points,
 													const SpaceHash3D &spacehash,
 													const Shape::BaseShape &planet_shape);
-
-    void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);
 
     void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance);
 
@@ -94,7 +93,7 @@ namespace AltPlanet
 
         //std::cout << "found " << triangles.size() << " triangles" << std::endl;
 
-        perturbHeightNoise3D(points, planet_shape);
+        //perturbHeightNoise3D(points, planet_shape);
 
         std::cout << "done!" << std::endl;
 
@@ -463,4 +462,64 @@ namespace AltPlanet
 
         std::cout << "filtered out " << total_points_filtered << " degenerate points" << std::endl;
     }
+
+    void createOrLoadPlanetGeom(PlanetGeometry &alt_planet_geometry, AltPlanet::Shape::BaseShape *&planet_shape_ptr, PlanetShape shape)
+    {
+        std::string planet_filename;
+        switch(shape)
+        {
+        case(PlanetShape::Sphere):
+        {
+            planet_shape_ptr = new AltPlanet::Shape::Sphere(3.0f);
+            planet_filename = "sphere_planet.dat";
+        }
+        break;
+        case(PlanetShape::Torus):
+        {
+            planet_shape_ptr = new AltPlanet::Shape::Torus(3.0f, 1.0f);
+            planet_filename = "torus_planet.dat";
+        }
+        break;
+        default:
+            DEBUG_ASSERT(false&&"invalid planet shape enum");
+        }
+        AltPlanet::Shape::BaseShape &planet_shape = *planet_shape_ptr;
+
+        // try to open planet file
+        std::ifstream file(planet_filename, std::ios::binary);
+        bool loading_went_bad = false;
+        if (file.is_open()) {
+            // load planet from file
+            try {
+                std::cout << "loading planet file: " << planet_filename << std::endl;
+                Serial::StreamType resin = Serial::read_from_file(planet_filename);
+                alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
+            } catch (...) {
+                loading_went_bad = true;
+                std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << "could not open file " << planet_filename << std::endl;
+            loading_went_bad = true;
+        }
+
+        if (loading_went_bad)
+        {
+            std::cout << "generating planet geometry" << std::endl;
+            // create the planet
+
+            // Generate geometry
+            alt_planet_geometry = AltPlanet::generate(10000, planet_shape);
+
+            // Serialize it
+            try {
+                Serial::serialize_to_file(alt_planet_geometry, planet_filename);
+            } catch (...) {
+                std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
+            }
+        }
+    }
+
 }

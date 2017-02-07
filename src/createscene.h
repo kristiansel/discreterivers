@@ -3,6 +3,7 @@
 
 #include "graphics/openglrenderer.h"
 #include "altplanet/altplanet.h"
+#include "altplanet/subivide.h"
 #include "altplanet/watersystem.h"
 #include "altplanet/climate/irradiance.h"
 #include "altplanet/climate/humidity.h"
@@ -26,12 +27,9 @@ struct SceneData {
 
 inline SceneData createPlanetData()
 {
-    //AltPlanet::Shape::Disk disk(3.0f);
-    AltPlanet::Shape::Sphere sphere(3.0f);
-    AltPlanet::Shape::Torus torus(3.0f, 1.0f);
-    AltPlanet::Shape::BaseShape &planet_shape = torus;
 
-    #ifdef PROFILE
+
+#ifdef PROFILE
     for (int num_pts = 500; num_pts < 4000; num_pts += 500)
     {
         std::cout << "generating with " << num_pts << " points" << std::endl;
@@ -40,50 +38,23 @@ inline SceneData createPlanetData()
         auto dummy = AltPlanet::generate(num_pts, planet_shape);
         PROFILE_END(altplanet_generate);
     }
-    #endif
+#endif
     // Alt planet
-    //std::string planet_filename = "torus_planet.dat";
+    AltPlanet::PlanetGeometry alt_planet_geometry;
+    AltPlanet::Shape::BaseShape * planet_shape_ptr = nullptr;
+    AltPlanet::createOrLoadPlanetGeom(alt_planet_geometry, planet_shape_ptr, AltPlanet::PlanetShape::Sphere);
 
-    // // try to open planet file
-    // std::ifstream file(planet_filename, std::ios::binary);
-    // bool loading_went_bad = false;
-    // if (file.is_open()) {
-    //     // load planet from file
-    //     try {
-    //         std::cout << "loading planet file: " << planet_filename << std::endl;
-    //         Serial::StreamType resin = Serial::read_from_file(planet_filename);
-    //         alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
-    //     } catch (...) {
-    //         loading_went_bad = true;
-    //         std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
-    //     }
-    // }
-    // else
-    // {
-    //     std::cout << "could not open file " << planet_filename << std::endl;
-    //     loading_went_bad = true;
-    // }
+    AltPlanet::Shape::BaseShape &planet_shape = *planet_shape_ptr;
 
-    // if (loading_went_bad)
-    // {
-    //     std::cout << "generating planet geometry" << std::endl;
-    //     // create the planet
-
-    //     // Generate geometry
-    //     alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
-
-    //     // Serialize it
-    //     try {
-    //         Serial::serialize_to_file(alt_planet_geometry, planet_filename);
-    //     } catch (...) {
-    //         std::cout << "something went wrong while trying to serialize to " << planet_filename << std::endl;
-    //     }
-    // }
-
-    SceneData scene_data;
+    // TODO: Refactor out sketchy pointers...
 
     // generate planet
-    AltPlanet::PlanetGeometry alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
+    // AltPlanet::PlanetGeometry alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
+
+    std::vector<std::vector<gfx::Triangle>> subd_triangles;
+    AltPlanet::subdivideGeometry(alt_planet_geometry.points, alt_planet_geometry.triangles, subd_triangles, 1);
+
+    AltPlanet::perturbHeightNoise3D(alt_planet_geometry.points, planet_shape);
 
     std::vector<vmath::Vector3> &alt_planet_points = alt_planet_geometry.points;
     std::vector<gfx::Triangle> &alt_planet_triangles = alt_planet_geometry.triangles;
@@ -110,10 +81,10 @@ inline SceneData createPlanetData()
 
     float planet_tilt = 0.408407f; // radians, same as earth
     std::vector<float> alt_planet_irradiance = AltPlanet::Irradiance::irradianceYearMean(
-        alt_planet_points,
-        alt_planet_normals,
-        alt_planet_triangles,
-        planet_tilt);
+                alt_planet_points,
+                alt_planet_normals,
+                alt_planet_triangles,
+                planet_tilt);
 
     // check the irradiance
     float max = std::numeric_limits<float>::min();
@@ -137,17 +108,17 @@ inline SceneData createPlanetData()
 
     return SceneData{
         alt_planet_geometry.points,
-        alt_planet_geometry.triangles,
+                alt_planet_geometry.triangles,
 
-        water_geometry.ocean.points,
-        water_geometry.ocean.triangles,
+                water_geometry.ocean.points,
+                water_geometry.ocean.triangles,
 
-        water_geometry.freshwater.lakes.points,
-        water_geometry.freshwater.lakes.triangles,
-        water_geometry.freshwater.rivers.lines,
+                water_geometry.freshwater.lakes.points,
+                water_geometry.freshwater.lakes.triangles,
+                water_geometry.freshwater.rivers.lines,
 
-        alt_planet_texcoords,
-        clim_mat_texco
+                alt_planet_texcoords,
+                clim_mat_texco
     };
 }
 
@@ -156,13 +127,13 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
     // create a scene graph node for a light
     gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
     gfx::LightHandle light = ([](const gfx::SceneNodeHandle &scene_node)
-                              {
-                                  vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
-                                  gfx::Transform transform;
-                                  transform.position = vmath::Vector3(10.0f, 10.0f, 10.0f);
+    {
+        vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(10.0f, 10.0f, 10.0f);
 
-                                  return scene_node->addLight(color, transform);
-                              })(light_scene_node);
+        return scene_node->addLight(color, transform);
+    })(light_scene_node);
 
     gfx::SceneNodeHandle planet_scene_node = opengl_renderer.addSceneNode();
 
@@ -184,19 +155,19 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
 
     // Planet point data scene object
     gfx::SceneObjectHandle alt_planet_points_so = ([&]()
-                                                   {
-                                                       gfx::Primitives primitives = gfx::Primitives(alt_planet_point_primitives_data);
-                                                       gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
+    {
+        gfx::Primitives primitives = gfx::Primitives(alt_planet_point_primitives_data);
+        gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-                                                       vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
-                                                       gfx::Material material = gfx::Material(color);
+        vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
+        gfx::Material material = gfx::Material(color);
 
-                                                       // material.setWireframe(true);
+        // material.setWireframe(true);
 
-                                                       gfx::Transform transform;
-                                                       transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-                                                       return planet_scene_node->addSceneObject(geometry, material, transform);
-                                                   })(); // immediately invoked lambda!
+        gfx::Transform transform;
+        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
+        return planet_scene_node->addSceneObject(geometry, material, transform);
+    })(); // immediately invoked lambda!
 
     alt_planet_points_so->toggleVisible();
 
@@ -215,7 +186,7 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
         auto climate_tex = AltPlanet::Climate::createClimatePixels();
 
         gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
-                                               climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::nearest);
+                climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::nearest);
 
         gfx::Vertices alt_planet_clim_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, scene_data.clim_mat_texco);
 
@@ -228,34 +199,34 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
     //alt_planet_triangles_so->setWireframe(true);
 
     auto add_trivial_object = [](   const std::vector<vmath::Vector3> points,
-                                    const std::vector<gfx::Triangle> triangles,
-                                    const vmath::Vector4 &color,
-                                    gfx::SceneNodeHandle &scene_node)
-            {
-                std::vector<vmath::Vector4> position_data;
+            const std::vector<gfx::Triangle> triangles,
+            const vmath::Vector4 &color,
+            gfx::SceneNodeHandle &scene_node)
+    {
+        std::vector<vmath::Vector4> position_data;
 
-                for (int i = 0; i<points.size(); i++)
-                {
-                    position_data.push_back((const vmath::Vector4&)(points[i]));
-                    position_data.back().setW(1.0f);
-                }
+        for (int i = 0; i<points.size(); i++)
+        {
+            position_data.push_back((const vmath::Vector4&)(points[i]));
+            position_data.back().setW(1.0f);
+        }
 
-                std::vector<vmath::Vector4> normal_data;
-                gfx::generateNormals(&normal_data, position_data, triangles);
+        std::vector<vmath::Vector4> normal_data;
+        gfx::generateNormals(&normal_data, position_data, triangles);
 
-                gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
 
-                gfx::Primitives primitives = gfx::Primitives(triangles);
-                gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+        gfx::Primitives primitives = gfx::Primitives(triangles);
+        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
 
-                gfx::Material material = gfx::Material(color);
+        gfx::Material material = gfx::Material(color);
 
-                gfx::Transform transform;
-                transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-                transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
+        gfx::Transform transform;
+        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
+        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
 
-                return scene_node->addSceneObject(geometry, material, transform);
-            };
+        return scene_node->addSceneObject(geometry, material, transform);
+    };
 
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(scene_data.alt_ocean_points, scene_data.alt_ocean_triangles,

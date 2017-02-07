@@ -77,6 +77,8 @@ struct FPSUpdateEvent
     float fps;
 };
 
+struct GenerateWorldEvent {};
+
 
 } // namespace events
 

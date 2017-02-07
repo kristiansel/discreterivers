@@ -4,6 +4,7 @@
 #include "gui.h"
 #include "guistyling.h"
 #include "createbutton.h"
+#include "../createscene.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 
@@ -57,7 +58,7 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  gfx::gui::HorzPos(0.75f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
                  gfx::gui::VertPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom),
                  0.2f,
-                 [](){});
+                 [](){ events::Immediate::broadcast(events::GenerateWorldEvent()); });
 
     createButton(newgame_bg_node, "Next", font,
                  gfx::gui::HorzPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
