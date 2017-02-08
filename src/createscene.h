@@ -42,7 +42,7 @@ inline SceneData createPlanetData()
     // Alt planet
     AltPlanet::PlanetGeometry alt_planet_geometry;
     AltPlanet::Shape::BaseShape * planet_shape_ptr = nullptr;
-    AltPlanet::createOrLoadPlanetGeom(alt_planet_geometry, planet_shape_ptr, AltPlanet::PlanetShape::Sphere);
+    AltPlanet::createOrLoadPlanetGeom(alt_planet_geometry, planet_shape_ptr, AltPlanet::PlanetShape::Torus);
 
     AltPlanet::Shape::BaseShape &planet_shape = *planet_shape_ptr;
 
@@ -53,6 +53,8 @@ inline SceneData createPlanetData()
 
     std::vector<std::vector<gfx::Triangle>> subd_triangles;
     AltPlanet::subdivideGeometry(alt_planet_geometry.points, alt_planet_geometry.triangles, subd_triangles, 1);
+    // jitter the points around a bit...
+    // AltPlanet::jitterPoints(alt_planet_geometry.points);
 
     AltPlanet::perturbHeightNoise3D(alt_planet_geometry.points, planet_shape);
 
@@ -61,7 +63,7 @@ inline SceneData createPlanetData()
 
     // Generate the planet water system
     float planet_ocean_fraction = 0.55f;
-    int num_river_springs = 150;
+    int num_river_springs = 100;
     auto water_geometry = AltPlanet::WaterSystem::generateWaterSystem(alt_planet_geometry, planet_shape,
                                                                       planet_ocean_fraction,
                                                                       num_river_springs);
@@ -183,10 +185,11 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
         gfx::Primitives primitives = gfx::Primitives(alt_planet_triangles);
         gfx::Geometry geometry = gfx::Geometry(alt_planet_irr_verts, primitives);*/
 
-        auto climate_tex = AltPlanet::Climate::createClimatePixels();
+        //auto climate_zone_tex = AltPlanet::Climate::createClimatePixels();
+        auto climate_tex = AltPlanet::Climate::createClimateColorPixels();
 
         gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
-                climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::nearest);
+                climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::linear);
 
         gfx::Vertices alt_planet_clim_verts = gfx::Vertices(alt_planet_position_data, alt_planet_normal_data, scene_data.clim_mat_texco);
 

@@ -4,6 +4,7 @@
 #include <list>
 #include <iostream>
 #include <functional>
+#include <type_traits>
 
 #include "guielement.h"
 #include "guitransform.h"
@@ -26,6 +27,12 @@ using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
 using GUINodePtr = gui::GUINode*;
 
+class GUIState
+{
+public:
+    virtual ~GUIState() {}
+};
+
 class GUINode// : public Resource::RefCounted<GUINode> // why does this need to be refcounted. It has no pointer data that can be reused...
 {
     // private class GUIFlags
@@ -38,10 +45,6 @@ class GUINode// : public Resource::RefCounted<GUINode> // why does this need to 
 
     using GUIFlags = stdext::Flags<GUIFlag, GUIFlag::Default>;
 public:
-    using MouseEnterHandler = std::function<void(void)>;
-    using MouseLeaveHandler = std::function<void(void)>;
-    using MouseClickHandler = std::function<void(void)>;
-
     template<typename F, typename... Args>
     struct GUIEventHandler
     {
@@ -122,12 +125,37 @@ public:
     // vector init needs copy constructor... strange? Ah, it is because of initializer list
     // elements of the list are always passed as const reference 18.9 in standard
 
-    inline GUINode(GUINode &&gn) : //Resource::RefCounted<GUINode>(std::move(gn)),
+    /*inline GUINode(GUINode &&gn) : //Resource::RefCounted<GUINode>(std::move(gn)),
         mGUITransform(gn.mGUITransform), mChildren(std::move(gn.mChildren)), mElements(std::move(gn.mElements)),
         mGUIFlags(GUIFlag::Default), mouseEnter(std::move(gn.mouseEnter)), mouseLeave(std::move(gn.mouseLeave)),
-        mouseClick(std::move(gn.mouseClick)) {}
+        mouseClick(std::move(gn.mouseClick))
+    {
+        mGUIStatePtr = gn.mGUIStatePtr;
+        gn.mGUIStatePtr = nullptr;
+    } // = delete */
 
-    inline GUINode(const GUINode &gn) = default;
+    ~GUINode()
+    {
+        delete mGUIStatePtr;
+    }
+
+    template<typename StateT>
+    void setState(const StateT &state)
+    {
+        static_assert(std::is_base_of<GUIState, StateT>::value, "StateT must inherit GUIState");
+        delete mGUIStatePtr;
+        mGUIStatePtr = new StateT(state);
+        onStateUpdate();
+    }
+
+    template<typename StateT>
+    const StateT * const getState()
+    {
+        static_assert(std::is_base_of<GUIState, StateT>::value, "StateT must inherit GUIState");
+        return dynamic_cast<const StateT * const> (mGUIStatePtr);
+    }
+
+    //inline GUINode(const GUINode &gn) = default;
 
     template <typename ...Args>
     inline GUINodeHandle addGUINode(Args... args)
@@ -162,26 +190,37 @@ public:
     GUIEventHandler<void> mouseEnter;
     GUIEventHandler<void> mouseLeave;
     GUIEventHandler<void> mouseClick;
+    GUIEventHandler<void> stateUpdate;
 
     // Resource::RefCounted<GUINode>
     // inline void resourceDestruct() { std::cout << "deleting gui node" << std::endl; }
 
 private:
-    GUINode();
+    GUINode() = delete;
+    GUINode(const GUINode &gn) = delete;
+    GUINode(GUINode &&gn) = delete;
 
     // private some operators?
     GUITransform mGUITransform;
     GUIFlags mGUIFlags;
+    GUIState *mGUIStatePtr;
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;
 
-
+    inline void onStateUpdate()
+    {
+        stateUpdate.invokeCallbacks();
+        for (auto &child : mChildren )
+        {
+            child.onStateUpdate();
+        }
+    }
 };
 
 
 inline GUINode::GUINode(const GUITransform &gui_transform) :
-    mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default)
+    mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIStatePtr(nullptr)
 {
     // value ctor
 }

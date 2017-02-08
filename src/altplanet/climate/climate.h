@@ -37,7 +37,7 @@ namespace Climate {
         std::array<float, tex_size> pixels;
     };
 
-    inline PixelArray createClimatePixels()
+    inline PixelArray createClimateZonePixels()
     {
         PixelArray out;
         out.h = 3;
@@ -46,6 +46,19 @@ namespace Climate {
             1.0f, 1.0f, 1.0f,  0.5f, 0.5f, 0.5f,   0.6f, 0.2f, 0.0f,  0.8f, 0.8f, 0.0f,
             0.4f, 0.0f, 0.7f,  0.0f, 0.7f, 0.3f,   0.0f, 1.0f, 0.0f,  0.6f, 0.4f, 0.3f,
             0.4f, 0.0f, 0.7f,  0.0f, 0.7f, 0.3f,   0.3f, 1.0f, 0.3f,  0.6f, 1.0f, 0.6f
+        };
+        return out;
+    }
+
+    inline PixelArray createClimateColorPixels()
+    {
+        PixelArray out;
+        out.h = 3;
+        out.w = 4;
+        out.pixels = {
+            1.00f, 1.0f, 1.0f,  0.4f, 0.5f, 0.3f,   0.8f, 0.7f, 0.3f,  0.9f, 0.9f, 0.5f,
+            0.4f, 0.5f, 0.15f,  0.0f, 0.3f, 0.15f,   0.0f, 0.4f, 0.0f,  0.6f, 0.5f, 0.3f,
+            0.4f, 0.5f, 0.15f,  0.0f, 0.3f, 0.15f,   0.15f, 0.36f, 0.05f,  0.0f, 0.6f, 0.0f
         };
         return out;
     }

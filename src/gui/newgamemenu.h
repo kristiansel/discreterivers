@@ -4,11 +4,28 @@
 #include "gui.h"
 #include "guistyling.h"
 #include "createbutton.h"
+#include "createtoggle.h"
 #include "../createscene.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 
+#include "../altplanet/altplanet.h"
+
 namespace gui {
+
+struct NewGameMenuState : public gfx::gui::GUIState
+{
+    using PlanetShape = AltPlanet::PlanetShape;
+    enum class PlanetSize {Small, Medium, Large};
+
+    PlanetShape planet_shape;
+    PlanetSize  planet_size;
+
+    NewGameMenuState() :
+        planet_shape(PlanetShape::Sphere),
+        planet_size(PlanetSize::Medium)
+    { /* default constructor */ }
+};
 
 inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 {
@@ -20,6 +37,7 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     newgame_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
     newgame_bg_node->hide();
+    newgame_bg_node->setState(NewGameMenuState());
 
     events::Immediate::add_callback<events::NewGameEvent>(
         [newgame_bg_node] (const events::NewGameEvent &evt) { newgame_bg_node->show(); }
@@ -35,11 +53,21 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     title_node->addElement( gfx::gui::TextElement( "New game -> World Generation", font));
 
-    createButton(newgame_bg_node, "Sphere", font,
+    gfx::gui::GUINodeHandle sphere_btn = createToggle(newgame_bg_node, "Sphere", font,
                  gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
                  gfx::gui::VertPos(0.15f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
                  0.15f,
-                 [](){});
+                 [newgame_bg_node] ()
+                 {
+                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
+                     state.planet_shape = NewGameMenuState::PlanetShape::Sphere;
+                     newgame_bg_node->setState(state);
+                 },
+                 [newgame_bg_node] ()
+                 {
+                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
+                     return state.planet_shape == NewGameMenuState::PlanetShape::Sphere;
+                 });
 
     createButton(newgame_bg_node, "Disk", font,
                  gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
