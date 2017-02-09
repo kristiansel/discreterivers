@@ -5,13 +5,19 @@
 #include "bgelement/bgelement.h"
 #include "imageelement/imageelement.h"
 #include "textelement/textelement.h"
+#include "sceneelement/sceneelement.h"
 
 
 namespace gfx {
 
 namespace gui {
 
-using GUIElement = stdext::either<TextElement, ImageElement, BackgroundElement>;
+using GUIElement = stdext::either<
+    TextElement,
+    ImageElement,
+    BackgroundElement,
+    SceneElement
+>;
 
 } // gui
 

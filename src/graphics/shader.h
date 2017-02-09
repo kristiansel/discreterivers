@@ -32,7 +32,10 @@ public:
         GLint light_color;
     };
 
-    inline void clearDrawObjects() const { mDrawObjectsVector.clear(); }
+    inline void clearDrawObjects() const
+    {
+        mDrawObjectsVector.clear();
+    }
 
     inline void addDrawObject(vmath::Matrix4 &&world_matrix,
                               Material::DrawData &&material_data,

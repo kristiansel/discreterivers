@@ -179,7 +179,7 @@ public:
 
     // should add safety to this
     template<typename T>
-    const T &get() const { return reinterpret_cast<const T&>(data_); }
+    const T &get_const() const { return reinterpret_cast<const T&>(data_); }
 
 
 private:

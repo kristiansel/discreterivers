@@ -108,12 +108,12 @@ int main(int argc, char *argv[])
     //=================================//
     engine::Engine engine(width, height, dpi);
 
-    events::Immediate::add_callback<events::GenerateWorldEvent>(
+    /*events::Immediate::add_callback<events::GenerateWorldEvent>(
         [&engine] (const events::GenerateWorldEvent &evt) {
             SceneData scene_data = createPlanetData();
-            createScene(engine.getRenderer(), scene_data);
+            createScene(engine.getRenderer().getSceneRoot(), scene_data);
         }
-    );
+    );*/
 
     // SDL event loop
     SDL_Event event;

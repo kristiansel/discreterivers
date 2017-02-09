@@ -26,7 +26,7 @@ static const unsigned int NUM_GEN_POINTS_DEFAULT = 10000;
 
 PlanetGeometry generate(unsigned int n_points, const Shape::BaseShape &planet_shape);
 
-enum class PlanetShape {Sphere, Torus};
+enum class PlanetShape {Sphere, Torus, Disk};
 void createOrLoadPlanetGeom(PlanetGeometry &alt_planet_geometry, Shape::BaseShape *&planet_shape_ptr, PlanetShape shape);
 
 void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape);

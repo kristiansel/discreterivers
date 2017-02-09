@@ -69,13 +69,13 @@ inline SceneData createPlanetData()
                                                                       num_river_springs);
 
     // Deconstruct the ocean geometry
-    std::vector<vmath::Vector3> &alt_ocean_points = water_geometry.ocean.points;
+    /*std::vector<vmath::Vector3> &alt_ocean_points = water_geometry.ocean.points;
     std::vector<gfx::Triangle> &alt_ocean_triangles = water_geometry.ocean.triangles;
 
     // Deconstruct freshwater geometry
     std::vector<vmath::Vector3> &alt_lake_points = water_geometry.freshwater.lakes.points;
     std::vector<gfx::Triangle> &alt_lake_triangles = water_geometry.freshwater.lakes.triangles;
-    std::vector<gfx::Line> &alt_river_lines = water_geometry.freshwater.rivers.lines;
+    std::vector<gfx::Line> &alt_river_lines = water_geometry.freshwater.rivers.lines;*/
 
     // Generate planet irradiance map
     std::vector<vmath::Vector3> alt_planet_normals;
@@ -124,10 +124,9 @@ inline SceneData createPlanetData()
     };
 }
 
-inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &scene_data) {
-
-    // create a scene graph node for a light
-    gfx::SceneNodeHandle light_scene_node = opengl_renderer.addSceneNode();
+inline void createScene(gfx::SceneNode &scene_root, const SceneData &scene_data)
+{
+    gfx::SceneNodeHandle light_scene_node = scene_root.addSceneNode();
     gfx::LightHandle light = ([](const gfx::SceneNodeHandle &scene_node)
     {
         vmath::Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -137,7 +136,7 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
         return scene_node->addLight(color, transform);
     })(light_scene_node);
 
-    gfx::SceneNodeHandle planet_scene_node = opengl_renderer.addSceneNode();
+    gfx::SceneNodeHandle planet_scene_node = scene_root.addSceneNode();
 
     // Create some alt planet vertex data to share
     std::vector<vmath::Vector4> alt_planet_position_data;
@@ -163,12 +162,9 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
 
         vmath::Vector4 color(1.0f, 0.0f, 0.0f, 1.0f);
         gfx::Material material = gfx::Material(color);
-
         // material.setWireframe(true);
 
-        gfx::Transform transform;
-        transform.scale = vmath::Vector3(1.0008f, 1.0008f, 1.0008f);
-        return planet_scene_node->addSceneObject(geometry, material, transform);
+        return planet_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!
 
     alt_planet_points_so->toggleVisible();
@@ -224,11 +220,7 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
 
         gfx::Material material = gfx::Material(color);
 
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
-
-        return scene_node->addSceneObject(geometry, material, transform);
+        return scene_node->addSceneObject(geometry, material);
     };
 
     // Add planet ocean scene object
@@ -254,12 +246,7 @@ inline void createScene(gfx::OpenGLRenderer &opengl_renderer, const SceneData &s
         vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
         gfx::Material material = gfx::Material(color);
 
-
-        gfx::Transform transform;
-        transform.position = vmath::Vector3(0.0f, 0.0f, 0.0f);
-        transform.scale = vmath::Vector3(1.00f, 1.00f, 1.00f);
-
-        return planet_scene_node->addSceneObject(geometry, material, transform);
+        return planet_scene_node->addSceneObject(geometry, material);
     })();
 
     std::cout << "rivers_sceneobject" << std::endl;

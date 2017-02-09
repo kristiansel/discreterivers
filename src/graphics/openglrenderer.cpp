@@ -6,30 +6,6 @@
 namespace gfx
 {
 
-Camera::Camera(int width, int height)
-{
-    // set up camera
-    // camera
-    // projection matrix
-    float aspect_ratio = (float)(width)/(float)(height);
-    mProjectionMatrix = vmath::Matrix4::perspective(
-        M_PI_4,                         // field of view (radians)
-        aspect_ratio,                   // aspect ratio
-        0.1f,                           // znear
-        100.0f                          // zfar
-    );
-
-//    float half_height = 3.5f;
-//    mProjectionMatrix = vmath::Matrix4::orthographic(
-//        -aspect_ratio*half_height, aspect_ratio*half_height, -half_height, half_height, 0.1f, 100.0f
-//    );
-
-
-
-    /*vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 10.0f));
-    mCamMatrixInverse = vmath::inverse(camera_matrix);*/
-}
-
 OpenGLRenderer::OpenGLRenderer(int w, int h)  :
     mWidth(w), mHeight(h),
     mGUITextShader(w, h)/*,
@@ -85,61 +61,15 @@ void OpenGLRenderer::resize(int w, int h)
     glViewport(0, 0, w, h);
 }
 
-SceneNodeHandle OpenGLRenderer::addSceneNode()
+inline void OpenGLRenderer::drawScene(const Camera &camera, const SceneNode &scene_root) const
 {
-    scenenode_id id_out(mSceneNodesVector.size());
-    mSceneNodesVector.emplace_back(SceneNode());
-
-    return SceneNodeHandle(this, id_out);
-}
-
-SceneNode * OpenGLRenderer::getSceneNodePtr(scenenode_id id)
-{
-    return &mSceneNodesVector[int(id)];
-}
-
-SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
-                                         const Material &material,
-                                         const Transform &transform)
-{
-    sceneobject_id id_out(mSceneObjects.size());
-    mSceneObjects.emplace_back(material, geometry);
-    return SceneObjectHandle(this, id_out);
-}
-
-SceneObject * SceneNode::getSceneObjectPtr(sceneobject_id id)
-{
-    return &mSceneObjects[int(id)];
-}
-
-
-LightHandle SceneNode::addLight(const vmath::Vector4 &color,
-                     const Transform &transform)
-{
-    light_id id_out(mLights.size());
-    mLights.emplace_back(transform, color);
-
-    return LightHandle(this, id_out);
-
-}
-
-void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) const
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // update mutable global uniforms.
-    // blabla... update etc...
-    // like camera
-    // lights (forward renderer)
-    // wind direction
-    // all that stuff that can be shared by shader programs...
-
+    glEnable(GL_DEPTH_TEST);
     // switch shader, (might be done later at material stage...)
     glUseProgram (mMainShader.getProgramID());
 
     // prepare lights
-    mLightObjectsVector.clear();
-    for (const auto &scene_node : mSceneNodesVector)
+    /*mLightObjectsVector.clear();
+    for (const auto &scene_node : mSceneRoot.mChildren)
     {
         for (const auto &light : scene_node.getLights())
         {
@@ -149,7 +79,7 @@ void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) co
                 LightObject{light_world_pos, light.mColor}
             );
         }
-    }
+    }*/
 
     vmath::Vector4 light_position_world;
     vmath::Vector4 light_color;
@@ -170,26 +100,54 @@ void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) co
     glUniform4fv(mMainShader.getUniforms().light_position, 1, (const GLfloat*)&light_position);
     glUniform4fv(mMainShader.getUniforms().light_color, 1, (const GLfloat*)&light_color);
 
-    // prepare the drawobjects
     mMainShader.clearDrawObjects(); // could/does this need to be optimized?
-    for (const auto &scene_node : mSceneNodesVector)
-    {
-        for (const auto &scene_object : scene_node.getSceneObjects())
-        {
-            RenderFlags so_rflags = scene_object.getRenderFlags();
-            if (!so_rflags.checkFlag(RenderFlags::Hidden)) // woops branching in tight loop, optimize me please!
-            {
-                RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
 
-                mMainShader.addDrawObject(scene_node.transform.getTransformMatrix(),
-                                          scene_object.mMaterial.getDrawData(),
-                                          scene_object.mGeometry.getDrawData(),
-                                          combined_flags);
-            }
+    drawSceneRecursive(scene_root, vmath::Matrix4::identity());
+
+
+    mMainShader.drawDrawObjects(camera);
+
+
+    glDisable(GL_DEPTH_TEST);
+}
+
+inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_root, const vmath::Matrix4 parent_transform) const
+{
+    vmath::Matrix4 mv_matrix = parent_transform * scene_root.transform.getTransformMatrix();
+
+    for (const auto &scene_object : scene_root.getSceneObjects())
+    {
+        RenderFlags so_rflags = scene_object.getRenderFlags();
+        if (!so_rflags.checkFlag(RenderFlags::Hidden)) // woops branching in tight loop, optimize me please!
+        {
+            RenderFlags combined_flags = RenderFlags::combine(mRenderFlags, so_rflags);
+
+            mMainShader.addDrawObject(vmath::Matrix4(mv_matrix), // make lvalue
+                                      scene_object.mMaterial.getDrawData(),
+                                      scene_object.mGeometry.getDrawData(),
+                                      combined_flags);
         }
     }
 
-    mMainShader.drawDrawObjects(camera);
+    for (const auto &scene_node : scene_root.mChildren)
+    {
+        drawSceneRecursive(scene_node, mv_matrix);
+    }
+}
+
+
+void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) const
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // update mutable global uniforms.
+    // blabla... update etc...
+    // like camera
+    // lights (forward renderer)
+    // wind direction
+    // all that stuff that can be shared by shader programs...
+
+    drawScene(camera, mSceneRoot);
 
     drawGUI(gui_root);
 }
@@ -279,17 +237,31 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
                 {
                     vmath::Vector3 transl = mv.getTranslation();
                     gui::GUITransform::Position pos = { float(transl[0]), float(transl[1]) };
-                    mGUITextShader.drawTextElement(child_element.get<gui::TextElement>(), pos);
+                    mGUITextShader.drawTextElement(child_element.get_const<gui::TextElement>(), pos);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
                 {
-                    mGUIShader.drawBGElement(child_element.get<gui::BackgroundElement>(), mv);
+                    mGUIShader.drawBGElement(child_element.get_const<gui::BackgroundElement>(), mv);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::ImageElement>::value):
                 {
-                    mGUIImageShader.drawImageElement(child_element.get<gui::ImageElement>(), mv);
+                    mGUIImageShader.drawImageElement(child_element.get_const<gui::ImageElement>(), mv);
+                }
+                break;
+            case (gui::GUIElement::is_a<gui::SceneElement>::value):
+                {
+                    vmath::Vector4 bl = mv * vmath::Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+                    vmath::Vector4 tr = mv * vmath::Vector4(mWidth, mHeight, 0.0f, 1.0f);
+                    //glViewport(bl[0], bl[1], tr[0]-bl[0], tr[1]-bl[1]);
+                    //std::cout << "in SceneElement draw: " << std::endl;
+                    //vmath::print(bl);
+                    //vmath::print(tr);
+                    glViewport(400, 400, 200, 200);
+                    const gui::SceneElement &se = child_element.get_const<gui::SceneElement>();
+                    drawScene(se.getCamera(), se.getSceneRootConst());
+                    glViewport(0, 0, mWidth, mHeight);
                 }
                 break;
             default:
