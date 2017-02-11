@@ -253,12 +253,17 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             case (gui::GUIElement::is_a<gui::SceneElement>::value):
                 {
                     vmath::Vector4 bl = mv * vmath::Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-                    vmath::Vector4 tr = mv * vmath::Vector4(mWidth, mHeight, 0.0f, 1.0f);
-                    //glViewport(bl[0], bl[1], tr[0]-bl[0], tr[1]-bl[1]);
+                    vmath::Vector4 tr = mv * vmath::Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+                    bl = bl + vmath::Vector4(1.0, 1.0, 0.0, 1.0f);
+                    tr = tr + vmath::Vector4(1.0, 1.0, 0.0, 1.0f);
+                    bl = vmath::Matrix4::scale(vmath::Vector3(mWidth/2.0f, mHeight/2.0f, 1.0f)) * bl;
+                    tr = vmath::Matrix4::scale(vmath::Vector3(mWidth/2.0f, mHeight/2.0f, 1.0f)) * tr;
+
+                    glViewport(bl[0], tr[1], tr[0]-bl[0], bl[1]-tr[1]); // top right and bottom left get muddled by screen space matrix
                     //std::cout << "in SceneElement draw: " << std::endl;
                     //vmath::print(bl);
                     //vmath::print(tr);
-                    glViewport(400, 400, 200, 200);
+                    //glViewport(400, 200, 200, 100);
                     const gui::SceneElement &se = child_element.get_const<gui::SceneElement>();
                     drawScene(se.getCamera(), se.getSceneRootConst());
                     glViewport(0, 0, mWidth, mHeight);

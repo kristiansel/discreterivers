@@ -13,7 +13,7 @@
 
 namespace gui {
 
-struct NewGameMenuState : public gfx::gui::GUIState
+struct NewGameMenuState : public gfx::gui::GUIStateBase
 {
     using PlanetShape = AltPlanet::PlanetShape;
     enum class PlanetSize {Small, Medium, Large};
@@ -35,9 +35,10 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     gfx::gui::GUINodeHandle newgame_bg_node = new_game_menu_root.addGUINode(gfx::gui::GUITransform({0.50f, 0.50f}, {0.80f, 0.80f}));
 
-    newgame_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    newgame_bg_node->addElement( gfx::gui::BackgroundElement( styling::colorGuiBase() ) );
     newgame_bg_node->hide();
-    newgame_bg_node->setState(NewGameMenuState());
+
+    gfx::gui::GUIStateHandle<NewGameMenuState> state_handle = newgame_bg_node->setState(NewGameMenuState());
 
     events::Immediate::add_callback<events::NewGameEvent>(
         [newgame_bg_node] (const events::NewGameEvent &evt) { newgame_bg_node->show(); }
@@ -54,14 +55,13 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
     title_node->addElement( gfx::gui::TextElement( "New game -> World Generation", font));
 
     gfx::gui::GUINodeHandle world_scene_node = newgame_bg_node->addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
-                                 gfx::gui::VertPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle)}, {0.15f, 0.10f} ));
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.95f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
+                                 gfx::gui::VertPos(0.1f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top)}, {0.50f, 0.50f} ));
 
-    //world_scene_node->addElement( gfx::gui::TextElement( "World goes here...", font));
+    world_scene_node->addElement( gfx::gui::BackgroundElement( styling::colorGuiElement() ) );
 
     gfx::Camera camera(300, 300);
-    camera.mTransform.position = vmath::Vector3(0.0, 1.0, 10.0f);
-
+    camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
 
     events::Immediate::add_callback<events::GenerateWorldEvent>(
@@ -74,103 +74,96 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     // Toggle world shape
     createToggle(newgame_bg_node, "Sphere", font,
-                 gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.15f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.10f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_shape = NewGameMenuState::PlanetShape::Sphere;
-                     newgame_bg_node->setState(state);
+                     gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                     sw->planet_shape = NewGameMenuState::PlanetShape::Sphere;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_shape == NewGameMenuState::PlanetShape::Sphere;
+                     gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                     return sr->planet_shape == NewGameMenuState::PlanetShape::Sphere;
                  });
 
     createToggle(newgame_bg_node, "Disk", font,
-                 gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.25f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.20f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_shape = NewGameMenuState::PlanetShape::Disk;
-                     newgame_bg_node->setState(state);
+                    gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                    sw->planet_shape = NewGameMenuState::PlanetShape::Disk;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_shape == NewGameMenuState::PlanetShape::Disk;
+                    gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_shape == NewGameMenuState::PlanetShape::Disk;
                  });
 
     createToggle(newgame_bg_node, "Torus", font,
-                 gfx::gui::HorzPos(0.06f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.35f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.30f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_shape = NewGameMenuState::PlanetShape::Torus;
-                     newgame_bg_node->setState(state);
+                    gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                    sw->planet_shape = NewGameMenuState::PlanetShape::Torus;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_shape == NewGameMenuState::PlanetShape::Torus;
+                    gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_shape == NewGameMenuState::PlanetShape::Torus;
                  });
 
 
     // Toggle world size
     createToggle(newgame_bg_node, "Small", font,
-                 gfx::gui::HorzPos(0.26f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.15f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.10f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_size = NewGameMenuState::PlanetSize::Small;
-                     newgame_bg_node->setState(state);
+                    gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                    sw->planet_size = NewGameMenuState::PlanetSize::Small;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_size == NewGameMenuState::PlanetSize::Small;
+                    gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_size == NewGameMenuState::PlanetSize::Small;
                  });
 
     createToggle(newgame_bg_node, "Medium", font,
-                 gfx::gui::HorzPos(0.26f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.25f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.20f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_size = NewGameMenuState::PlanetSize::Medium;
-                     newgame_bg_node->setState(state);
+                    gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                    sw->planet_size = NewGameMenuState::PlanetSize::Medium;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_size == NewGameMenuState::PlanetSize::Medium;
+                    gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_size == NewGameMenuState::PlanetSize::Medium;
                  });
 
     createToggle(newgame_bg_node, "Large", font,
-                 gfx::gui::HorzPos(0.26f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.35f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle),
+                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.30f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top),
                  0.15f,
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     state.planet_size = NewGameMenuState::PlanetSize::Large;
-                     newgame_bg_node->setState(state);
+                    gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                    sw->planet_size = NewGameMenuState::PlanetSize::Large;
                  },
-                 [newgame_bg_node] ()
+                 [state_handle] ()
                  {
-                     NewGameMenuState state = *(newgame_bg_node->getState<NewGameMenuState>());
-                     return state.planet_size == NewGameMenuState::PlanetSize::Large;
+                    gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_size == NewGameMenuState::PlanetSize::Large;
                  });
-
 
     createButton(newgame_bg_node, "Generate", font,
                  gfx::gui::HorzPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
@@ -185,7 +178,7 @@ inline void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 
     // update the state
-    newgame_bg_node->setState(NewGameMenuState());
+    newgame_bg_node->onStateUpdate();
 }
 
 } // namespace gui

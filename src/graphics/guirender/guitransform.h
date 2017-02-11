@@ -62,16 +62,16 @@ public:
         SizeSpec y;
     };
 
-    GUITransform(Position &&pos, Size &&size) : mPos(std::move(pos)), mSize(std::move(size)) {}
+    inline GUITransform(Position &&pos, Size &&size) : mPos(std::move(pos)), mSize(std::move(size)) {}
 
-    vmath::Matrix4 getTransformMatrix() const
+    inline vmath::Matrix4 getTransformMatrix() const
     {
         std::array<float, 2> top_left = getTopLeftCorner();
         return vmath::Matrix4::translation({top_left[0], top_left[1], 0.0f}) *
                vmath::Matrix4::scale({mSize.x.value, mSize.y.value, 1.0f});
     }
 
-    static vmath::Matrix4 getScreenSpaceTransform()
+    inline static vmath::Matrix4 getScreenSpaceTransform()
     {
         return vmath::Matrix4::scale({1.0f, -1.0f, 1.0f}) *
                vmath::Matrix4::translation({-1.0f, -1.0f, 0.0f}) *
@@ -79,13 +79,19 @@ public:
                vmath::Matrix4::identity();
     }
 
-    const Position &getPos() const { return mPos; }
-    const Size &getSize() const { return mSize; }
+    inline static vmath::Matrix4 getInverseScreenSpaceTransform()
+    {
+        return vmath::inverse(getScreenSpaceTransform());
+    }
 
-    void setPos(Position &&pos) { mPos = std::move(pos); }
-    void setSize(Size &&size) { mSize = std::move(size); }
 
-    AABB getAABB() const
+    inline const Position &getPos() const { return mPos; }
+    inline const Size &getSize() const { return mSize; }
+
+    inline void setPos(Position &&pos) { mPos = std::move(pos); }
+    inline void setSize(Size &&size) { mSize = std::move(size); }
+
+    inline AABB getAABB() const
     {
         std::array<float, 2> top_left = getTopLeftCorner();
         return { top_left[0], top_left[0] + mSize.x.value, top_left[1], top_left[1] + mSize.y.value };
@@ -94,7 +100,7 @@ public:
 private:
     GUITransform();
 
-    std::array<float, 2> getTopLeftCorner() const
+    inline std::array<float, 2> getTopLeftCorner() const
     {
         std::array<float, 2> out;
         out[0] = (mPos.x.anchor == HorzAnchor::Left)      ? mPos.x.value                      :

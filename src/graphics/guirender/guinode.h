@@ -10,6 +10,7 @@
 #include "guitransform.h"
 #include "guitextvertices.h"
 #include "guifont.h"
+#include "guistate.h"
 #include "../texture.h"
 #include "../../common/flags.h"
 #include "../../common/gfx_primitives.h"
@@ -27,13 +28,7 @@ using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
 using GUINodePtr = gui::GUINode*;
 
-class GUIState
-{
-public:
-    virtual ~GUIState() {}
-};
-
-class GUINode// : public Resource::RefCounted<GUINode> // why does this need to be refcounted. It has no pointer data that can be reused...
+class GUINode
 {
     // private class GUIFlags
     enum GUIFlag
@@ -52,75 +47,17 @@ public:
         GUIEventHandler(GUIEventHandler &&other) : callbacks(std::move(other.callbacks)) {}
         using CallbackT = std::function<F(Args...)>;
         friend class GUINode;
-        inline void addCallback(CallbackT &&cb) { callbacks.emplace_back(std::move(cb)); }
+        inline void addCallback(CallbackT &&cb)      { callbacks.emplace_back(std::move(cb)); }
         inline void addCallback(const CallbackT &cb) { callbacks.push_back(cb); }
-        inline void handle(Args... a) { }
-        inline void invokeCallbacks(Args... a) { for (const auto &c : callbacks) { c(a...); } }
+        inline void invokeCallbacks(Args... a)       { for (const auto &c : callbacks) { c(a...); } }
     private:
         std::vector<CallbackT> callbacks;
     };
     //friend class GUIEventHandler;
 
-    bool handleMouseClick(float x, float y) {
-        gui::AABB aabb = mGUITransform.getAABB();
-        if ( (x < aabb.xMax && x > aabb.xMin) &&
-             (y < aabb.yMax && y > aabb.yMin) &&
-              !mGUIFlags.checkFlag(GUIFlag::Hide) )
-        {
-            //std::cout << "clicked inside child " << x << ", " << y << std::endl;
-            mouseClick.invokeCallbacks();
-
-            float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
-            float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
-
-            bool result = !mGUIFlags.checkFlag(GUIFlag::ClickPassThru);
-            for (auto &child : mChildren)
-            {
-                bool child_solid = child.handleMouseClick(x_rel, y_rel);
-                result = result || child_solid;
-            }
-            return result;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    GUINodePtr getDeepestHovered(float x, float y, bool debug = false)
-    {
-        gui::AABB aabb = mGUITransform.getAABB();
-        if ( (x < aabb.xMax && x > aabb.xMin) &&
-             (y < aabb.yMax && y > aabb.yMin) &&
-              !mGUIFlags.checkFlag(GUIFlag::Hide) )
-        {
-            //if (debug) std::cout << " inside: " << this << std::endl;
-            float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
-            float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
-
-            //if (debug) std::cout << " # children: " << mChildren.size() << std::endl;
-            GUINodePtr child_hovered = nullptr;
-            for (auto &child : mChildren)
-            {
-                GUINodePtr result = child.getDeepestHovered(x_rel, y_rel);
-                child_hovered = result ? result : child_hovered;
-            }
-            //if (debug) std::cout << " child_hovered: " << (child_hovered ? true : false) << std::endl;
-            return (child_hovered != nullptr) ? child_hovered : this;
-        }
-        else
-        {
-            //if (debug) std::cout << " not inside: " << this << std::endl;
-            return nullptr;
-        }
-    }
-
-    // to handle mouse leave, keep track of the deepest node that the mouse was in previously
-    // check which is the deepest on the current tick. If it changed:
-    // fire a.leave() and b.enter()
-    // should perhaps reside in the gui class, or be a static? No, static is just wrong... keep in renderer for now
-
-    explicit inline GUINode(const GUITransform &gui_transform);
+    // Constructor
+    explicit inline GUINode(const GUITransform &gui_transform) :
+        mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIState(this) {}
 
     // vector init needs copy constructor... strange? Ah, it is because of initializer list
     // elements of the list are always passed as const reference 18.9 in standard
@@ -134,28 +71,15 @@ public:
         gn.mGUIStatePtr = nullptr;
     } // = delete */
 
-    ~GUINode()
-    {
-        delete mGUIStatePtr;
-    }
+    //inline GUINode(const GUINode &gn) = default;/
+
+    // methods
+    bool handleMouseClick(float x, float y);
+
+    GUINodePtr getDeepestHovered(float x, float y, bool debug = false);
 
     template<typename StateT>
-    void setState(const StateT &state)
-    {
-        static_assert(std::is_base_of<GUIState, StateT>::value, "StateT must inherit GUIState");
-        delete mGUIStatePtr;
-        mGUIStatePtr = new StateT(state);
-        onStateUpdate();
-    }
-
-    template<typename StateT>
-    const StateT * const getState()
-    {
-        static_assert(std::is_base_of<GUIState, StateT>::value, "StateT must inherit GUIState");
-        return dynamic_cast<const StateT * const> (mGUIStatePtr);
-    }
-
-    //inline GUINode(const GUINode &gn) = default;
+    GUIStateHandle<StateT> setState(const StateT &state) { return mGUIState.getGUIStateHandle<StateT>(state); }
 
     template <typename ...Args>
     inline GUINodeHandle addGUINode(Args... args)
@@ -172,10 +96,10 @@ public:
     }
 
     // read methods
-    inline const std::list<GUINode> &getChildren() const { return mChildren; }
+    inline const std::list<GUINode> &getChildren()    const { return mChildren; }
     inline const std::list<GUIElement> &getElements() const { return mElements; }
-    inline const GUITransform &getTransform() const { return mGUITransform; }
-    inline const bool isVisible() const { return !mGUIFlags.checkFlag(GUIFlag::Hide); }
+    inline const GUITransform &getTransform()         const { return mGUITransform; }
+    inline const bool isVisible()                     const { return !mGUIFlags.checkFlag(GUIFlag::Hide); }
 
     // mutate methods
     inline void hide()                  { mGUIFlags.setFlag(GUIFlag::Hide);             }
@@ -192,8 +116,8 @@ public:
     GUIEventHandler<void> mouseClick;
     GUIEventHandler<void> stateUpdate;
 
-    // Resource::RefCounted<GUINode>
-    // inline void resourceDestruct() { std::cout << "deleting gui node" << std::endl; }
+    friend void onGUINodeStateUpdate(GUINode &gui_node);
+    inline void onStateUpdate() { onGUINodeStateUpdate(*this); }
 
 private:
     GUINode() = delete;
@@ -203,27 +127,11 @@ private:
     // private some operators?
     GUITransform mGUITransform;
     GUIFlags mGUIFlags;
-    GUIState *mGUIStatePtr;
+    detail::GUIState mGUIState;
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;
-
-    inline void onStateUpdate()
-    {
-        stateUpdate.invokeCallbacks();
-        for (auto &child : mChildren )
-        {
-            child.onStateUpdate();
-        }
-    }
 };
-
-
-inline GUINode::GUINode(const GUITransform &gui_transform) :
-    mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIStatePtr(nullptr)
-{
-    // value ctor
-}
 
 } // gui
 
