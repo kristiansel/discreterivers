@@ -61,6 +61,17 @@ void OpenGLRenderer::resize(int w, int h)
     glViewport(0, 0, w, h);
 }
 
+void OpenGLRenderer::preDrawUpdate()
+{
+    GFXTickJob job;
+    bool popped = mGFXTickJobQueue.pop(job);
+    if (popped)
+    {
+        std::cout << "executing GFX tick job" << std::endl;
+        job();
+    }
+}
+
 inline void OpenGLRenderer::drawScene(const Camera &camera, const SceneNode &scene_root) const
 {
     glEnable(GL_DEPTH_TEST);

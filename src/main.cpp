@@ -9,7 +9,7 @@
 #define _VECTORMATH_DEBUG
 
 #include "common/macro/macroprofile.h"
-#include "common/threads/threadpool.h"
+#include "system/async.h"
 #include "common/serialize.h"
 #include "graphics/openglrenderer.h"
 #include "gui/gui.h"
@@ -21,14 +21,13 @@
 
 // to be removed
 #include "common/flags.h"
+#include "common/threads/threadpool.h"
 
 namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    Threads::ThreadPool tp(5);
-
-    tp.push( [] (int id){ std::cout << "hello from " << id << '\n'; }); // lambda
+    //Threads::ThreadPool::get().push( [] (int id){ std::cout << "hello from " << id << '\n'; }); // lambda
 
 
     // SDL2 window code
@@ -212,6 +211,8 @@ int main(int argc, char *argv[])
             evt_queue.pop();
         }
 
+        // Async waits
+        sys::Async::processReturnedJobs();
 
         if (!resizing_this_frame)
         {

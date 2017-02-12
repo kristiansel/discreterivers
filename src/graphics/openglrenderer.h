@@ -7,10 +7,12 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <functional>
 #include <iostream>
 
 #include "../common/gfx_primitives.h"
 #include "../common/typetag.h"
+#include "../common/threads/threadqueue.h"
 #include "../common/macro/macrodebugassert.h"
 #include "transform.h"
 #include "shader.h"
@@ -48,19 +50,24 @@ public:
 
 class OpenGLRenderer : public OpenGLContextDependent // Need to get a context before constructing OpenGLRenderer
 {
+    using GFXTickJob = std::function<void(void)>;
 public:
     OpenGLRenderer(int w, int h);
 
-    SceneNode &getSceneRoot() { return mSceneRoot; }
-
-    void toggleWireframe() { mRenderFlags.toggleFlag(RenderFlags::Wireframe); }
-
+    // methods
     void draw(const Camera &camera, const gui::GUINode &gui_root) const;
+    void preDrawUpdate();
 
+    // mutators
+    inline void toggleWireframe() { mRenderFlags.toggleFlag(RenderFlags::Wireframe); }
     void resize(int w, int h);
 
-    int getWidth() const { return mWidth; }
-    int getHeight() const { return mHeight; }
+    // getters
+    inline SceneNode &getSceneRoot() { return mSceneRoot; }
+    inline int getWidth() const { return mWidth; }
+    inline int getHeight() const { return mHeight; }
+
+    inline void addGFXTickJob(const GFXTickJob &job) { mGFXTickJobQueue.push(job); } // could move here...
 
 private:
     int mWidth;
@@ -87,6 +94,9 @@ private:
     gui::GUIShader mGUIShader;
     gui::GUITextShader mGUITextShader;
     gui::GUIImageShader mGUIImageShader;
+
+    // For loading async
+    Threads::ThreadQueue<GFXTickJob> mGFXTickJobQueue;
 
     // private methods
     inline void drawGUI(const gui::GUINode &gui_root) const;

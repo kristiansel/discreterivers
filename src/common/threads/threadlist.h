@@ -1,21 +1,21 @@
-#ifndef THREADQUEUE_H
-#define THREADQUEUE_H
+#ifndef THREADLIST_H
+#define THREADLIST_H
 
-#include <queue>
+#include <list>
 #include <mutex>
-
+/*
 namespace Threads {
 
 template <typename T>
-class ThreadQueue {
+class ThreadList {
 public:
-    inline bool push(T const & value) {
+    inline bool emplace_back(T const & value) {
         std::unique_lock<std::mutex> lock(this->mutex);
         this->q.push(value);
         return true;
     }
     // deletes the retrieved element, do not use for non integral types
-    inline bool pop(T & v) {
+    inline bool erase(T & v) {
         std::unique_lock<std::mutex> lock(this->mutex);
         if (this->q.empty())
             return false;
@@ -25,17 +25,19 @@ public:
     }
     inline bool empty() {
         std::unique_lock<std::mutex> lock(this->mutex);
-        return this->q.empty();
+        return this->l.empty();
     }
     inline std::size_t size() {
         std::unique_lock<std::mutex> lock(this->mutex);
-        return q.size();
+        return l.size();
     }
 private:
-    std::queue<T> q;
+    std::list<T> l;
     std::mutex mutex;
 };
 
-} // namespace Threads
 
-#endif // THREADQUEUE_H
+} // namespace Threads
+*/
+
+#endif // THREADLIST_H

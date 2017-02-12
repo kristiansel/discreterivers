@@ -77,7 +77,14 @@ struct FPSUpdateEvent
     float fps;
 };
 
-struct GenerateWorldEvent {};
+struct GenerateWorldEvent
+{
+    enum class PlanetShape {Sphere, Disk, Torus};
+    enum class PlanetSize  {Small, Medium, Large};
+
+    PlanetShape planet_shape;
+    PlanetSize planet_size;
+};
 
 
 } // namespace events

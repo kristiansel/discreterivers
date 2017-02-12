@@ -142,7 +142,11 @@ void Engine::handleMouseEvent(const SDL_Event &event)
 
 void Engine::update()
 {
+    // update mechanics
     mCameraController.update();
+
+    // update render jobs
+
 }
 
 

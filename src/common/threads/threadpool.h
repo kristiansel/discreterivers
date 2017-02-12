@@ -151,6 +151,11 @@ public:
         return pck->get_future();
     }
 
+    // make singleton instance
+    static ThreadPool &get() {
+        static ThreadPool tp(5);
+        return tp;
+    }
 
 private:
 

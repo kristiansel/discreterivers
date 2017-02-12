@@ -8,7 +8,7 @@
 #include "altplanet/climate/irradiance.h"
 #include "altplanet/climate/humidity.h"
 #include "altplanet/climate/climate.h"
-
+#include "events/immediateevents.h"
 
 struct SceneData {
     std::vector<vmath::Vector3> alt_planet_points;
@@ -25,10 +25,11 @@ struct SceneData {
     std::vector<gfx::TexCoords> clim_mat_texco;
 };
 
-inline SceneData createPlanetData()
+using PlanetShape = events::GenerateWorldEvent::PlanetShape;
+using PlanetSize = events::GenerateWorldEvent::PlanetSize;
+
+inline SceneData createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector)
 {
-
-
 #ifdef PROFILE
     for (int num_pts = 500; num_pts < 4000; num_pts += 500)
     {
@@ -39,10 +40,20 @@ inline SceneData createPlanetData()
         PROFILE_END(altplanet_generate);
     }
 #endif
+    // parse input arguments
+    AltPlanet::PlanetShape alt_planet_shape = planet_shape_selector == PlanetShape::Sphere ?
+        AltPlanet::PlanetShape::Sphere      : planet_shape_selector == PlanetShape::Disk ?
+        AltPlanet::PlanetShape::Sphere      : /*planet_shape_selector == PlanetShape::Torus ?*/
+        AltPlanet::PlanetShape::Torus;
+
+    unsigned int num_subdivisions = planet_size_selector == PlanetSize::Small  ? 0 :
+                                    planet_size_selector == PlanetSize::Medium ? 1 :
+                                /*planet_size_selector == PlanetSize::Large  ?*/ 2 ;
+
     // Alt planet
     AltPlanet::PlanetGeometry alt_planet_geometry;
     AltPlanet::Shape::BaseShape * planet_shape_ptr = nullptr;
-    AltPlanet::createOrLoadPlanetGeom(alt_planet_geometry, planet_shape_ptr, AltPlanet::PlanetShape::Torus);
+    AltPlanet::createOrLoadPlanetGeom(alt_planet_geometry, planet_shape_ptr, alt_planet_shape);
 
     AltPlanet::Shape::BaseShape &planet_shape = *planet_shape_ptr;
 
@@ -52,7 +63,7 @@ inline SceneData createPlanetData()
     // AltPlanet::PlanetGeometry alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
 
     std::vector<std::vector<gfx::Triangle>> subd_triangles;
-    AltPlanet::subdivideGeometry(alt_planet_geometry.points, alt_planet_geometry.triangles, subd_triangles, 1);
+    AltPlanet::subdivideGeometry(alt_planet_geometry.points, alt_planet_geometry.triangles, subd_triangles, num_subdivisions);
     // jitter the points around a bit...
     // AltPlanet::jitterPoints(alt_planet_geometry.points);
 
