@@ -74,7 +74,8 @@ public:
     //inline GUINode(const GUINode &gn) = default;/
 
     // methods
-    bool handleMouseClick(float x, float y);
+    bool handleMouseButtonDown(float x, float y);
+    void handleMouseButtonUp(float x, float y);
 
     GUINodePtr getDeepestHovered(float x, float y, bool debug = false);
 
@@ -114,6 +115,7 @@ public:
     GUIEventHandler<void> mouseEnter;
     GUIEventHandler<void> mouseLeave;
     GUIEventHandler<void> mouseClick;
+    GUIEventHandler<void> mouseRelease;
     GUIEventHandler<void> stateUpdate;
 
     friend void onGUINodeStateUpdate(GUINode &gui_node);

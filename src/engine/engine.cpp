@@ -103,14 +103,18 @@ void Engine::handleMouseEvent(const SDL_Event &event)
         case SDL_MOUSEBUTTONDOWN: {
             mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT;
             mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT;
-            if (mMouseState.lmb_down)
+            if (event.button.button == SDL_BUTTON_LEFT)
             {
-                mGUICapturedMouse = mGUI.handleMouseClick(event.button.x, event.button.y);
+                mGUICapturedMouse = mGUI.handleMouseButtonDown(event.button.x, event.button.y);
                 std::cout << "mouse captured: " << mGUICapturedMouse << std::endl;
             }
             break;
         }
         case SDL_MOUSEBUTTONUP: {
+            if (event.button.button == SDL_BUTTON_LEFT)
+            {
+                mGUI.handleMouseButtonUp(event.button.x, event.button.y);
+            }
             mMouseState.lmb_down = event.button.button == SDL_BUTTON_LEFT ? false : mMouseState.lmb_down;
             mMouseState.rmb_down = event.button.button == SDL_BUTTON_RIGHT ? false : mMouseState.rmb_down;
             mGUICapturedMouse = false;

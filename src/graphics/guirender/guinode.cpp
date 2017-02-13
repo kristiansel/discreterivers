@@ -14,7 +14,7 @@ void onGUINodeStateUpdate(GUINode &gui_node)
     }
 }
 
-bool GUINode::handleMouseClick(float x, float y) {
+bool GUINode::handleMouseButtonDown(float x, float y) {
     gui::AABB aabb = mGUITransform.getAABB();
     if ( (x < aabb.xMax && x > aabb.xMin) &&
          (y < aabb.yMax && y > aabb.yMin) &&
@@ -29,7 +29,7 @@ bool GUINode::handleMouseClick(float x, float y) {
         bool result = !mGUIFlags.checkFlag(GUIFlag::ClickPassThru);
         for (auto &child : mChildren)
         {
-            bool child_solid = child.handleMouseClick(x_rel, y_rel);
+            bool child_solid = child.handleMouseButtonDown(x_rel, y_rel);
             result = result || child_solid;
         }
         return result;
@@ -37,6 +37,22 @@ bool GUINode::handleMouseClick(float x, float y) {
     else
     {
         return false;
+    }
+}
+
+void GUINode::handleMouseButtonUp(float x, float y)
+{
+    gui::AABB aabb = mGUITransform.getAABB();
+
+    //std::cout << "clicked inside child " << x << ", " << y << std::endl;
+    mouseRelease.invokeCallbacks();
+
+    float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
+    float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
+
+    for (auto &child : mChildren)
+    {
+        child.handleMouseButtonDown(x_rel, y_rel);
     }
 }
 

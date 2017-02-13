@@ -25,15 +25,24 @@ public:
         return mGUIRoot;
     }
 
-    bool handleMouseClick(uint16_t x, uint16_t y)
+    bool handleMouseButtonDown(uint16_t x, uint16_t y)
     {
         // transform pixels to gui coordinates
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        bool hasCapturedMouse = mGUIRoot.handleMouseClick(gui_x, gui_y);
+        bool hasCapturedMouse = mGUIRoot.handleMouseButtonDown(gui_x, gui_y);
 
         return hasCapturedMouse;
+    }
+
+    void handleMouseButtonUp(uint16_t x, uint16_t y)
+    {
+        // transform pixels to gui coordinates
+        float gui_x = (float)(x)/(float)(mWidth);
+        float gui_y = (float)(y)/(float)(mHeight);
+        //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
+        mGUIRoot.handleMouseButtonUp(gui_x, gui_y);
     }
 
     void handleMouseMoved(uint16_t x, uint16_t y)
