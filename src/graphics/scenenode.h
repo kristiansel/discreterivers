@@ -32,6 +32,11 @@ struct SceneNode
     inline LightHandle addLight(const vmath::Vector4 &color,
                          const Transform &transform = Transform());
 
+    inline void clearChildren() { mChildren.clear(); }
+    inline void clearSceneObjects() { mSceneObjects.clear(); }
+    inline void clearLights() { mLights.clear(); }
+    inline void clearAll() { clearChildren(); clearSceneObjects(); clearLights(); }
+
     //SceneObject * getSceneObjectPtr(sceneobject_id id);
 
     //Light * getLightPtr(light_id id);
