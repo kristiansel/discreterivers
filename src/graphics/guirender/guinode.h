@@ -11,6 +11,7 @@
 #include "guitextvertices.h"
 #include "guifont.h"
 #include "guistate.h"
+#include "guievent.h"
 #include "../texture.h"
 #include "../../common/flags.h"
 #include "../../common/gfx_primitives.h"
@@ -41,10 +42,10 @@ class GUINode
     using GUIFlags = stdext::Flags<GUIFlag, GUIFlag::Default>;
 public:
     template<typename F, typename... Args>
-    struct GUIEventHandler
+    struct EventHandler
     {
-        GUIEventHandler() = default;
-        GUIEventHandler(GUIEventHandler &&other) : callbacks(std::move(other.callbacks)) {}
+        EventHandler() = default;
+        EventHandler(EventHandler &&other) : callbacks(std::move(other.callbacks)) {}
         using CallbackT = std::function<F(Args...)>;
         friend class GUINode;
         inline void addCallback(CallbackT &&cb)      { callbacks.emplace_back(std::move(cb)); }
@@ -53,11 +54,11 @@ public:
     private:
         std::vector<CallbackT> callbacks;
     };
-    //friend class GUIEventHandler;
+    using GUIEventHandler = std::function<void(const GUIEvent&)>;
 
     // Constructor
     explicit inline GUINode(const GUITransform &gui_transform) :
-        mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIState(this) {}
+        mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIState(this), mGUIEventHandler([](const GUIEvent&){}) {}
 
     // vector init needs copy constructor... strange? Ah, it is because of initializer list
     // elements of the list are always passed as const reference 18.9 in standard
@@ -74,8 +75,8 @@ public:
     //inline GUINode(const GUINode &gn) = default;/
 
     // methods
-    bool handleMouseButtonDown(float x, float y);
-    void handleMouseButtonUp(float x, float y);
+    GUINodePtr handleMouseButtonDown(float x, float y, int32_t pix_x, int32_t pix_y);
+    void handleMouseButtonUp(float x, float y, int32_t pix_x, int32_t pix_y);
 
     GUINodePtr getDeepestHovered(float x, float y, bool debug = false);
 
@@ -111,15 +112,20 @@ public:
     inline void clickPassThru()         { mGUIFlags.setFlag(GUIFlag::ClickPassThru);    }
     inline void toggleClickPassThru()   { mGUIFlags.toggleFlag(GUIFlag::ClickPassThru); }
 
+
+
 public:
-    GUIEventHandler<void> mouseEnter;
+    /*GUIEventHandler<void> mouseEnter;
     GUIEventHandler<void> mouseLeave;
     GUIEventHandler<void> mouseClick;
-    GUIEventHandler<void> mouseRelease;
-    GUIEventHandler<void> stateUpdate;
+    GUIEventHandler<void> mouseRelease;*/
+    EventHandler<void> stateUpdate;
 
     friend void onGUINodeStateUpdate(GUINode &gui_node);
     inline void onStateUpdate() { onGUINodeStateUpdate(*this); }
+
+    void setGUIEventHandler(GUIEventHandler &&gui_event_handler) { mGUIEventHandler = std::move(gui_event_handler); }
+    void handleEvent(const GUIEvent &evt) { mGUIEventHandler(evt); }
 
 private:
     GUINode() = delete;
@@ -130,6 +136,8 @@ private:
     GUITransform mGUITransform;
     GUIFlags mGUIFlags;
     detail::GUIState mGUIState;
+
+    GUIEventHandler mGUIEventHandler;
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;

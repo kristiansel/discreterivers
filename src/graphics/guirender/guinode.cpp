@@ -14,45 +14,47 @@ void onGUINodeStateUpdate(GUINode &gui_node)
     }
 }
 
-bool GUINode::handleMouseButtonDown(float x, float y) {
+GUINodePtr GUINode::handleMouseButtonDown(float x, float y, int32_t pix_x, int32_t pix_y) {
     gui::AABB aabb = mGUITransform.getAABB();
     if ( (x < aabb.xMax && x > aabb.xMin) &&
          (y < aabb.yMax && y > aabb.yMin) &&
           !mGUIFlags.checkFlag(GUIFlag::Hide) )
     {
         //std::cout << "clicked inside child " << x << ", " << y << std::endl;
-        mouseClick.invokeCallbacks();
+        //mouseClick.invokeCallbacks();
+        mGUIEventHandler(MouseButtonDownEvent{MouseButton::Left, pix_x, pix_y});
 
         float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
         float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
 
-        bool result = !mGUIFlags.checkFlag(GUIFlag::ClickPassThru);
+        GUINodePtr deepest_captured = mGUIFlags.checkFlag(GUIFlag::ClickPassThru) ? nullptr : this;
         for (auto &child : mChildren)
         {
-            bool child_solid = child.handleMouseButtonDown(x_rel, y_rel);
-            result = result || child_solid;
+            GUINodePtr child_captured = child.handleMouseButtonDown(x_rel, y_rel, pix_x, pix_y);
+            deepest_captured = child_captured ? child_captured : deepest_captured;
         }
-        return result;
+        return deepest_captured;
     }
     else
     {
-        return false;
+        return nullptr;
     }
 }
 
-void GUINode::handleMouseButtonUp(float x, float y)
+void GUINode::handleMouseButtonUp(float x, float y, int32_t pix_x, int32_t pix_y)
 {
     gui::AABB aabb = mGUITransform.getAABB();
 
     //std::cout << "clicked inside child " << x << ", " << y << std::endl;
-    mouseRelease.invokeCallbacks();
+    //mouseRelease.invokeCallbacks();
+    mGUIEventHandler(MouseButtonUpEvent{MouseButton::Left, pix_x, pix_y});
 
     float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
     float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
 
     for (auto &child : mChildren)
     {
-        child.handleMouseButtonDown(x_rel, y_rel);
+        child.handleMouseButtonDown(x_rel, y_rel, pix_x, pix_y);
     }
 }
 

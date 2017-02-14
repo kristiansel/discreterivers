@@ -121,16 +121,17 @@ void Engine::handleMouseEvent(const SDL_Event &event)
             break;
         }
         case SDL_MOUSEMOTION: {
+            int32_t mouse_delta_x = mMouseState.prev_mouse_x - event.motion.x;
+            int32_t mouse_delta_y = mMouseState.prev_mouse_y - event.motion.y;
             if ((mMouseState.lmb_down || mMouseState.rmb_down) && !mGUICapturedMouse) {
-                int32_t mouse_delta_x = mMouseState.prev_mouse_x - event.motion.x;
-                int32_t mouse_delta_y = mMouseState.prev_mouse_y - event.motion.y;
+
                 float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                 float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
 
                 mCameraController.sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
 
-            mGUI.handleMouseMoved(event.motion.x, event.motion.y);
+            mGUI.handleMouseMoved(event.motion.x, event.motion.y, mouse_delta_x, mouse_delta_y);
 
             // update previous mouse position
             mMouseState.prev_mouse_x = event.motion.x;

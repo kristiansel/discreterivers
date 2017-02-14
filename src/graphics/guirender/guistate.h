@@ -7,13 +7,6 @@ namespace gfx {
 
 namespace gui {
 
-
-/*class GUIState
-{
-public:
-    virtual ~GUIState() {}
-};*/
-
 class GUINode;
 void onGUINodeStateUpdate(GUINode &gui_node);
 
@@ -22,11 +15,12 @@ class GUIStateWriter
 {
     StateT *mStatePtr;
     GUINode *mGUINodePtr;
+    bool mUpdateOnWrite;
 
     GUIStateWriter()                            = delete;
 public:
-    GUIStateWriter(StateT *state_ptr, GUINode *gui_node_ptr) :
-        mStatePtr(state_ptr), mGUINodePtr(gui_node_ptr) {}
+    GUIStateWriter(StateT *state_ptr, GUINode *gui_node_ptr, bool update_on_write = true) :
+        mStatePtr(state_ptr), mGUINodePtr(gui_node_ptr), mUpdateOnWrite(update_on_write) {}
 
     StateT *const operator->() {
         return mStatePtr;
@@ -34,8 +28,7 @@ public:
 
     ~GUIStateWriter()
     {
-        //mGUINodePtr->onStateUpdate();
-        onGUINodeStateUpdate(*mGUINodePtr);
+        if (mUpdateOnWrite) onGUINodeStateUpdate(*mGUINodePtr);
     }
 };
 
@@ -73,7 +66,7 @@ public:
 
     GUIStateWriter<StateT> getStateWriter() const { return GUIStateWriter<StateT>(mStatePtr, mGUINodePtr); }
     GUIStateReader<StateT> getStateReader() const { return GUIStateReader<StateT>(mStatePtr);              }
-
+    GUIStateWriter<StateT> getStateWriterNoUpdate() const { return GUIStateWriter<StateT>(mStatePtr, mGUINodePtr, false); }
 };
 
 

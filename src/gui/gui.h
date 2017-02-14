@@ -14,7 +14,8 @@ class GUI
 public:
     GUI(int w, int h, int dpi) : mWidth(w), mHeight(h), mDPI(dpi),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mPreviousHovered(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi)
+        mHoveredNode(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi),
+        mMouseCapturedNode(nullptr), mActiveNode(nullptr)
     {
         mGUIRoot.clickPassThru();
     }
@@ -25,42 +26,61 @@ public:
         return mGUIRoot;
     }
 
-    bool handleMouseButtonDown(uint16_t x, uint16_t y)
+    bool handleMouseButtonDown(int32_t x, int32_t y)
     {
         // transform pixels to gui coordinates
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        bool hasCapturedMouse = mGUIRoot.handleMouseButtonDown(gui_x, gui_y);
+        gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.handleMouseButtonDown(gui_x, gui_y, x, y);
+        mMouseCapturedNode = mouse_down_node;
+        mActiveNode        = mouse_down_node;
 
-        return hasCapturedMouse;
+        return (mouse_down_node != nullptr);
     }
 
-    void handleMouseButtonUp(uint16_t x, uint16_t y)
+    void handleMouseButtonUp(int32_t x, int32_t y)
     {
         // transform pixels to gui coordinates
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        mGUIRoot.handleMouseButtonUp(gui_x, gui_y);
+        mGUIRoot.handleMouseButtonUp(gui_x, gui_y, x, y);
+
+        // reset the captured node
+        mMouseCapturedNode = nullptr;
     }
 
-    void handleMouseMoved(uint16_t x, uint16_t y)
+    void handleMouseMoved(int32_t x, int32_t y, int32_t x_rel, int32_t y_rel)
     {
         // transform pixels to gui coordinates
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
 
         gfx::gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y);
-        if (current_hovered != mPreviousHovered)
+        if (current_hovered != mHoveredNode)
         {
             //std::cout << "Hovered element changed!" << std::endl;
             //std::cout << "    old: " << mPreviousHovered << ", new: " << current_hovered  << std::endl;
 
             //auto unused = mGUIRoot.getDeepestHovered(gui_x, gui_y, true);
-            if (mPreviousHovered) mPreviousHovered->mouseLeave.invokeCallbacks();
-            if (current_hovered) current_hovered->mouseEnter.invokeCallbacks();
-            mPreviousHovered = current_hovered;
+            if (mHoveredNode)
+            {
+                //mPreviousHovered->mouseLeave.invokeCallbacks();
+                mHoveredNode->handleEvent(gfx::gui::MouseLeaveEvent());
+            }
+            if (current_hovered)
+            {
+                //current_hovered->mouseEnter.invokeCallbacks();
+                current_hovered->handleEvent(gfx::gui::MouseEnterEvent());
+            }
+            mHoveredNode = current_hovered;
+        }
+
+        if (mMouseCapturedNode)
+        {
+            //std::cout << "x_rel " << x_rel << ", y_rel " << y_rel << std::endl;
+            mMouseCapturedNode->handleEvent(gfx::gui::MouseDragEvent{x_rel, y_rel});
         }
     }
 
@@ -86,7 +106,9 @@ private:
     gfx::gui::GUIFont mFontRenderer;
 
     gfx::gui::GUINode    mGUIRoot;
-    gfx::gui::GUINodePtr mPreviousHovered;
+    gfx::gui::GUINodePtr mHoveredNode; // previous deepest hovered
+    gfx::gui::GUINodePtr mActiveNode; // active
+    gfx::gui::GUINodePtr mMouseCapturedNode;   //
 
 };
 

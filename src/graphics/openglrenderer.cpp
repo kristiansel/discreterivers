@@ -276,7 +276,7 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
                     //vmath::print(tr);
                     //glViewport(400, 200, 200, 100);
                     const gui::SceneElement &se = child_element.get_const<gui::SceneElement>();
-                    drawScene(se.getCamera(), se.getSceneRootConst());
+                    drawScene(se.getCameraConst(), se.getSceneRootConst());
                     glViewport(0, 0, mWidth, mHeight);
                 }
                 break;

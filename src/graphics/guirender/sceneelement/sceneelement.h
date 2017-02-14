@@ -14,7 +14,9 @@ public:
     inline SceneElement(const Camera &camera) :
         mCamera(camera) {}
 
-    inline const Camera &getCamera() const { return mCamera; }
+    inline Camera &getCamera() { return mCamera; }
+    inline const Camera &getCameraConst() const { return mCamera; }
+
     inline const SceneNode &getSceneRootConst() const { return mSceneRoot; }
     inline SceneNode &getSceneRoot() { return mSceneRoot; }
 

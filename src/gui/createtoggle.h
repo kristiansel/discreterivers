@@ -16,12 +16,21 @@ gfx::gui::GUINodeHandle createToggle(gfx::gui::GUINodeHandle &parent,
     auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
 
     btn_node->addElement( gfx::gui::TextElement(text, font) );
-    btn_node->mouseClick.addCallback( std::move(toggle_callback) );
     btn_node->stateUpdate.addCallback([is_toggled, bg_element](){
         if (is_toggled()) {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiHighlight() );
         } else {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiElement() );
+        }
+    });
+    btn_node->setGUIEventHandler([bg_element, toggle_callback](const gfx::gui::GUIEvent &event){
+        switch (event.get_type())
+        {
+        case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseButtonDownEvent>::value):
+            {
+                toggle_callback();
+            }
+            break;
         }
     });
     return btn_node;

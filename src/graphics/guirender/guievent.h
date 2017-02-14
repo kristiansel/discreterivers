@@ -14,23 +14,33 @@ enum class MouseButton { Left, Middle, Right };
 
 struct MouseMoveEvent
 {
-    uint16_t x;
-    uint16_t y;
+    int32_t x;
+    int32_t y;
+};
+
+struct MouseDragEvent
+{
+    int32_t x_rel;
+    int32_t y_rel;
 };
 
 struct MouseButtonDownEvent
 {
     MouseButton button;
-    uint16_t x;
-    uint16_t y;
+    int32_t x;
+    int32_t y;
 };
 
 struct MouseButtonUpEvent
 {
     MouseButton button;
-    uint16_t x;
-    uint16_t y;
+    int32_t x;
+    int32_t y;
 };
+
+struct MouseEnterEvent { };
+
+struct MouseLeaveEvent { };
 
 // Key events
 using KeyCode = SDL_Keycode;
@@ -49,6 +59,9 @@ using GUIEvent = stdext::either<
     MouseMoveEvent,
     MouseButtonDownEvent,
     MouseButtonUpEvent,
+    MouseEnterEvent,
+    MouseLeaveEvent,
+    MouseDragEvent,
     KeyDownEvent,
     KeyUpEvent
 >;
