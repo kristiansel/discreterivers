@@ -27,7 +27,7 @@ public:
         GLint color;
     };
 
-    inline void drawTextElement(const TextElement &text_element, const GUITransform::Position &pos) const;
+    inline void drawTextElement(const TextElement &text_element, const vmath::Matrix4 &pos) const;
 
     inline void resize(int w, int h);
 
@@ -47,7 +47,7 @@ private:
     GLuint mPositionArrayBuffer;
 };
 
-inline void GUITextShader::drawTextElement(const TextElement &text_element, const GUITransform::Position &pos) const
+inline void GUITextShader::drawTextElement(const TextElement &text_element, const vmath::Matrix4 &mv_in) const
 {
     //std::cout << "drawing gui text" << std::endl;
     glUseProgram(mShaderProgramID);
@@ -55,7 +55,8 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //vmath::Matrix4 mv = vmath::Matrix4::identity();
-    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(pos.x.value, pos.y.value, 0.0f)) * mRescaleMatrix;
+    vmath::Vector3 transl = mv_in.getTranslation();
+    vmath::Matrix4 mv = vmath::Matrix4::translation(vmath::Vector3(transl[0], transl[1], 0.0f)) * mRescaleMatrix;
 
     vmath::Vector4 color = text_element.getColor();
 

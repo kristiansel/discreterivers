@@ -14,23 +14,25 @@ void onGUINodeStateUpdate(GUINode &gui_node)
     }
 }
 
-GUINodePtr GUINode::handleMouseButtonDown(float x, float y, int32_t pix_x, int32_t pix_y) {
-    gui::AABB aabb = mGUITransform.getAABB();
+/*
+GUINodePtr GUINode::handleMouseButtonDown(float x, float y, float w_abs, float h_abs) {
+    gui::AABB aabb = mGUITransform.getAABB(w_abs, h_abs);
     if ( (x < aabb.xMax && x > aabb.xMin) &&
          (y < aabb.yMax && y > aabb.yMin) &&
           !mGUIFlags.checkFlag(GUIFlag::Hide) )
     {
-        //std::cout << "clicked inside child " << x << ", " << y << std::endl;
-        //mouseClick.invokeCallbacks();
-        mGUIEventHandler(MouseButtonDownEvent{MouseButton::Left, pix_x, pix_y});
 
         float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
         float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
 
+        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
+        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
+
         GUINodePtr deepest_captured = mGUIFlags.checkFlag(GUIFlag::ClickPassThru) ? nullptr : this;
         for (auto &child : mChildren)
         {
-            GUINodePtr child_captured = child.handleMouseButtonDown(x_rel, y_rel, pix_x, pix_y);
+            GUINodePtr child_captured = child.handleMouseButtonDown(x_rel, y_rel, this_w_abs, this_h_abs);
+
             deepest_captured = child_captured ? child_captured : deepest_captured;
         }
         return deepest_captured;
@@ -39,28 +41,51 @@ GUINodePtr GUINode::handleMouseButtonDown(float x, float y, int32_t pix_x, int32
     {
         return nullptr;
     }
+}*/
+
+GUINodePtr GUINode::getDeepestClicked(float x, float y, float w_abs, float h_abs)
+{
+    return GUINode::getDeepestIntersectingNode(x, y, w_abs, h_abs, GUIFlag::ClickPassThru);
 }
 
-void GUINode::handleMouseButtonUp(float x, float y, int32_t pix_x, int32_t pix_y)
+GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs)
 {
-    gui::AABB aabb = mGUITransform.getAABB();
+    return GUINode::getDeepestIntersectingNode(x, y, w_abs, h_abs);
+}
 
-    //std::cout << "clicked inside child " << x << ", " << y << std::endl;
-    //mouseRelease.invokeCallbacks();
-    mGUIEventHandler(MouseButtonUpEvent{MouseButton::Left, pix_x, pix_y});
 
-    float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
-    float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
-
-    for (auto &child : mChildren)
+inline GUINodePtr GUINode::getDeepestIntersectingNode(float x, float y, float w_abs, float h_abs, GUIFlag flag_mask) {
+    gui::AABB aabb = mGUITransform.getAABB(w_abs, h_abs);
+    if ( (x < aabb.xMax && x > aabb.xMin) &&
+         (y < aabb.yMax && y > aabb.yMin) &&
+          !mGUIFlags.checkFlag(GUIFlag::Hide) )
     {
-        child.handleMouseButtonDown(x_rel, y_rel, pix_x, pix_y);
+
+        float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
+        float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
+
+        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
+        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
+
+        GUINodePtr deepest_intersected = mGUIFlags.checkAny(flag_mask) ? nullptr : this;
+        for (auto &child : mChildren)
+        {
+            GUINodePtr child_intersected = child.getDeepestIntersectingNode(x_rel, y_rel, this_w_abs, this_h_abs, flag_mask);
+
+            deepest_intersected = child_intersected ? child_intersected : deepest_intersected;
+        }
+        return deepest_intersected;
+    }
+    else
+    {
+        return nullptr;
     }
 }
 
-GUINodePtr GUINode::getDeepestHovered(float x, float y, bool debug)
+/*
+GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs)
 {
-    gui::AABB aabb = mGUITransform.getAABB();
+    gui::AABB aabb = mGUITransform.getAABB(w_abs, h_abs);
     if ( (x < aabb.xMax && x > aabb.xMin) &&
          (y < aabb.yMax && y > aabb.yMin) &&
           !mGUIFlags.checkFlag(GUIFlag::Hide) )
@@ -69,11 +94,14 @@ GUINodePtr GUINode::getDeepestHovered(float x, float y, bool debug)
         float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
         float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
 
+        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
+        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
+
         //if (debug) std::cout << " # children: " << mChildren.size() << std::endl;
         GUINodePtr child_hovered = nullptr;
         for (auto &child : mChildren)
         {
-            GUINodePtr result = child.getDeepestHovered(x_rel, y_rel);
+            GUINodePtr result = child.getDeepestHovered(x_rel, y_rel, this_w_abs, this_h_abs);
             child_hovered = result ? result : child_hovered;
         }
         //if (debug) std::cout << " child_hovered: " << (child_hovered ? true : false) << std::endl;
@@ -81,11 +109,10 @@ GUINodePtr GUINode::getDeepestHovered(float x, float y, bool debug)
     }
     else
     {
-        //if (debug) std::cout << " not inside: " << this << std::endl;
         return nullptr;
     }
 }
-
+*/
 
 } // gui
 

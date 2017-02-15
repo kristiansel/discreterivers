@@ -2,17 +2,14 @@
 #include "../events/queuedevents.h"
 #include "../events/immediateevents.h"
 
-#include "mainmenu.h"
-#include "newgamemenu.h"
 #include "savegamemenu.h"
 #include "loadgamemenu.h"
 #include "optionsmenu.h"
 #include "profilingpane.h"
 
-namespace gui {
+#include "submenus.h"
 
-namespace ImEvt = events::Immediate;
-namespace QuEvt = events::Queued;
+namespace gui {
 
 void createGUI(GUI &gui)
 {

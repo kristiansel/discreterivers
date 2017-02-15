@@ -13,8 +13,8 @@ inline void createProfilingPane(GUI &gui, gfx::gui::GUINode &profiling_pane_root
     const gfx::gui::GUIFont &font = gui.getDefaultFont();
 
     gfx::gui::GUINodeHandle fps_counter_node = profiling_pane_root.addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
-                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
+                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.05f} ));
 
     gfx::gui::GUIElementHandle fps_text_element = fps_counter_node->addElement(
                 gfx::gui::TextElement("FPS:", font) );
@@ -29,8 +29,8 @@ inline void createProfilingPane(GUI &gui, gfx::gui::GUINode &profiling_pane_root
     });
 
     gfx::gui::GUINodeHandle frame_time_node = profiling_pane_root.addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
-                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.10f} ));
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.7f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
+                                 gfx::gui::VertPos(1.0f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom)}, {0.15f, 0.10f} ));
 
     gfx::gui::GUIElementHandle frame_time_text_element = frame_time_node->addElement(
                 gfx::gui::TextElement("Frame time:", font) );

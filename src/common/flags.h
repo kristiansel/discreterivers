@@ -22,6 +22,7 @@ public:
 
 
     inline bool checkFlag(FlagBits flag) const { return ( (mFlags & flag) == flag); } // PARENTHESIS NEEDED
+    inline bool checkAny(FlagBits flag) const { return ( (mFlags & flag)) != 0; }
 
     inline void setFlag(FlagBits flag) { mFlags |= flag; }
     inline void clearFlag(FlagBits flag) { mFlags &= ~flag; }

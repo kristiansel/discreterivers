@@ -9,35 +9,91 @@ namespace gfx {
 namespace gui {
 
 // Define some types
-enum class Units { Percentage/*, StdPixel */};
-enum class HorzAnchor : int { Left, Middle, Right };
-enum class VertAnchor : int { Top, Middle, Bottom };
+enum class Units { Relative, Absolute };
 
-template <typename Anchor>
+enum class HorzAnchor { Left, Middle, Right };
+enum class VertAnchor { Top, Middle, Bottom };
+
+enum class AgnosticFrom : int { Near = 0, Middle = 1, Far = 2};
+
+enum class HorzFrom : int { Left = int(AgnosticFrom::Near),
+                            Middle = int(AgnosticFrom::Middle),
+                            Right  = int(AgnosticFrom::Far)};
+
+enum class VertFrom : int { Top = int(AgnosticFrom::Near),
+                            Middle = int(AgnosticFrom::Middle),
+                            Bottom  = int(AgnosticFrom::Far)};
+
+struct CoordValueSpec
+{
+    // implicit constructor
+    CoordValueSpec(float v, Units u = Units::Relative) : value(v), units(u) {}
+    Units units;
+
+
+    inline float getRelative(float abs_val) const
+    {
+        if (units != Units::Relative)
+        {
+            return value/abs_val;
+        }
+        else
+        {
+            return value;
+        }
+    }
+
+private:
+    float value;
+    CoordValueSpec() = delete;
+};
+
+template <typename Anchor, typename AbsFrom>
 struct PosSpec
 {
     // implicit constructor
-    PosSpec(float v, Units u = Units::Percentage, Anchor a = Anchor::Middle) : anchor(a), units(u), value(v) {}
+    PosSpec(float v, Units u = Units::Relative, Anchor a = Anchor::Middle, AbsFrom f = AbsFrom(AgnosticFrom::Near)) :
+        value(v), units(u), anchor(a), abs_from(f) {}
+
+    Units units;
     Anchor anchor;
-    Units units;
-    float value;
+
+    inline float getRelative(float abs_val) const
+    {
+        float out;
+
+        if (units != Units::Relative)
+        {
+            out = value/abs_val;
+            if (abs_from == AbsFrom(AgnosticFrom::Far))
+            {
+                out = 1.0f - out;
+            }
+            else if (abs_from == AbsFrom(AgnosticFrom::Middle))
+            {
+                out = 0.5f + out;
+            }
+        }
+        else
+        {
+            out = value;
+        }
+
+        return out;
+    }
+
 private:
-    PosSpec();
+    float value;
+    AbsFrom abs_from;
+    PosSpec() = delete;
 };
 
-using HorzPos = PosSpec<HorzAnchor>;
-using VertPos = PosSpec<VertAnchor>;
 
+using HorzPos = PosSpec<HorzAnchor, HorzFrom>;
+using VertPos = PosSpec<VertAnchor, VertFrom>;
 
-struct SizeSpec
-{
-    // implicit constructor
-    SizeSpec(float v, Units u = Units::Percentage) : value(v) {}
-    Units units;
-    float value;
-private:
-    SizeSpec();
-};
+using SizeSpec = CoordValueSpec;
+
 
 struct AABB
 {
@@ -64,12 +120,19 @@ public:
 
     inline GUITransform(Position &&pos, Size &&size) : mPos(std::move(pos)), mSize(std::move(size)) {}
 
-    inline vmath::Matrix4 getTransformMatrix() const
+    inline vmath::Matrix4 getTransformMatrix(float x_abs, float y_abs)  const
+    {
+        std::array<float, 2> top_left = getTopLeftCorner(x_abs, y_abs);
+        return vmath::Matrix4::translation({top_left[0], top_left[1], 0.0f}) *
+               vmath::Matrix4::scale({mSize.x.getRelative(x_abs), mSize.y.getRelative(y_abs), 1.0f});
+    }
+
+    /*inline vmath::Matrix4 getTransformMatrix()  const
     {
         std::array<float, 2> top_left = getTopLeftCorner();
         return vmath::Matrix4::translation({top_left[0], top_left[1], 0.0f}) *
                vmath::Matrix4::scale({mSize.x.value, mSize.y.value, 1.0f});
-    }
+    }*/
 
     inline static vmath::Matrix4 getScreenSpaceTransform()
     {
@@ -91,16 +154,34 @@ public:
     inline void setPos(Position &&pos) { mPos = std::move(pos); }
     inline void setSize(Size &&size) { mSize = std::move(size); }
 
-    inline AABB getAABB() const
+    inline AABB getAABB(float x_abs, float y_abs) const
     {
-        std::array<float, 2> top_left = getTopLeftCorner();
-        return { top_left[0], top_left[0] + mSize.x.value, top_left[1], top_left[1] + mSize.y.value };
+        std::array<float, 2> top_left = getTopLeftCorner(x_abs, y_abs);
+        return { top_left[0], top_left[0] + mSize.x.getRelative(x_abs), top_left[1], top_left[1] + mSize.y.getRelative(y_abs) };
     }
 
 private:
     GUITransform();
 
-    inline std::array<float, 2> getTopLeftCorner() const
+    inline std::array<float, 2> getTopLeftCorner(float x_abs, float y_abs) const
+    {
+        float pos_x_rel = mPos.x.getRelative(x_abs);
+        float pos_y_rel = mPos.y.getRelative(y_abs);
+        float size_x_rel = mSize.x.getRelative(x_abs);
+        float size_y_rel = mSize.y.getRelative(y_abs);
+
+        std::array<float, 2> out;
+        out[0] = (mPos.x.anchor == HorzAnchor::Left)      ? pos_x_rel                      :
+                 (mPos.x.anchor == HorzAnchor::Middle)    ? pos_x_rel - 0.5*size_x_rel  :
+                                                            pos_x_rel -     size_x_rel;
+
+        out[1] = (mPos.y.anchor == VertAnchor::Top)       ? pos_y_rel                      :
+                 (mPos.y.anchor == VertAnchor::Middle)    ? pos_y_rel - 0.5*size_y_rel  :
+                                                            pos_y_rel -     size_y_rel;
+        return out;
+    }
+
+    /*inline std::array<float, 2> getTopLeftCorner() const
     {
         std::array<float, 2> out;
         out[0] = (mPos.x.anchor == HorzAnchor::Left)      ? mPos.x.value                      :
@@ -111,7 +192,8 @@ private:
                  (mPos.y.anchor == VertAnchor::Middle)    ? mPos.y.value - 0.5*mSize.y.value  :
                                                             mPos.y.value -     mSize.y.value;
         return out;
-    }
+    }*/
+
 
     Position mPos;
     Size mSize;

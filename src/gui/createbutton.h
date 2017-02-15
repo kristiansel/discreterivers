@@ -6,7 +6,7 @@
 
 namespace gui {
 
-gfx::gui::GUINodeHandle createButton(gfx::gui::GUINodeHandle &parent,
+inline gfx::gui::GUINodeHandle createButton(gfx::gui::GUINodeHandle &parent,
                     std::string &&text, const gfx::gui::GUIFont &font,
                     gfx::gui::HorzPos x, gfx::gui::VertPos y, gfx::gui::SizeSpec width,
                     std::function<void(void)> &&onclick)

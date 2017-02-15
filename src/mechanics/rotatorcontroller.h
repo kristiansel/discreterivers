@@ -12,7 +12,7 @@ class RotatorController
 {
 public:
     // signals
-    enum Signal {
+    /*enum Signal {
         Idle          = 0b00000000,
 
         Forward       = 0b00000001,
@@ -26,14 +26,14 @@ public:
         Down          = 0b10000000
     };
 
-    using MoveSignalFlags = stdext::Flags<Signal, Signal::Idle>;
+    using MoveSignalFlags = stdext::Flags<Signal, Signal::Idle>;*/
     using TurnSignals = std::array<float, 2>;
 
     // events
-    enum Event {
+    /*enum Event {
         None          = 0b00000000,
         ToggleOrtho   = 0b00000001,
-    };
+    };*/
 
 private:
     // props
@@ -42,7 +42,7 @@ private:
     // state
     float           mSpeed;
     float           mMouseTurnSpeed;
-    MoveSignalFlags mSignalFlags;
+    //MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
 
 public:
@@ -68,14 +68,14 @@ public:
     // mutators
     inline void clearSignals()
     {
-        mSignalFlags.clearAll();
+        //mSignalFlags.clearAll();
         mTurnSignals = {0.0f, 0.0f};
     }
 
-    inline void sendSignal(Signal signal)
+    /*inline void sendSignal(Signal signal)
     {
         mSignalFlags.setFlag(signal);
-    }
+    }*/
 
     inline void sendTurnSignals(const TurnSignals &turn_signals)
     {
@@ -84,10 +84,10 @@ public:
         update(); // immediate update
     }
 
-    inline void sendEvent(Event event)
+    /*inline void sendEvent(Event event)
     {
         // ...
-    }
+    }*/
 
     inline void update();
 };
@@ -97,7 +97,7 @@ inline void RotatorController::update()
 {
     if (mSceneNodePtr)
     {   
-        std::cout << "sending turn signals " << mTurnSignals[0] << ", " << mTurnSignals[1] << std::endl;
+        //std::cout << "sending turn signals " << mTurnSignals[0] << ", " << mTurnSignals[1] << std::endl;
 
         mSceneNodePtr->transform.rotation =
             vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[0], vmath::Vector3(0.0f, 1.0f, 0.0f))*

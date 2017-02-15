@@ -44,8 +44,8 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
     gfx::gui::GUIStateHandle<WorldViewerState> state_handle = world_scene_node->setState(WorldViewerState());
 
     gfx::gui::GUINodeHandle loading_msg_node = world_scene_node->addGUINode(
-            gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Middle),
-                                     gfx::gui::VertPos(0.5f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Middle)}, {0.15f, 0.10f} ));
+            gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Middle),
+                                     gfx::gui::VertPos(0.5f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Middle)}, {0.15f, 0.10f} ));
     loading_msg_node->hide();
     loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
 

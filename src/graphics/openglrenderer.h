@@ -100,7 +100,7 @@ private:
 
     // private methods
     inline void drawGUI(const gui::GUINode &gui_root) const;
-    inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const;
+    inline void drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform, float w_abs, float h_abs) const;
 
     inline void drawScene(const Camera &camera, const SceneNode &scene_root) const;
     inline void drawSceneRecursive(const SceneNode &scene_root, const vmath::Matrix4 parent_transform) const;

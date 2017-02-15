@@ -197,7 +197,7 @@ inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 
-    drawGUIRecursive(gui_root, screen_space);
+    drawGUIRecursive(gui_root, screen_space, (float)(mWidth), (float)(mHeight));
 
     // -----POST GUI DRAW STAGE-----------------------------------------------------
 /*
@@ -225,13 +225,15 @@ inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
     //glEnable(GL_STENCIL_TEST); // probably move this
 }
 
-inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform) const
+inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath::Matrix4 parent_transform, float w_abs, float h_abs) const
 {
     //vmath::Matrix4 mv = mGUIShader.drawGUINode(gui_node, parent_transform);
     //mGUITextShader.drawGUINodeText(gui_node, parent_transform);
     if (gui_node.isVisible())
     {
-        vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
+        vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix(w_abs, h_abs);
+
+        //vmath::Matrix4 mv = parent_transform * gui_node.getTransform().getTransformMatrix();
 
         for (const gui::GUIElement &child_element : gui_node.getElements())
         {
@@ -246,9 +248,7 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             case (gui::GUIElement::is_a<gui::TextElement>::value):
                 // render text
                 {
-                    vmath::Vector3 transl = mv.getTranslation();
-                    gui::GUITransform::Position pos = { float(transl[0]), float(transl[1]) };
-                    mGUITextShader.drawTextElement(child_element.get_const<gui::TextElement>(), pos);
+                    mGUITextShader.drawTextElement(child_element.get_const<gui::TextElement>(), mv);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
@@ -286,9 +286,12 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             }
         }
 
+        float this_w_abs = gui_node.getTransform().getSize().x.getRelative(w_abs) * w_abs;
+        float this_h_abs = gui_node.getTransform().getSize().y.getRelative(h_abs) * h_abs;
+
         for (const gui::GUINode &child_node : gui_node.getChildren())
         {
-            drawGUIRecursive(child_node, mv);
+            drawGUIRecursive(child_node, mv, this_w_abs, this_h_abs);
         }
     }
 }

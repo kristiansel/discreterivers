@@ -29,16 +29,15 @@ using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
 using GUINodePtr = gui::GUINode*;
 
+enum GUIFlag
+{
+    Default       = 0b00000000,
+    Hide          = 0b00000001,
+    ClickPassThru = 0b00000010
+};
+
 class GUINode
 {
-    // private class GUIFlags
-    enum GUIFlag
-    {
-        Default       = 0b00000000,
-        Hide          = 0b00000001,
-        ClickPassThru = 0b00000010
-    };
-
     using GUIFlags = stdext::Flags<GUIFlag, GUIFlag::Default>;
 public:
     template<typename F, typename... Args>
@@ -55,6 +54,8 @@ public:
         std::vector<CallbackT> callbacks;
     };
     using GUIEventHandler = std::function<void(const GUIEvent&)>;
+
+
 
     // Constructor
     explicit inline GUINode(const GUITransform &gui_transform) :
@@ -75,10 +76,9 @@ public:
     //inline GUINode(const GUINode &gn) = default;/
 
     // methods
-    GUINodePtr handleMouseButtonDown(float x, float y, int32_t pix_x, int32_t pix_y);
-    void handleMouseButtonUp(float x, float y, int32_t pix_x, int32_t pix_y);
+    GUINodePtr getDeepestClicked(float x, float y, float w_abs, float h_abs);
+    GUINodePtr getDeepestHovered(float x, float y, float w_abs, float h_abs);
 
-    GUINodePtr getDeepestHovered(float x, float y, bool debug = false);
 
     template<typename StateT>
     GUIStateHandle<StateT> setState(const StateT &state) { return mGUIState.getGUIStateHandle<StateT>(state); }
@@ -108,6 +108,7 @@ public:
     inline void show()                  { mGUIFlags.clearFlag(GUIFlag::Hide);           }
     inline void toggleShow()            { mGUIFlags.toggleFlag(GUIFlag::Hide);          }
 
+    inline void isClickPassThru()       { mGUIFlags.checkFlag(GUIFlag::ClickPassThru);  }
     inline void clickSolid()            { mGUIFlags.clearFlag(GUIFlag::ClickPassThru);  }
     inline void clickPassThru()         { mGUIFlags.setFlag(GUIFlag::ClickPassThru);    }
     inline void toggleClickPassThru()   { mGUIFlags.toggleFlag(GUIFlag::ClickPassThru); }
@@ -115,10 +116,6 @@ public:
 
 
 public:
-    /*GUIEventHandler<void> mouseEnter;
-    GUIEventHandler<void> mouseLeave;
-    GUIEventHandler<void> mouseClick;
-    GUIEventHandler<void> mouseRelease;*/
     EventHandler<void> stateUpdate;
 
     friend void onGUINodeStateUpdate(GUINode &gui_node);
@@ -141,6 +138,9 @@ private:
 
     std::list<GUINode> mChildren;
     std::list<GUIElement> mElements;
+
+    // helper methods
+    inline GUINodePtr getDeepestIntersectingNode(float x, float y, float w_abs, float h_abs, GUIFlag flag_mask = GUIFlag::Default);
 };
 
 } // gui

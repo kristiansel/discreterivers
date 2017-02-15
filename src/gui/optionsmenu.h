@@ -29,14 +29,14 @@ inline void createOptionsMenu(GUI &gui, gfx::gui::GUINode &options_menu_root)
     );
 
     gfx::gui::GUINodeHandle title_node = options_bg_node->addGUINode(
-        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.0f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Left),
-                                 gfx::gui::VertPos(0.0f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Top)}, {0.15f, 0.10f} ));
+        gfx::gui::GUITransform( {gfx::gui::HorzPos(0.0f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
+                                 gfx::gui::VertPos(0.0f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top)}, {0.15f, 0.10f} ));
 
     title_node->addElement( gfx::gui::TextElement( "Options", font));
 
     createButton(options_bg_node, "Apply", font,
-                 gfx::gui::HorzPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::HorzAnchor::Right),
-                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Percentage, gfx::gui::VertAnchor::Bottom),
+                 gfx::gui::HorzPos(0.96f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
+                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
                  0.3f,
                  [](){});
 
