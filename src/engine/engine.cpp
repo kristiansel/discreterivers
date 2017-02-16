@@ -2,9 +2,9 @@
 
 namespace engine {
 
-Engine::Engine(int w, int h, int dpi) :
+Engine::Engine(int w, int h, int dpi, float scale_factor) :
     mRenderer(w, h),
-    mGUI(w, h, dpi),
+    mGUI(w, h, dpi, scale_factor),
 
     // to be moved
     camera(w, h),

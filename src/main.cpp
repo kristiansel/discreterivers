@@ -27,16 +27,15 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    //Threads::ThreadPool::get().push( [] (int id){ std::cout << "hello from " << id << '\n'; }); // lambda
-
-
-    // SDL2 window code
+    //=================================//
+    //         SDL2 Window code        //
+    //=================================//
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    // get main window resolution and dpi
+    // get main screen resolution and dpi
     int maindisp_width, maindisp_height, maindisp_dpi;
     if (SDL_GetNumVideoDisplays() > 0)
     {
@@ -69,10 +68,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    float scale_factor = (float)(maindisp_height)/(float)(1024);
     int width = std::min(maindisp_width, maindisp_dpi * 14);
     int height = std::min(maindisp_height, maindisp_dpi * 10);
     int dpi = maindisp_dpi;
 
+
+    // initialize and create window
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -88,11 +90,7 @@ int main(int argc, char *argv[])
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
-    // DPI settings
-    //int current_display = SDL_GetWindowDisplayIndex(mainWindow);
-
     std::cout << "Checking SDL error: " << SDL_GetError() << std::endl;
-
     std::cout << "Found graphics card: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Status: Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
@@ -103,16 +101,9 @@ int main(int argc, char *argv[])
     std::cout << "sdl_get_ret: " << sdl_get_ret << std::endl;
 
     //=================================//
-    //           Initialize            //
+    //     Initialize game engine      //
     //=================================//
-    engine::Engine engine(width, height, dpi);
-
-    /*events::Immediate::add_callback<events::GenerateWorldEvent>(
-        [&engine] (const events::GenerateWorldEvent &evt) {
-            SceneData scene_data = createPlanetData();
-            createScene(engine.getRenderer().getSceneRoot(), scene_data);
-        }
-    );*/
+    engine::Engine engine(width, height, dpi, scale_factor);
 
     // SDL event loop
     SDL_Event event;
@@ -125,16 +116,16 @@ int main(int argc, char *argv[])
     float filter_weight = 0.03f;
     engine::FPSCounter fps_counter(filter_weight);
 
+    //=================================//
+    //         Main loop               //
+    //=================================//
     while(!done)
     {
-        // start timer for fps counting
         fps_counter.startFrame();
 
         bool resizing_this_frame = false;
 
-        //=================================//
-        //             PREPARE             //
-        //=================================//
+        // pre-event work
         engine.prepareFrame();
 
         // handle continuous events
@@ -177,9 +168,7 @@ int main(int argc, char *argv[])
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
-        //=================================//
-        //             UPDATE              //
-        //=================================//
+        // update based on events
         engine.update();
 
         // interaction with gui and other parts of the system might have caused events
@@ -211,7 +200,8 @@ int main(int argc, char *argv[])
             evt_queue.pop();
         }
 
-        // Async waits
+        // User interaction might have caused asynchronous jobs to spawn in separate threads.
+        // When these jobs are complete, final processing is done here in the main thread
         sys::Async::processReturnedJobs();
 
         if (!resizing_this_frame)
@@ -223,22 +213,18 @@ int main(int argc, char *argv[])
 
             // end of work
             float fps_filtered_val = fps_counter.getFrameFPSFiltered();
-
-            // TODO: Implement a monospace text element that sends updated text as texture coordinate updates
-            // either that, or some dynamic text element, that just updates the buffer data in the gui, text element
-            // or both...
-
             events::Immediate::broadcast(events::FPSUpdateEvent{fps_filtered_val});
 
-            SDL_GL_SwapWindow(mainWindow); // woops: This sleeps!
+            // OOPS! This function call can sleep the main thread
+            SDL_GL_SwapWindow(mainWindow);
         }
 
-    }   // End while(!done)
-
+    } // End while(!done) // main loop
 
     //=================================//
     //              QUIT               //
     //=================================//
+
     gfx::checkOpenGLErrors("program end");
 
     // safe to clean up these before destructors are called?

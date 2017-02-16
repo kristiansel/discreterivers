@@ -13,7 +13,7 @@ void createGUI(GUI &gui_root);
 class GUI
 {
 public:
-    GUI(int w, int h, int dpi) : mWidth(w), mHeight(h), mDPI(dpi),
+    GUI(int w, int h, int dpi, float scale_factor) : mWidth(w), mHeight(h), mScaleFactor(scale_factor),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
         mHoveredNode(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi),
         mMouseCapturedNode(nullptr), mActiveNode(nullptr)
@@ -33,7 +33,7 @@ public:
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.getDeepestClicked(gui_x, gui_y, (float)(mWidth), (float)(mHeight));
+        gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.getDeepestClicked(gui_x, gui_y, getWindowAbsWidth(), getWindowAbsHeight());
 
         if (mouse_down_node) mouse_down_node->handleEvent(gfx::gui::MouseButtonDownEvent{button, x, y});
 
@@ -57,7 +57,7 @@ public:
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
 
-        gfx::gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y, (float)(mWidth), (float)(mHeight));
+        gfx::gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y, getWindowAbsWidth(), getWindowAbsHeight());
 
         if (mHoveredNode != current_hovered)
         {
@@ -96,13 +96,15 @@ public:
     //inline const gfx::gui::GUIFont &getFontRenderer() const { return mFontRenderer; }
     inline const gfx::gui::GUIFont &getDefaultFont() const { return mFontRenderer; }
 
+    inline float getWindowAbsWidth() { return (float)(mWidth)/mScaleFactor; }
+    inline float getWindowAbsHeight() { return (float)(mHeight)/mScaleFactor; }
+
 private:
     GUI();
 
     int mWidth;
     int mHeight;
-
-    int mDPI;
+    float mScaleFactor;
 
     gfx::gui::GUIFont mFontRenderer;
 

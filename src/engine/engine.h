@@ -35,7 +35,7 @@ class Engine
     Engine(const Engine &e) = delete;
 
 public:
-    Engine(int w, int h, int dpi);
+    Engine(int w, int h, int dpi, float scale_factor);
 
     // mutators
     inline void prepareFrame();
