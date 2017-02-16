@@ -6,8 +6,8 @@
 namespace gfx
 {
 
-OpenGLRenderer::OpenGLRenderer(int w, int h)  :
-    mWidth(w), mHeight(h),
+OpenGLRenderer::OpenGLRenderer(int w, int h, float scale_factor)  :
+    mWidth(w), mHeight(h), mScaleFactor(scale_factor),
     mGUITextShader(w, h)/*,
     mGUIFont("res/fonts/IMFePIrm28P.ttf", 24)*/
 {
@@ -197,7 +197,7 @@ inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
 
     vmath::Matrix4 screen_space = gui::GUITransform::getScreenSpaceTransform();
 
-    drawGUIRecursive(gui_root, screen_space, (float)(mWidth), (float)(mHeight));
+    drawGUIRecursive(gui_root, screen_space, (float)(mWidth)/mScaleFactor, (float)(mHeight)/mScaleFactor);
 
     // -----POST GUI DRAW STAGE-----------------------------------------------------
 /*

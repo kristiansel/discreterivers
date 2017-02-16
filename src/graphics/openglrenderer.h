@@ -52,7 +52,7 @@ class OpenGLRenderer : public OpenGLContextDependent // Need to get a context be
 {
     using GFXTickJob = std::function<void(void)>;
 public:
-    OpenGLRenderer(int w, int h);
+    OpenGLRenderer(int w, int h, float scale_factor);
 
     // methods
     void draw(const Camera &camera, const gui::GUINode &gui_root) const;
@@ -72,6 +72,7 @@ public:
 private:
     int mWidth;
     int mHeight;
+    float mScaleFactor;
 
     // global render flags
     RenderFlags mRenderFlags;

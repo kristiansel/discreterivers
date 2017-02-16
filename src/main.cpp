@@ -69,8 +69,9 @@ int main(int argc, char *argv[])
     }
 
     float scale_factor = (float)(maindisp_height)/(float)(1024);
-    int width = std::min(maindisp_width, maindisp_dpi * 14);
-    int height = std::min(maindisp_height, maindisp_dpi * 10);
+    std::cout << "scale factor = " << scale_factor << std::endl;
+    int width = scale_factor * 1400;
+    int height = scale_factor * 800; 
     int dpi = maindisp_dpi;
 
 

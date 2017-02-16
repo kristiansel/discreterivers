@@ -4,11 +4,11 @@ namespace gfx {
 
 namespace gui {
 
-GUIFont::GUIFont(const char * font_file_name, unsigned int size, unsigned int dpi) :
+GUIFont::GUIFont(const char * font_file_name, unsigned int size) :
     mTexAtlas(vmath::Vector4{1.0, 1.0, 1.0, 1.0})
 
 {
-    unsigned int size_dpi_scaled = float(size)/float(100) * dpi;
+    unsigned int size_dpi_scaled = size; 
 
     FT_Library ft_library;
     if(FT_Init_FreeType(&ft_library)) {

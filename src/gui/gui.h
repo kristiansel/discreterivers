@@ -15,7 +15,7 @@ class GUI
 public:
     GUI(int w, int h, int dpi, float scale_factor) : mWidth(w), mHeight(h), mScaleFactor(scale_factor),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mHoveredNode(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", 24, dpi),
+        mHoveredNode(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", (unsigned int)(24.0f * scale_factor)),
         mMouseCapturedNode(nullptr), mActiveNode(nullptr)
     {
         mGUIRoot.clickPassThru();
@@ -29,11 +29,13 @@ public:
 
     bool handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton button)
     {
-        // transform pixels to gui coordinates
+        float abs_width = getWindowAbsWidth();
+        float abs_height = getWindowAbsHeight();
+
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
         //std::cout << "clicked " << gui_x << ", " << gui_y << std::endl;
-        gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.getDeepestClicked(gui_x, gui_y, getWindowAbsWidth(), getWindowAbsHeight());
+        gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.getDeepestClicked(gui_x, gui_y, abs_width, abs_height);
 
         if (mouse_down_node) mouse_down_node->handleEvent(gfx::gui::MouseButtonDownEvent{button, x, y});
 
@@ -53,11 +55,13 @@ public:
 
     void handleMouseMoved(int32_t x, int32_t y, int32_t x_rel, int32_t y_rel)
     {
-        // transform pixels to gui coordinates
+        float abs_width = getWindowAbsWidth();
+        float abs_height = getWindowAbsHeight();
+
         float gui_x = (float)(x)/(float)(mWidth);
         float gui_y = (float)(y)/(float)(mHeight);
 
-        gfx::gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y, getWindowAbsWidth(), getWindowAbsHeight());
+        gfx::gui::GUINodePtr current_hovered = mGUIRoot.getDeepestHovered(gui_x, gui_y, abs_width, abs_height);
 
         if (mHoveredNode != current_hovered)
         {
@@ -91,13 +95,12 @@ public:
         mHeight = h;
     }
 
-
-
     //inline const gfx::gui::GUIFont &getFontRenderer() const { return mFontRenderer; }
     inline const gfx::gui::GUIFont &getDefaultFont() const { return mFontRenderer; }
 
-    inline float getWindowAbsWidth() { return (float)(mWidth)/mScaleFactor; }
-    inline float getWindowAbsHeight() { return (float)(mHeight)/mScaleFactor; }
+    inline float getAbsFromPix(float pix) { return pix/mScaleFactor; }
+    inline float getWindowAbsWidth() { return getAbsFromPix((float)(mWidth)); }
+    inline float getWindowAbsHeight() { return getAbsFromPix((float)(mHeight)); }
 
 private:
     GUI();

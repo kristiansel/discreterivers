@@ -3,7 +3,7 @@
 namespace engine {
 
 Engine::Engine(int w, int h, int dpi, float scale_factor) :
-    mRenderer(w, h),
+    mRenderer(w, h, scale_factor),
     mGUI(w, h, dpi, scale_factor),
 
     // to be moved

@@ -30,7 +30,7 @@ public:
         static const int height = 1920;
     };
 
-    GUIFont(const char * font_file_name, unsigned int size, unsigned int dpi);
+    GUIFont(const char * font_file_name, unsigned int size);
 
     struct GlyphDrawInfo {
         int bitmap_left;
