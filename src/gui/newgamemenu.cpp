@@ -37,7 +37,8 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 {
     const gfx::gui::GUIFont &font = gui.getDefaultFont();
 
-    gfx::gui::GUINodeHandle newgame_bg_node = new_game_menu_root.addGUINode(gfx::gui::GUITransform({0.50f, 0.50f}, {0.80f, 0.80f}));
+    gfx::gui::GUINodeHandle newgame_bg_node = new_game_menu_root.addGUINode(
+                gfx::gui::GUITransform({0.5f, 0.5f}, {0.95f, 0.95f}));
 
     newgame_bg_node->addElement( gfx::gui::BackgroundElement( styling::colorGuiBase() ) );
     newgame_bg_node->hide();
@@ -58,14 +59,18 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     title_node->addElement( gfx::gui::TextElement( "New game -> World Generation", font));
 
-    createWorldViewer(newgame_bg_node, font, {gfx::gui::HorzPos(0.95f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
-        gfx::gui::VertPos(0.1f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top)}, {0.50f, 0.50f});
+    createWorldViewer(newgame_bg_node, font,
+        {gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Right, gfx::gui::HorzFrom::Right),
+         gfx::gui::VertPos(60.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top)},
+
+        {gfx::gui::SizeSpec(0.66f, gfx::gui::Units::Relative),
+         gfx::gui::SizeSpec(0.66f, gfx::gui::Units::Relative)});
 
     // Toggle world shape
     createToggle(newgame_bg_node, "Disk", font,
-                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.10f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(60.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                      gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -78,9 +83,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createToggle(newgame_bg_node, "Sphere", font,
-                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.20f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(120.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                      gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -93,9 +98,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createToggle(newgame_bg_node, "Torus", font,
-                 gfx::gui::HorzPos(0.05f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.30f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(180.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                      gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -110,9 +115,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
 
     // Toggle world size
     createToggle(newgame_bg_node, "Small", font,
-                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.10f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(160.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(60.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                      gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -125,9 +130,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createToggle(newgame_bg_node, "Medium", font,
-                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.20f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(160.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(120.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                      gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -140,9 +145,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createToggle(newgame_bg_node, "Large", font,
-                 gfx::gui::HorzPos(0.25f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.30f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Top),
-                 0.15f,
+                 gfx::gui::HorzPos(160.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(180.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top, gfx::gui::VertFrom::Top),
+                 90.0f,
                  [state_handle] ()
                  {
                     gfx::gui::GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
@@ -155,9 +160,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createButton(newgame_bg_node, "Generate", font,
-                 gfx::gui::HorzPos(0.96f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
-                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
-                 0.2f,
+                 gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Right, gfx::gui::HorzFrom::Right),
+                 gfx::gui::VertPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Bottom, gfx::gui::VertFrom::Bottom),
+                 180.0f,
                  [state_handle]()
                  {
                      gfx::gui::GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
@@ -165,9 +170,9 @@ void createNewGameMenu(GUI &gui, gfx::gui::GUINode &new_game_menu_root)
                  });
 
     createButton(newgame_bg_node, "Back", font,
-                 gfx::gui::HorzPos(0.04f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
-                 0.2f,
+                 gfx::gui::HorzPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left, gfx::gui::HorzFrom::Left),
+                 gfx::gui::VertPos(30.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Bottom, gfx::gui::VertFrom::Bottom),
+                 180.0f,
                  [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 
     // update the state

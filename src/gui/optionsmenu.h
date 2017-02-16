@@ -37,8 +37,14 @@ inline void createOptionsMenu(GUI &gui, gfx::gui::GUINode &options_menu_root)
     createButton(options_bg_node, "Apply", font,
                  gfx::gui::HorzPos(0.96f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Right),
                  gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
-                 0.3f,
+                 180.0f,
                  [](){});
+
+    createButton(options_bg_node, "Back", font,
+                 gfx::gui::HorzPos(0.04f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
+                 180.0f,
+                 [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 
 }
 

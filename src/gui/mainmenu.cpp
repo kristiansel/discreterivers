@@ -48,27 +48,27 @@ void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
     gfx::gui::GUINodeHandle main_img_node = main_bg_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
     main_img_node->addElement( gfx::gui::ImageElement(main_bg_tex) );
 
-    auto new_btn_node       = createButton(main_bg_node, "New", font, 0.5f, 0.500f, 0.5f, []()
+    auto new_btn_node       = createButton(main_bg_node, "New", font, 0.5f, 0.500f, 180.0f, []()
     {
         std::cout << "Clicked new game!"      << std::endl;
         events::Immediate::broadcast(events::NewGameEvent());
     });
-    auto save_btn_node       = createButton(main_bg_node, "Save", font, 0.5f, 0.580f, 0.5f, []()
+    auto save_btn_node       = createButton(main_bg_node, "Save", font, 0.5f, 0.580f, 180.0f, []()
     {
         std::cout << "Clicked save game!"      << std::endl;
         events::Immediate::broadcast(events::SaveGameEvent());
     });
-    auto load_btn_node      = createButton(main_bg_node, "Load", font, 0.5f, 0.660f, 0.5f, []()
+    auto load_btn_node      = createButton(main_bg_node, "Load", font, 0.5f, 0.660f, 180.0f, []()
     {
         std::cout << "Clicked load game!"     << std::endl;
         events::Immediate::broadcast(events::LoadGameEvent());
     });
-    auto options_btn_node   = createButton(main_bg_node, "Options", font, 0.5f, 0.740f, 0.5f, []()
+    auto options_btn_node   = createButton(main_bg_node, "Options", font, 0.5f, 0.740f, 180.0f, []()
     {
         std::cout << "Clicked options game!"  << std::endl;
         events::Immediate::broadcast(events::OptionsEvent());
     });
-    auto exit_btn_node      = createButton(main_bg_node, "Exit", font, 0.5f, 0.820f, 0.5f, []()
+    auto exit_btn_node      = createButton(main_bg_node, "Exit", font, 0.5f, 0.820f, 180.0f, []()
     {
         events::Queued::emitEvent(events::Queued::QuitEvent());
         std::cout << "Clicked exit game!"     << std::endl;

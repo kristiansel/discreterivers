@@ -35,11 +35,17 @@ inline void createLoadGameMenu(GUI &gui, gfx::gui::GUINode &loadgame_menu_root)
 
     /*for (int i = 0; i<7; i++)
     {
-        createButton(loadgame_bg_node, "New load", font, 0.5f, 0.2f+i*0.1f, 0.5f, []()
+        createButton(loadgame_bg_node, "New load", font, 0.5f, 0.2f+i*0.1f, 180.0f, []()
         {
             std::cout << "Clicked new load!"      << std::endl;
         });
     }*/
+
+    createButton(loadgame_bg_node, "Back", font,
+                 gfx::gui::HorzPos(0.04f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
+                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
+                 180.0f,
+                 [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 }
 
 } // namespace gui

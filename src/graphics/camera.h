@@ -12,6 +12,9 @@ struct Camera
     vmath::Matrix4 mProjectionMatrix;
     vmath::Matrix4 getCamMatrixInverse() const { return vmath::inverse(mTransform.getTransformMatrix()); }
 
+    // need to pass transform with the constructor...
+    inline void updateAspect(int width, int height);
+
     Transform mTransform;
 };
 
@@ -20,13 +23,7 @@ inline Camera::Camera(int width, int height)
     // set up camera
     // camera
     // projection matrix
-    float aspect_ratio = (float)(width)/(float)(height);
-    mProjectionMatrix = vmath::Matrix4::perspective(
-        M_PI_4,                         // field of view (radians)
-        aspect_ratio,                   // aspect ratio
-        0.1f,                           // znear
-        100.0f                          // zfar
-    );
+    updateAspect(width, height);
 
 //    float half_height = 3.5f;
 //    mProjectionMatrix = vmath::Matrix4::orthographic(
@@ -39,6 +36,16 @@ inline Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
+inline void Camera::updateAspect(int width, int height)
+{
+    float aspect_ratio = (float)(width)/(float)(height);
+    mProjectionMatrix = vmath::Matrix4::perspective(
+        M_PI_4,                         // field of view (radians)
+        aspect_ratio,                   // aspect ratio
+        0.1f,                           // znear
+        100.0f                          // zfar
+    );
+}
 
 }
 
