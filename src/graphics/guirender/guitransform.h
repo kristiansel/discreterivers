@@ -24,18 +24,27 @@ enum class VertFrom : int { Top = int(AgnosticFrom::Near),
                             Middle = int(AgnosticFrom::Middle),
                             Bottom  = int(AgnosticFrom::Far)};
 
-struct CoordValueSpec
+struct SizeSpec
 {
     // implicit constructor
-    CoordValueSpec(float v, Units u = Units::Relative) : value(v), units(u) {}
-    Units units;
+    SizeSpec(float v, Units u = Units::Relative, bool parent_minus = false) :
+        value(v), units(u), mParentMinus(parent_minus) {}
 
+    Units units;
+    bool mParentMinus;
 
     inline float getRelative(float abs_val) const
     {
         if (units != Units::Relative)
         {
-            return value/abs_val;
+            if (mParentMinus)
+            {
+                return (abs_val - value)/abs_val;
+            }
+            else
+            {
+                return value/abs_val;
+            }
         }
         else
         {
@@ -45,7 +54,8 @@ struct CoordValueSpec
 
 private:
     float value;
-    CoordValueSpec() = delete;
+
+    SizeSpec() = delete;
 };
 
 template <typename Anchor, typename AbsFrom>
@@ -91,9 +101,6 @@ private:
 
 using HorzPos = PosSpec<HorzAnchor, HorzFrom>;
 using VertPos = PosSpec<VertAnchor, VertFrom>;
-
-using SizeSpec = CoordValueSpec;
-
 
 struct AABB
 {

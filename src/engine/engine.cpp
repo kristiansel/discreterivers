@@ -7,12 +7,15 @@ Engine::Engine(int w, int h, int dpi, float scale_factor) :
     mGUI(w, h, dpi, scale_factor),
 
     // to be moved
-    camera(w, h),
+    camera((float)(w)/(float)(h)),
     mCameraController(&camera),
     mGUICapturedMouse(false)
 
 {
     gui::createGUI(mGUI);
+
+    // make sure to resize everything
+    // mGUI.resize(w, h);
 
     // to be moved
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
@@ -106,7 +109,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
             if (event.button.button == SDL_BUTTON_LEFT)
             {
                 mGUICapturedMouse = mGUI.handleMouseButtonDown(event.button.x, event.button.y, gfx::gui::MouseButton::Left);
-                std::cout << "mouse captured: " << mGUICapturedMouse << std::endl;
+                //std::cout << "mouse captured: " << mGUICapturedMouse << std::endl;
             }
             break;
         }

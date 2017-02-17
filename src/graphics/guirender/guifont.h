@@ -46,7 +46,8 @@ public:
 
     // could go full template here, and use char array and tex coords array of related length?
     void updateText(const char * text, std::vector<vmath::Vector4> &points, std::vector<TexCoords> &tex_coords) const;
-    void updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data) const;
+    void updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data,
+                        unsigned int max_pixel_width = 1200) const;
 
     //static GUITextVertices renderText(const GUIFont &font, const std::string &text);
 

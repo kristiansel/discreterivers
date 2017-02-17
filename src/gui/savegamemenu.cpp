@@ -1,7 +1,8 @@
 #ifndef SAVEMENU_H
 #define SAVEMENU_H
 
-#include "gui.h"
+#include "submenus.h"
+
 #include "guistyling.h"
 #include "createbutton.h"
 #include "../events/immediateevents.h"
@@ -9,15 +10,17 @@
 
 namespace gui {
 
-inline void createSaveGameMenu(GUI &gui, gfx::gui::GUINode &savegame_menu_root)
+using namespace gfx::gui;
+
+void createSaveGameMenu(GUI &gui, GUINode &savegame_menu_root)
 {
-    const gfx::gui::GUIFont &font = gui.getDefaultFont();
+    const GUIFont &font = gui.getDefaultFont();
 
     vmath::Vector4 color_gui_base = styling::colorGuiBase();
 
-    gfx::gui::GUINodeHandle savegame_bg_node = savegame_menu_root.addGUINode(gfx::gui::GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}));
+    GUINodeHandle savegame_bg_node = savegame_menu_root.addGUINode(GUITransform({0.50f, 0.50f}, {0.39f, 0.66f}));
 
-    savegame_bg_node->addElement( gfx::gui::BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
+    savegame_bg_node->addElement( BackgroundElement( vmath::Vector4( 1*color_gui_base ) ) );
     savegame_bg_node->hide();
 
     events::Immediate::add_callback<events::SaveGameEvent>(
@@ -28,10 +31,10 @@ inline void createSaveGameMenu(GUI &gui, gfx::gui::GUINode &savegame_menu_root)
         [savegame_bg_node] (const events::ToggleMainMenuEvent &evt) { savegame_bg_node->hide(); }
     );
 
-    gfx::gui::GUINodeHandle title_node = savegame_bg_node->addGUINode(
-        gfx::gui::GUITransform( {0.5f, 0.1f}, {0.5f, 0.10f} ));
+    GUINodeHandle title_node = savegame_bg_node->addGUINode(
+        GUITransform( {0.5f, 0.1f}, {0.5f, 0.10f} ));
 
-    title_node->addElement( gfx::gui::TextElement( "Save game", font) );
+    title_node->addElement( TextElement( "Save game", font) );
 
     for (int i = 0; i<7; i++)
     {
@@ -42,8 +45,8 @@ inline void createSaveGameMenu(GUI &gui, gfx::gui::GUINode &savegame_menu_root)
     }
 
     createButton(savegame_bg_node, "Back", font,
-                 gfx::gui::HorzPos(0.04f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Left),
-                 gfx::gui::VertPos(0.96f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Bottom),
+                 HorzPos(0.04f, Units::Relative, HorzAnchor::Left),
+                 VertPos(0.96f, Units::Relative, VertAnchor::Bottom),
                  180.0f,
                  [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 }

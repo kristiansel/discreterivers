@@ -471,13 +471,13 @@ namespace AltPlanet
         case(PlanetShape::Sphere):
         {
             planet_shape_ptr = new AltPlanet::Shape::Sphere(3.0f);
-            planet_filename = "sphere_planet.dat";
+            planet_filename = "res/meshes/sphere_planet.dat";
         }
         break;
         case(PlanetShape::Torus):
         {
             planet_shape_ptr = new AltPlanet::Shape::Torus(3.0f, 1.0f);
-            planet_filename = "torus_planet.dat";
+            planet_filename = "res/meshes/torus_planet.dat";
         }
         break;
         default:

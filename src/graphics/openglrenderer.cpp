@@ -8,8 +8,7 @@ namespace gfx
 
 OpenGLRenderer::OpenGLRenderer(int w, int h, float scale_factor)  :
     mWidth(w), mHeight(h), mScaleFactor(scale_factor),
-    mGUITextShader(w, h)/*,
-    mGUIFont("res/fonts/IMFePIrm28P.ttf", 24)*/
+    mGUITextShader(w, h)
 {
     // OpenGL context needs to be valid at this point
 
@@ -270,7 +269,8 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
                     bl = vmath::Matrix4::scale(vmath::Vector3(mWidth/2.0f, mHeight/2.0f, 1.0f)) * bl;
                     tr = vmath::Matrix4::scale(vmath::Vector3(mWidth/2.0f, mHeight/2.0f, 1.0f)) * tr;
 
-                    glViewport(bl[0], tr[1], tr[0]-bl[0], bl[1]-tr[1]); // top right and bottom left get muddled by screen space matrix
+                    glViewport(std::max((int)(bl[0]), 1),       std::max((int)(tr[1]), 1),
+                               std::max((int)(tr[0]-bl[0]), 1), std::max((int)(bl[1]-tr[1]),1)); // top right and bottom left get muddled by screen space matrix
                     //std::cout << "in SceneElement draw: " << std::endl;
                     //vmath::print(bl);
                     //vmath::print(tr);

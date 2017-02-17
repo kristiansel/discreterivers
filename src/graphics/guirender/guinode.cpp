@@ -82,6 +82,28 @@ inline GUINodePtr GUINode::getDeepestIntersectingNode(float x, float y, float w_
     }
 }
 
+inline bool GUINode::thisSizeChangesWithParent()
+{
+    return ((mGUITransform.getSize().x.units == Units::Relative || mGUITransform.getSize().x.mParentMinus) ||
+            (mGUITransform.getSize().y.units == Units::Relative || mGUITransform.getSize().y.mParentMinus));
+}
+
+void GUINode::resize(float w_abs, float h_abs)
+{
+    if (thisSizeChangesWithParent())
+    {
+        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
+        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
+
+        handleEvent(ResizedEvent{this_w_abs, this_h_abs});
+
+        for (auto &child : mChildren)
+        {
+            child.resize(this_w_abs, this_h_abs);
+        }
+    }
+}
+
 /*
 GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs)
 {

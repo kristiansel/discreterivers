@@ -2,11 +2,6 @@
 #include "../events/queuedevents.h"
 #include "../events/immediateevents.h"
 
-#include "savegamemenu.h"
-#include "loadgamemenu.h"
-#include "optionsmenu.h"
-#include "profilingpane.h"
-
 #include "submenus.h"
 
 namespace gui {

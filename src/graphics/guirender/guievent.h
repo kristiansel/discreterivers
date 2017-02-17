@@ -55,6 +55,12 @@ struct KeyUpEvent
     KeyCode key_code;
 };
 
+struct ResizedEvent
+{
+    float w_abs;
+    float h_abs;
+};
+
 using GUIEvent = stdext::either<
     MouseMoveEvent,
     MouseButtonDownEvent,
@@ -63,7 +69,8 @@ using GUIEvent = stdext::either<
     MouseLeaveEvent,
     MouseDragEvent,
     KeyDownEvent,
-    KeyUpEvent
+    KeyUpEvent,
+    ResizedEvent
 >;
 
 }

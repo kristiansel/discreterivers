@@ -129,17 +129,25 @@ void GUIFont::updateText(const char * text, std::vector<vmath::Vector4> &positio
     updateTextData(text, &position_data[0], &texcoord_data[0]);
 }
 
-void GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data) const
+void GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data, unsigned int max_pixel_width) const
 {
 
     unsigned int res_x = GUIFont::StdResolution::width;
     unsigned int res_y = GUIFont::StdResolution::height;
 
     float x=0; float y=0; float sx = 2.0f/static_cast<float>(res_x); float sy=2.0f/static_cast<float>(res_y);
+    float max_x = max_pixel_width*sx;
 
+    // remove: This is for debug
+    std::vector<char> tvec;
+    for (int i = 0; text[i]!=0; i++) { tvec.push_back(text[i]); }
+
+    int last_space_wrapped_at = -2;
+    int last_space_position = -1;
     for (int i = 0; text[i]!=0; i++)
     {
         char c = text[i];
+        if (c==' ') last_space_position = i;
         const auto draw_info_it = mGlyphDrawInfo.find(c);
         if (draw_info_it == mGlyphDrawInfo.end()) assert(false&&"wat1?");
         const GlyphDrawInfo &draw_info = draw_info_it->second;
@@ -172,6 +180,17 @@ void GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, 
  // 0
         x += (draw_info.advance.x/64) * sx;
         y += (draw_info.advance.y/64) * sy;
+        if (x > max_x && c!=' ')
+        {
+            if (last_space_position != -1 && last_space_wrapped_at != last_space_position)
+            {
+                // restart new line at last space position
+                y-= (float)(mLineHeight) * sy;
+                x = 0.0f;
+                i=last_space_position;
+                last_space_wrapped_at=i;
+            }
+        }
     }
 }
 

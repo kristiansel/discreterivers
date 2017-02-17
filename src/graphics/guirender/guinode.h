@@ -78,6 +78,7 @@ public:
     // methods
     GUINodePtr getDeepestClicked(float x, float y, float w_abs, float h_abs);
     GUINodePtr getDeepestHovered(float x, float y, float w_abs, float h_abs);
+    void resize(float w_abs, float h_abs);
 
 
     template<typename StateT>
@@ -141,6 +142,7 @@ private:
 
     // helper methods
     inline GUINodePtr getDeepestIntersectingNode(float x, float y, float w_abs, float h_abs, GUIFlag flag_mask = GUIFlag::Default);
+    inline bool thisSizeChangesWithParent();
 };
 
 } // gui

@@ -86,6 +86,12 @@ struct GenerateWorldEvent
     PlanetSize planet_size;
 };
 
+struct UIScaleFactorUpdate {
+    enum class ScaleFactor { Small, Medium, Large };
+
+    ScaleFactor size;
+};
+
 
 } // namespace events
 

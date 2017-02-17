@@ -49,12 +49,12 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
     loading_msg_node->hide();
     loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
 
-    gfx::Camera camera(300, 300);
+    gfx::Camera camera(1.0f);
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
 
     world_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
-        gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
+        //gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
         switch (event.get_type())
         {
         case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseDragEvent>::value):
@@ -65,6 +65,15 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
                 float mouse_angle_y = static_cast<float>(drag_event.y_rel)*0.0062832f;
                 sw_no_update->world_controller.sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
+            break;
+        case (gfx::gui::GUIEvent::is_a<gfx::gui::ResizedEvent>::value):
+            {
+                const gfx::gui::ResizedEvent &resized_event = event.get_const<gfx::gui::ResizedEvent>();
+                gfx::Camera &cam = scene_element->get<gfx::gui::SceneElement>().getCamera();
+                cam.updateAspect(resized_event.w_abs/resized_event.h_abs);
+                std::cout << "RESIZED CAM" << std::endl;
+            }
+            break;
         }
     });
 

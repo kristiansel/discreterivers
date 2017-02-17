@@ -15,7 +15,10 @@ class GUI
 public:
     GUI(int w, int h, int dpi, float scale_factor) : mWidth(w), mHeight(h), mScaleFactor(scale_factor),
         mGUIRoot(gfx::gui::GUITransform({0.50f, 0.50f}, {1.0f, 1.0f})),
-        mHoveredNode(&mGUIRoot), mFontRenderer("res/fonts/IMFePIrm28P.ttf", (unsigned int)(24.0f * scale_factor)),
+        mHoveredNode(&mGUIRoot),
+        mHeadingFont("res/fonts/EBGaramond-Regular.ttf", (unsigned int)(30.0f * scale_factor)),
+        mLabelFont("res/fonts/Overlock-Regular.ttf", (unsigned int)(22.0f * scale_factor)),
+        mBodyFont("res/fonts/Overlock-Regular.ttf", (unsigned int)(17.0f * scale_factor)),
         mMouseCapturedNode(nullptr), mActiveNode(nullptr)
     {
         mGUIRoot.clickPassThru();
@@ -93,10 +96,13 @@ public:
     {
         mWidth = w;
         mHeight = h;
+        mGUIRoot.resize(getWindowAbsWidth(), getWindowAbsHeight());
     }
 
-    //inline const gfx::gui::GUIFont &getFontRenderer() const { return mFontRenderer; }
-    inline const gfx::gui::GUIFont &getDefaultFont() const { return mFontRenderer; }
+    //inline const gfx::gui::GUIFont &getFontRenderer() const { return mLabelFont; }
+    inline const gfx::gui::GUIFont &getDefaultFont() const { return mLabelFont; }
+    inline const gfx::gui::GUIFont &getHeadingFont() const { return mHeadingFont; }
+    inline const gfx::gui::GUIFont &getBodyFont() const { return mBodyFont; }
 
     inline float getAbsFromPix(float pix) { return pix/mScaleFactor; }
     inline float getWindowAbsWidth() { return getAbsFromPix((float)(mWidth)); }
@@ -109,7 +115,10 @@ private:
     int mHeight;
     float mScaleFactor;
 
-    gfx::gui::GUIFont mFontRenderer;
+    gfx::gui::GUIFont mHeadingFont;
+    gfx::gui::GUIFont mLabelFont;
+    gfx::gui::GUIFont mBodyFont;
+
 
     gfx::gui::GUINode    mGUIRoot;
     stdext::InitPtr<gfx::gui::GUINode> mHoveredNode; // previous deepest hovered

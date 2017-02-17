@@ -6,7 +6,7 @@
 
 namespace gui {
 
-gfx::gui::GUINodeHandle createToggle(gfx::gui::GUINodeHandle &parent,
+inline gfx::gui::GUINodeHandle createToggle(gfx::gui::GUINodeHandle &parent,
                     std::string &&text, const gfx::gui::GUIFont &font,
                     gfx::gui::HorzPos x, gfx::gui::VertPos y, float abs_width,
                     std::function<void(void)> &&toggle_callback,

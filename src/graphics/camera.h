@@ -8,22 +8,22 @@ namespace gfx {
 
 struct Camera
 {
-    inline Camera(int width, int height);
+    inline Camera(float aspect_ratio);
     vmath::Matrix4 mProjectionMatrix;
     vmath::Matrix4 getCamMatrixInverse() const { return vmath::inverse(mTransform.getTransformMatrix()); }
 
     // need to pass transform with the constructor...
-    inline void updateAspect(int width, int height);
+    inline void updateAspect(float aspect_ratio);
 
     Transform mTransform;
 };
 
-inline Camera::Camera(int width, int height)
+inline Camera::Camera(float aspect_ratio)
 {
     // set up camera
     // camera
     // projection matrix
-    updateAspect(width, height);
+    updateAspect(aspect_ratio);
 
 //    float half_height = 3.5f;
 //    mProjectionMatrix = vmath::Matrix4::orthographic(
@@ -36,9 +36,8 @@ inline Camera::Camera(int width, int height)
     mCamMatrixInverse = vmath::inverse(camera_matrix);*/
 }
 
-inline void Camera::updateAspect(int width, int height)
+inline void Camera::updateAspect(float aspect_ratio)
 {
-    float aspect_ratio = (float)(width)/(float)(height);
     mProjectionMatrix = vmath::Matrix4::perspective(
         M_PI_4,                         // field of view (radians)
         aspect_ratio,                   // aspect ratio

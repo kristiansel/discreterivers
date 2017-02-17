@@ -89,6 +89,8 @@ int main(int argc, char *argv[])
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
 
+    SDL_SetWindowMinimumSize(mainWindow, scale_factor * 700, scale_factor * 500);
+
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
     std::cout << "Checking SDL error: " << SDL_GetError() << std::endl;
@@ -151,6 +153,7 @@ int main(int argc, char *argv[])
             case SDL_WINDOWEVENT: {
                 switch (event.window.event) {
                     case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general resize event
+                        // WOW, this event even triggers on startup :)
                         resizing_this_frame = true;
                         int resize_width = event.window.data1;
                         int resize_height = event.window.data2;

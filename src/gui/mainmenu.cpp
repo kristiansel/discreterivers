@@ -12,20 +12,22 @@
 
 namespace gui {
 
-void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
+using namespace gfx::gui;
+
+void createMainMenu(GUI &gui, GUINode &main_menu_root)
 {
-    const gfx::gui::GUIFont &font = gui.getDefaultFont();
+    const GUIFont &font = gui.getDefaultFont();
+    const GUIFont &body_font = gui.getBodyFont();
 
     gfx::Texture main_bg_tex = gfx::Texture("res/textures/tilling.jpg");
-    gfx::Texture font_atlas_tex = font.getTextureAtlas();
 
-    gfx::gui::GUINodeHandle main_bg_node = main_menu_root.addGUINode(
-        gfx::gui::GUITransform( {0.5f, 0.5f},
+    GUINodeHandle main_bg_node = main_menu_root.addGUINode(
+        GUITransform( {0.5f, 0.5f},
 
-        {gfx::gui::SizeSpec(400.0f, gfx::gui::Units::Absolute),
-         gfx::gui::SizeSpec(600.0f, gfx::gui::Units::Absolute)}));
+        {SizeSpec(400.0f, Units::Absolute),
+         SizeSpec(600.0f, Units::Absolute)}));
 
-    main_bg_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiBase() ) );
+    main_bg_node->addElement( BackgroundElement( gui::styling::colorGuiBase() ) );
 
     events::Immediate::add_callback<events::ToggleMainMenuEvent>(
         [main_bg_node] (const events::ToggleMainMenuEvent &evt) { main_bg_node->toggleShow(); }
@@ -45,8 +47,8 @@ void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
         [main_bg_node] (const events::OptionsEvent &evt) { main_bg_node->hide(); }
     );
 
-    gfx::gui::GUINodeHandle main_img_node = main_bg_node->addGUINode( gfx::gui::GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
-    main_img_node->addElement( gfx::gui::ImageElement(main_bg_tex) );
+    GUINodeHandle main_img_node = main_bg_node->addGUINode( GUITransform({0.50f, 0.25f}, {0.80f, 0.33f}) );
+    main_img_node->addElement( ImageElement(main_bg_tex) );
 
     auto new_btn_node       = createButton(main_bg_node, "New", font, 0.5f, 0.500f, 180.0f, []()
     {
@@ -74,56 +76,17 @@ void createMainMenu(GUI &gui, gfx::gui::GUINode &main_menu_root)
         std::cout << "Clicked exit game!"     << std::endl;
     });
 
-    // abs test node 0
-//    gfx::gui::GUINodeHandle abs_test_node = main_menu_root.addGUINode(
-//        gfx::gui::GUITransform( {gfx::gui::HorzPos(100.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left),
-//                                 gfx::gui::VertPos(100.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top)},
+    GUINodeHandle text_test_node = main_menu_root.addGUINode(
+        GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                       VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
 
-//                                {gfx::gui::SizeSpec(400.0f, gfx::gui::Units::Absolute),
-//                                 gfx::gui::SizeSpec(300.0f, gfx::gui::Units::Absolute)}));
+                      {SizeSpec(200.0f, Units::Absolute),
+                       SizeSpec(200.0f, Units::Absolute)} ));
+
+        text_test_node->addElement( BackgroundElement( gui::styling::colorGuiBase() ) );
 
 
-
-//    abs_test_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiBase() ) );
-
-//    /*gfx::gui::GUINodeHandle abs_test_child = abs_test_node->addGUINode(
-//                gfx::gui::GUITransform( {gfx::gui::HorzPos(100.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Left),
-//                                         gfx::gui::VertPos(100.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Top)},
-
-//                                        {gfx::gui::SizeSpec(100.0f, gfx::gui::Units::Absolute),
-//                                         gfx::gui::SizeSpec(200.0f, gfx::gui::Units::Absolute)}));
-
-//    abs_test_child->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiHighlight() ) );*/
-
-//    // abs test node 1
-//    gfx::gui::GUINodeHandle abs_test_node1 = abs_test_node->addGUINode(
-//        gfx::gui::GUITransform( {gfx::gui::HorzPos(50.0f, gfx::gui::Units::Absolute, gfx::gui::HorzAnchor::Right, gfx::gui::HorzFrom::Right),
-//                                 gfx::gui::VertPos(50.0f, gfx::gui::Units::Absolute, gfx::gui::VertAnchor::Bottom, gfx::gui::VertFrom::Bottom)},
-
-//                                {gfx::gui::SizeSpec(200.0f, gfx::gui::Units::Absolute),
-//                                 gfx::gui::SizeSpec(100.0f, gfx::gui::Units::Absolute)}));
-
-//    auto abs_test_el = abs_test_node1->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
-
-//    abs_test_node1->setGUIEventHandler([abs_test_el](const gfx::gui::GUIEvent &event){
-//        switch (event.get_type())
-//        {
-//        case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseButtonDownEvent>::value):
-//            {
-//                std::cout << "clicked me!" << std::endl;
-//            }
-//            break;
-//        case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseEnterEvent>::value):
-//            {
-//                abs_test_el->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiHighlight() );
-//            }
-//            break;
-//        case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseLeaveEvent>::value):
-//            {
-//                abs_test_el->get<gfx::gui::BackgroundElement>().setColor( gui::styling::colorGuiElement() );
-//            }
-//        }
-//    });
+        text_test_node->addElement( TextElement( "This text is to test if it wraps", body_font));
 }
 
 } // namespace gui

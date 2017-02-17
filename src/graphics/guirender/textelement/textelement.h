@@ -15,7 +15,8 @@ class TextElement
 public:
     inline TextElement(const std::string &text, const GUIFont &font,
                        const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
-        : mTextVertices(font.render(text)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color) {}
+        : mTextVertices(font.render(text)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color)/*,
+          mGUITransform({0.0f, 0.0f}, {1.0f, 1.0f})*/ {}
 
     inline const GUITextVertices &getGUITextVertices() const { return mTextVertices; }
     inline const GLuint getFontAtlasTextureID() const { return mFontTextureAtlas.getTextureID(); }
@@ -28,6 +29,8 @@ private:
     GUITextVertices mTextVertices;
     Texture mFontTextureAtlas;
     vmath::Vector4 mColor;
+
+    //GUITransform mGUITransform;
 
     //HorzAnchor mHorzAlign;
     //VertAnchor mVertAlign;
