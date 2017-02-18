@@ -18,6 +18,7 @@
 #include "engine/engine.h"
 #include "engine/fpscounter.h"
 #include "createscene.h"
+#include "appconstraints.h"
 
 // to be removed
 #include "common/flags.h"
@@ -89,7 +90,8 @@ int main(int argc, char *argv[])
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
 
-    SDL_SetWindowMinimumSize(mainWindow, scale_factor * 700, scale_factor * 500);
+    SDL_SetWindowMinimumSize(mainWindow, scale_factor * appconstraints::max_window_width_abs,
+                                         scale_factor * appconstraints::max_window_height_abs);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
     //=================================//
     //     Initialize game engine      //
     //=================================//
-    engine::Engine engine(width, height, dpi, scale_factor);
+    engine::Engine engine(width, height, scale_factor);
 
     // SDL event loop
     SDL_Event event;

@@ -11,6 +11,8 @@
 
 #include "guitextvertices.h"
 #include "guitransform.h"
+#include "guitextobject.h"
+
 #include "../texture.h"
 #include "../../common/macro/macrodebugassert.h"
 
@@ -30,7 +32,7 @@ public:
         static const int height = 1920;
     };
 
-    GUIFont(const char * font_file_name, unsigned int size);
+    GUIFont(const char * font_file_name, float abs_size, float scale_factor);
 
     struct GlyphDrawInfo {
         int bitmap_left;
@@ -42,19 +44,31 @@ public:
     inline GlyphDrawInfo getGlyphDrawInfo(char glyph);
 
     Texture getTextureAtlas() const;
-    GUITextVertices render(const std::string &text) const;
+
+    struct TextSizeAbs
+    {
+        float w_abs;
+        float h_abs;
+    };
+
+    struct RenderResult
+    {
+        //GUITextVertices vertices;
+        //Texture texture;
+        GUITextObject text_object;
+        TextSizeAbs text_size;
+    };
+
+    RenderResult render(const std::string &text,
+                        float w_abs = static_cast<float>(StdResolution::width), // constrained width and height of the text
+                        float h_abs = static_cast<float>(StdResolution::height)) const;
 
     // could go full template here, and use char array and tex coords array of related length?
-    void updateText(const char * text, std::vector<vmath::Vector4> &points, std::vector<TexCoords> &tex_coords) const;
-    void updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data,
+    TextSizeAbs updateText(const char * text, std::vector<vmath::Vector4> &points, std::vector<TexCoords> &tex_coords) const;
+    TextSizeAbs updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data,
                         unsigned int max_pixel_width = 1200) const;
 
-    //static GUITextVertices renderText(const GUIFont &font, const std::string &text);
-
 private:
-    /*FT_Library mFTlibary;
-    FT_Face mFontFace;*/
-
     // non-literals location --------------------------vv----vv-----------------------------------------------------------------------------------------vv
     static constexpr char const * sAllowedGlyphs = "' !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n";
 
@@ -69,8 +83,11 @@ private:
 
     unsigned int mLineHeight;
     unsigned int mMonoWidth;
+    float mScaleFactor;
+
 
     Texture mTexAtlas;
+
 };
 
 } // namespace gui

@@ -2,9 +2,9 @@
 
 namespace engine {
 
-Engine::Engine(int w, int h, int dpi, float scale_factor) :
+Engine::Engine(int w, int h, float scale_factor) :
     mRenderer(w, h, scale_factor),
-    mGUI(w, h, dpi, scale_factor),
+    mGUI(w, h, scale_factor),
 
     // to be moved
     camera((float)(w)/(float)(h)),
@@ -142,7 +142,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
             break;
         }
         case SDL_MOUSEWHEEL: {
-            //camera.mTransform.scale -= vmath::Vector3(0.05f*event.wheel.y);
+            mGUI.handleMouseWheel(event.wheel.y);
             break;
         }
     }

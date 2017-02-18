@@ -3,6 +3,7 @@
 
 #include "gui.h"
 #include "guistyling.h"
+#include "textlabel.h"
 
 namespace gui {
 
@@ -15,7 +16,9 @@ inline gfx::gui::GUINodeHandle createButton(gfx::gui::GUINodeHandle &parent,
                                                                          gfx::gui::SizeSpec(30.0f, gfx::gui::Units::Absolute)} ));
 
     auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
-    btn_node->addElement( gfx::gui::TextElement(text, font) );
+    //btn_node->addElement( gfx::gui::TextElement(text, font) );
+    textLabel(btn_node, text, font);
+
     btn_node->setGUIEventHandler([bg_element, onclick](const gfx::gui::GUIEvent &event){
         switch (event.get_type())
         {

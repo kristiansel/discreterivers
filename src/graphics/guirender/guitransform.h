@@ -126,6 +126,7 @@ public:
     };
 
     inline GUITransform(Position &&pos, Size &&size) : mPos(std::move(pos)), mSize(std::move(size)) {}
+    inline GUITransform(const Position &pos, const Size &size) : mPos(pos), mSize(size) {}
 
     inline vmath::Matrix4 getTransformMatrix(float x_abs, float y_abs)  const
     {

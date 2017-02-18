@@ -14,6 +14,7 @@
 #include "guievent.h"
 #include "../texture.h"
 #include "../../common/flags.h"
+#include "../../common/initptr.h"
 #include "../../common/gfx_primitives.h"
 #include "../../common/resmanager/refcounted.h"
 
@@ -27,7 +28,7 @@ namespace gui {
 class GUINode;
 using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
-using GUINodePtr = gui::GUINode*;
+using GUINodePtr = stdext::InitPtr<gui::GUINode>;
 
 enum GUIFlag
 {
@@ -77,7 +78,7 @@ public:
 
     // methods
     GUINodePtr getDeepestClicked(float x, float y, float w_abs, float h_abs);
-    GUINodePtr getDeepestHovered(float x, float y, float w_abs, float h_abs);
+    GUINodePtr getDeepestHovered(float x, float y, float w_abs, float h_abs, std::vector<GUINodePtr> &hovered);
     void resize(float w_abs, float h_abs);
 
 

@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "guistyling.h"
 #include "createbutton.h"
+#include "textbox.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 
@@ -76,7 +77,7 @@ void createMainMenu(GUI &gui, GUINode &main_menu_root)
         std::cout << "Clicked exit game!"     << std::endl;
     });
 
-    GUINodeHandle text_test_node = main_menu_root.addGUINode(
+    /*GUINodeHandle text_test_node = main_menu_root.addGUINode(
         GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                        VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
 
@@ -86,7 +87,15 @@ void createMainMenu(GUI &gui, GUINode &main_menu_root)
         text_test_node->addElement( BackgroundElement( gui::styling::colorGuiBase() ) );
 
 
-        text_test_node->addElement( TextElement( "This text is to test if it wraps", body_font));
+        text_test_node->addElement( TextElement( "This text is to test if it wraps", body_font));*/
+
+    std::string text = "This text is to test if it wraps. My Essay about something or another, hope this is now longer than the container... somehow";
+    GUINodeHandle text_test_node = textBox(main_menu_root, text, body_font,
+            GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                           VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+
+                          {SizeSpec(0.2f, Units::Relative),
+                           SizeSpec(0.2f, Units::Relative)} ));
 }
 
 } // namespace gui

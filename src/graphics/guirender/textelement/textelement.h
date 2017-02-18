@@ -3,8 +3,9 @@
 
 #include "../guitextvertices.h"
 #include "../guitransform.h"
+#include "../guitextobject.h"
+#include "../guifont.h"
 #include "../../texture.h"
-#include "../guifontmanager.h"
 
 namespace gfx {
 
@@ -15,25 +16,26 @@ class TextElement
 public:
     inline TextElement(const std::string &text, const GUIFont &font,
                        const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
-        : mTextVertices(font.render(text)), mFontTextureAtlas(font.getTextureAtlas()), mColor(color)/*,
-          mGUITransform({0.0f, 0.0f}, {1.0f, 1.0f})*/ {}
+        : TextElement(font.render(text), color) {}
 
-    inline const GUITextVertices &getGUITextVertices() const { return mTextVertices; }
-    inline const GLuint getFontAtlasTextureID() const { return mFontTextureAtlas.getTextureID(); }
+    inline TextElement(const GUIFont::RenderResult& render_result, const vmath::Vector4 color = vmath::Vector4(1.0, 1.0, 1.0, 1.0))
+        : mTextObject(render_result.text_object), mColor(color) {}
+
+
+    inline const GUITextVertices &getGUITextVertices() const { return mTextObject.getTextVertices(); }
+    inline const GLuint getFontAtlasTextureID() const { return mTextObject.getFontAtlasTexture().getTextureID(); }
+
     inline const vmath::Vector4 &getColor() const { return mColor; }
-    inline void setTextVertices(const GUITextVertices &text_vertices) { mTextVertices = text_vertices; }
+    inline void setTextRenderResult(const GUIFont::RenderResult &render_result)
+    {
+        mTextObject = render_result.text_object;
+    }
 
     inline void updateText(const char * text, const GUIFont &font, unsigned int num_chars);
 
 private:
-    GUITextVertices mTextVertices;
-    Texture mFontTextureAtlas;
+    GUITextObject mTextObject;
     vmath::Vector4 mColor;
-
-    //GUITransform mGUITransform;
-
-    //HorzAnchor mHorzAlign;
-    //VertAnchor mVertAlign;
 };
 
 
@@ -47,7 +49,7 @@ inline void TextElement::updateText(const char * text, const GUIFont &font, unsi
     //font.updateText(text, points, tex_coords);
     font.updateTextData(text, &points[0], &tex_coords[0]);
 
-    mTextVertices.updateText(&tex_coords[0], &points[0], num_verts);
+    mTextObject.updateText(&tex_coords[0], &points[0], num_verts, font.getTextureAtlas());
 }
 
 

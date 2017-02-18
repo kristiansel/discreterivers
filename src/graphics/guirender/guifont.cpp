@@ -4,11 +4,11 @@ namespace gfx {
 
 namespace gui {
 
-GUIFont::GUIFont(const char * font_file_name, unsigned int size) :
-    mTexAtlas(vmath::Vector4{1.0, 1.0, 1.0, 1.0})
-
+GUIFont::GUIFont(const char * font_file_name, float abs_size, float scale_factor) :
+    mTexAtlas(vmath::Vector4{1.0, 1.0, 1.0, 1.0}),
+    mScaleFactor(scale_factor)
 {
-    unsigned int size_dpi_scaled = size; 
+    unsigned int size_dpi_scaled = (unsigned int)(abs_size*scale_factor);
 
     FT_Library ft_library;
     if(FT_Init_FreeType(&ft_library)) {
@@ -113,30 +113,33 @@ Texture GUIFont::getTextureAtlas() const
     return mTexAtlas;
 }
 
-GUITextVertices GUIFont::render(const std::string &text) const
+GUIFont::RenderResult GUIFont::render(const std::string &text, float w_abs, float h_abs) const
 {
     unsigned int size = text.size();
     std::vector<vmath::Vector4> position_data(6*size);
     std::vector<gfx::TexCoords> texcoord_data(6*size);
 
-    updateTextData(text.c_str(), &position_data[0], &texcoord_data[0]);
+    TextSizeAbs tsize = updateTextData(text.c_str(), &position_data[0], &texcoord_data[0], (unsigned int)(w_abs*mScaleFactor));
 
-    return GUITextVertices(position_data, texcoord_data);
+    return {
+        GUITextObject(GUITextVertices(position_data, texcoord_data), mTexAtlas),
+        TextSizeAbs{tsize.w_abs, tsize.h_abs}
+    };
 }
 
-void GUIFont::updateText(const char * text, std::vector<vmath::Vector4> &position_data, std::vector<gfx::TexCoords> &texcoord_data) const
+GUIFont::TextSizeAbs GUIFont::updateText(const char * text, std::vector<vmath::Vector4> &position_data, std::vector<gfx::TexCoords> &texcoord_data) const
 {
-    updateTextData(text, &position_data[0], &texcoord_data[0]);
+    return updateTextData(text, &position_data[0], &texcoord_data[0]);
 }
 
-void GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data, unsigned int max_pixel_width) const
+GUIFont::TextSizeAbs GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data, unsigned int max_pixel_width) const
 {
 
     unsigned int res_x = GUIFont::StdResolution::width;
     unsigned int res_y = GUIFont::StdResolution::height;
 
     float x=0; float y=0; float sx = 2.0f/static_cast<float>(res_x); float sy=2.0f/static_cast<float>(res_y);
-    float max_x = max_pixel_width*sx;
+    float max_x = max_pixel_width * sx;
 
     // remove: This is for debug
     std::vector<char> tvec;
@@ -192,6 +195,8 @@ void GUIFont::updateTextData(const char * text, vmath::Vector4 * position_data, 
             }
         }
     }
+
+    return {x/sx*mScaleFactor, (y/sy + (float)(mLineHeight))*mScaleFactor};
 }
 
 
