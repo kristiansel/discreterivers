@@ -20,9 +20,9 @@ public:
     inline GLuint getVertexArrayObject() const       {return mVertexArrayObject;}
     inline GLuint getPositionArrayBuffer() const     {return mPositionArrayBuffer;}
     inline GLuint getTexCoordArrayBuffer() const     {return mTexCoordArrayBuffer;}
-    inline int getNumCharacters() const              {return mNumCharacters;}
+    inline int getNumVertices() const                {return mNumVertices;}
 
-    inline void updateTexCoordArrayBuffer( const gfx::TexCoords * tex_coords_ptr, unsigned int size );
+    //inline void updateTexCoordArrayBuffer( const gfx::TexCoords * tex_coords_ptr, unsigned int size );
     inline void updateText( const gfx::TexCoords * tex_coords_ptr, const vmath::Vector4 * points_ptr, unsigned int size);
 
 // used by Resource::RefCounted<TextVertices>
@@ -38,13 +38,12 @@ private:
     GLuint mPositionArrayBuffer;
     GLuint mTexCoordArrayBuffer;
 
-    int mNumCharacters;
+    int mNumVertices;
 };
 
 
 inline GUITextVertices::GUITextVertices(const std::vector<vmath::Vector4> &position_data,
-                   const std::vector<gfx::TexCoords> &texcoord_data) :
-    mNumCharacters(position_data.size())
+                                        const std::vector<gfx::TexCoords> &texcoord_data)
 {
     init(position_data, texcoord_data);
 }
@@ -53,6 +52,8 @@ inline void GUITextVertices::init(const std::vector<vmath::Vector4> &position_da
             const std::vector<gfx::TexCoords> &texcoord_data)
 {
     DEBUG_ASSERT(position_data.size()==texcoord_data.size());
+    mNumVertices = position_data.size();
+
     // potentially more optimizations:
     //
     // http://stackoverflow.com/questions/27027602/glvertexattribpointer-gl-invalid-operation-invalid-vao-vbo-pointer-usage
@@ -99,14 +100,15 @@ inline void GUITextVertices::resourceDestruct()
     glDeleteVertexArrays(1, &mVertexArrayObject);
 }
 
-inline void GUITextVertices::updateTexCoordArrayBuffer( const gfx::TexCoords * tex_coords_ptr, unsigned int size )
+/*inline void GUITextVertices::updateTexCoordArrayBuffer( const gfx::TexCoords * tex_coords_ptr, unsigned int size )
 {
     glBindBuffer(GL_ARRAY_BUFFER, mTexCoordArrayBuffer);
     glBufferData(GL_ARRAY_BUFFER, size * sizeof(gfx::TexCoords), tex_coords_ptr, GL_DYNAMIC_DRAW);
-}
+}*/
 
 inline void GUITextVertices::updateText( const gfx::TexCoords * tex_coords_ptr, const vmath::Vector4 * points_ptr, unsigned int size)
 {
+    mNumVertices = size;
     glBindBuffer(GL_ARRAY_BUFFER, mPositionArrayBuffer);
     glBufferData(GL_ARRAY_BUFFER, size * sizeof(vmath::Vector4), points_ptr, GL_DYNAMIC_DRAW);
 

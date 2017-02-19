@@ -5,8 +5,8 @@
 
 #include "gui.h"
 #include "guistyling.h"
-#include "createbutton.h"
-#include "textbox.h"
+#include "components/createbutton.h"
+#include "components/textbox.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 

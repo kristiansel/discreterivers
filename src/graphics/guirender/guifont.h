@@ -68,6 +68,8 @@ public:
     TextSizeAbs updateTextData(const char * text, vmath::Vector4 * position_data, gfx::TexCoords * texcoord_data,
                         unsigned int max_pixel_width = 1200) const;
 
+    void updateUIScaleFactor(float scale_factor);
+
 private:
     // non-literals location --------------------------vv----vv-----------------------------------------------------------------------------------------vv
     static constexpr char const * sAllowedGlyphs = "' !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n";
@@ -82,12 +84,12 @@ private:
     std::unordered_map<char, TexAtlasPos> mTexAtlasPosInfo;
 
     unsigned int mLineHeight;
-    unsigned int mMonoWidth;
     float mScaleFactor;
-
 
     Texture mTexAtlas;
 
+    // private methods
+    inline Texture createTextureAtlas(FT_Face &face, unsigned int max_width, unsigned int max_rows, unsigned int n_chars);
 };
 
 } // namespace gui

@@ -58,9 +58,12 @@ void Engine::handleKeyboardState(const Uint8 *keyboard_state)
 
 void Engine::handleKeyPressEvents(SDL_Keycode k)
 {
+    // forward events to GUI
+    mGUI.handleKeyPressEvent(k);
+
+    // handle global key events
     switch(k)
     {
-
     case(SDLK_f):
         mRenderer.toggleWireframe();
         break;
@@ -95,6 +98,14 @@ void Engine::handleKeyPressEvents(SDL_Keycode k)
     case(SDLK_ESCAPE):
         // done = true;
         events::Immediate::broadcast(events::ToggleMainMenuEvent());
+        break;
+    case(SDLK_PLUS):
+    case(SDLK_KP_PLUS):
+        events::Queued::emitEvent(events::Queued::IncrUIScaleFactor());
+        break;
+    case(SDLK_MINUS):
+    case(SDLK_KP_MINUS):
+        events::Queued::emitEvent(events::Queued::DecrUIScaleFactor());
         break;
     } // switch k
 }
@@ -155,6 +166,12 @@ void Engine::update()
 
     // update render jobs
 
+}
+
+void Engine::updateUIScaleFactor(float scale_factor)
+{
+    mRenderer.updateUIScaleFactor(scale_factor);
+    mGUI.updateUIScaleFactor(scale_factor);
 }
 
 

@@ -70,11 +70,8 @@ int main(int argc, char *argv[])
     }
 
     float scale_factor = (float)(maindisp_height)/(float)(1024);
-    std::cout << "scale factor = " << scale_factor << std::endl;
     int width = scale_factor * 1400;
-    int height = scale_factor * 800; 
-    int dpi = maindisp_dpi;
-
+    int height = scale_factor * 800;
 
     // initialize and create window
     Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
@@ -90,8 +87,8 @@ int main(int argc, char *argv[])
                                                SDL_WINDOWPOS_UNDEFINED, // windowpos y
                                                width, height, flags);
 
-    SDL_SetWindowMinimumSize(mainWindow, scale_factor * appconstraints::max_window_width_abs,
-                                         scale_factor * appconstraints::max_window_height_abs);
+    SDL_SetWindowMinimumSize(mainWindow, scale_factor * appconstraints::min_window_width_abs,
+                                         scale_factor * appconstraints::min_window_height_abs);
 
     SDL_GLContext mainGLContext = SDL_GL_CreateContext(mainWindow);
 
@@ -187,18 +184,29 @@ int main(int argc, char *argv[])
             case (events::Queued::Event::is_a<events::Queued::QuitEvent>::value):
                 {
                     done = true;
-                    break;
                 }
+                break;
             case (events::Queued::Event::is_a<events::Queued::ToggleFullscreenEvent>::value):
                 {
                     SDL_SetWindowFullscreen(mainWindow, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
                     fullscreen = !fullscreen;
-                    break;
                 }
-            default:
+                break;
+            case (events::Queued::Event::is_a<events::Queued::IncrUIScaleFactor>::value):
                 {
-                    break;
+                    scale_factor = std::min(scale_factor+0.1f, appconstraints::max_ui_scale_factor);
+                    engine.updateUIScaleFactor(scale_factor);
                 }
+                break;
+            case (events::Queued::Event::is_a<events::Queued::DecrUIScaleFactor>::value):
+                {
+                    scale_factor = std::max(scale_factor-0.1f, appconstraints::min_ui_scale_factor);
+                    engine.updateUIScaleFactor(scale_factor);
+                }
+                break;
+            default:
+                break;
+
             }
 
             evt_queue.pop();

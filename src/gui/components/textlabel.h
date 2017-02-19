@@ -1,8 +1,8 @@
 #ifndef TEXTLABEL_H
 #define TEXTLABEL_H
 
-#include "gui.h"
-#include "guistyling.h"
+#include "../gui.h"
+#include "../guistyling.h"
 
 namespace gui {
 
@@ -19,7 +19,7 @@ inline gfx::gui::GUINodeHandle textLabel(gfx::gui::GUINodeHandle &parent,
     gfx::gui::GUINodeHandle text_node_hdl = parent->addGUINode(
         gfx::gui::GUITransform({0.5f, 0.5f},
             {gfx::gui::SizeSpec(w_abs, gfx::gui::Units::Absolute),
-             gfx::gui::SizeSpec(h_abs, gfx::gui::Units::Absolute)}));
+             gfx::gui::SizeSpec(h_abs*1.2f, gfx::gui::Units::Absolute)}));
 
     text_node_hdl->clickPassThru();
 

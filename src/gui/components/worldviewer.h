@@ -1,13 +1,14 @@
 #ifndef WORLDVIEWER_H
 #define WORLDVIEWER_H
 
-#include "gui.h"
-#include "guistyling.h"
-#include "../createscene.h"
-#include "../events/immediateevents.h"
-#include "../common/threads/threadpool.h"
-#include "../system/async.h"
-#include "../mechanics/rotatorcontroller.h"
+#include "../gui.h"
+#include "../guistyling.h"
+#include "textlabel.h"
+#include "../../createscene.h"
+#include "../../events/immediateevents.h"
+#include "../../common/threads/threadpool.h"
+#include "../../system/async.h"
+#include "../../mechanics/rotatorcontroller.h"
 
 namespace gui {
 
@@ -47,7 +48,8 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
             gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Middle),
                                      gfx::gui::VertPos(0.5f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Middle)}, {0.15f, 0.10f} ));
     loading_msg_node->hide();
-    loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
+    //loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
+    textLabel(loading_msg_node, "Generating world...", font);
 
     gfx::Camera camera(1.0f);
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);

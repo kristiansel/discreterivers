@@ -11,15 +11,10 @@ void createGUI(GUI &gui)
     gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
 
     createMainMenu(gui, gui_root_node);
-
     createNewGameMenu(gui, gui_root_node);
-
     createSaveGameMenu(gui, gui_root_node);
-
     createLoadGameMenu(gui, gui_root_node);
-
     createOptionsMenu(gui, gui_root_node);
-
     createProfilingPane(gui, gui_root_node);
 
 }
@@ -101,10 +96,29 @@ void GUI::handleMouseWheelScroll(int32_t y)
     if (deepest_hovered) deepest_hovered->handleEvent(gfx::gui::MouseWheelScrollEvent{y});
 }
 
+void GUI::handleKeyPressEvent(SDL_Keycode k)
+{
+    // send key press event to active node
+    if (mActiveNode) mActiveNode->handleEvent(gfx::gui::KeyPressEvent{k});
+}
+
 void GUI::resize(int w, int h)
 {
     mWidth = w;
     mHeight = h;
+    mGUIRoot.resize(getWindowAbsWidth(), getWindowAbsHeight());
+}
+
+void GUI::updateUIScaleFactor(float scale_factor)
+{
+    mScaleFactor = scale_factor;
+
+    // update font textures... wow, really should make the change to a functional style,
+    // adding more fonts would mean a lot of manual book keeping...
+    mHeadingFont.updateUIScaleFactor(scale_factor);
+    mLabelFont.updateUIScaleFactor(scale_factor);
+    mBodyFont.updateUIScaleFactor(scale_factor);
+
     mGUIRoot.resize(getWindowAbsWidth(), getWindowAbsHeight());
 }
 

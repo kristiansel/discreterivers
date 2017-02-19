@@ -47,6 +47,8 @@ public:
     void handleKeyPressEvents(SDL_Keycode k);
     void handleMouseEvent(const SDL_Event &event);
 
+    void updateUIScaleFactor(float scale_factor);
+
     // getters
     inline gui::GUI &getGui() { return mGUI; }
     inline gfx::OpenGLRenderer &getRenderer() { return mRenderer; }

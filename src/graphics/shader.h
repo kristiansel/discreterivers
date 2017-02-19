@@ -53,7 +53,7 @@ public:
         // actually draw the batched draw objects
         for (const auto &draw_object : mDrawObjectsVector)
         {
-            drawDrawObject(draw_object, camera, false);
+            drawDrawObject(draw_object, camera);
         }
     }
 
@@ -79,7 +79,7 @@ private:
         DrawObject();
     };
 
-    inline void drawDrawObject(const DrawObject &draw_object, const Camera &camera, bool global_wireframe = false) const;
+    inline void drawDrawObject(const DrawObject &draw_object, const Camera &camera) const;
 
     GLuint mShaderProgramID;
 
@@ -90,7 +90,7 @@ private:
 
 // inline functions
 
-inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &camera, bool global_wireframe) const
+inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &camera) const
 {
     // deconstruct scene_object
     // wouldn't it be nice to write for ({transform, {vertices, primitives}, material} : mSceneObjectsVector)... std::tie?

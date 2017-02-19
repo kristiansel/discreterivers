@@ -12,11 +12,15 @@ namespace Queued
 
 struct QuitEvent {};
 struct ToggleFullscreenEvent {};
+struct IncrUIScaleFactor {};
+struct DecrUIScaleFactor {};
 
 // should specialize either for empty types...
 using Event = stdext::either<
     QuitEvent,
-    ToggleFullscreenEvent
+    ToggleFullscreenEvent,
+    IncrUIScaleFactor,
+    DecrUIScaleFactor
 >;
 
 using EventQueue = std::queue<Event>;

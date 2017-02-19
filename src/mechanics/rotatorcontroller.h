@@ -5,6 +5,7 @@
 
 #include "../graphics/scenenode.h"
 #include "../common/flags.h"
+#include "../common/initptr.h"
 
 namespace mech {
 
@@ -38,7 +39,7 @@ public:
 
 private:
     // props
-    gfx::SceneNode * mSceneNodePtr;
+    stdext::InitPtr<gfx::SceneNode> mSceneNodePtr;
 
     // state
     float           mSpeed;

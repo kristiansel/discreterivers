@@ -49,13 +49,17 @@ GUIFont::GUIFont(const char * font_file_name, float abs_size, float scale_factor
         max_rows    = bmp.rows  >   max_rows    ? bmp.rows  : max_rows;
     }
 
+    mTexAtlas = createTextureAtlas(face, max_width, max_rows, n_chars);
+}
+
+inline Texture GUIFont::createTextureAtlas(FT_Face &face, unsigned int max_width, unsigned int max_rows, unsigned int n_chars)
+{
     int max_chars_per_row = 10;
     unsigned int tex_atlas_width = max_chars_per_row * max_width;
     unsigned int tex_atlas_rows = (n_chars/max_chars_per_row + 1)*max_rows;
 
     // set the line height to equal the tallest character (this may not be high enough?)
     mLineHeight = max_rows;
-    mMonoWidth = max_width;
 
     std::cout << "atlas width: " << tex_atlas_width << std::endl;
     std::cout << "atlas rows: " << tex_atlas_rows << std::endl;
@@ -101,7 +105,7 @@ GUIFont::GUIFont(const char * font_file_name, float abs_size, float scale_factor
         }
     } // for (int i = 0; i < n_chars; i++)
 
-    mTexAtlas = Texture(&tex_atlas_data[0], tex_atlas_width, tex_atlas_rows,
+    return Texture(&tex_atlas_data[0], tex_atlas_width, tex_atlas_rows,
                    gl_type(GL_UNSIGNED_BYTE), Texture::filter::nearest,
                    Texture::pixel_format::red, // internal format
                    Texture::pixel_format::red,
@@ -197,6 +201,18 @@ GUIFont::TextSizeAbs GUIFont::updateTextData(const char * text, vmath::Vector4 *
     }
 
     return {x/sx*mScaleFactor, (y/sy + (float)(mLineHeight))*mScaleFactor};
+}
+
+
+void GUIFont::updateUIScaleFactor(float scale_factor)
+{
+    // ai.. ai.. this can be hard...
+    //mScaleFactor = scale_factor;
+
+    // swap the texture for more high res...
+
+    // need to update some scale matrix in the GUI renderer in that case...
+
 }
 
 

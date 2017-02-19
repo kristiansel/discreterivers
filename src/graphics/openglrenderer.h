@@ -67,7 +67,9 @@ public:
     inline int getWidth() const { return mWidth; }
     inline int getHeight() const { return mHeight; }
 
-    inline void addGFXTickJob(const GFXTickJob &job) { mGFXTickJobQueue.push(job); } // could move here...
+    //inline void addGFXTickJob(const GFXTickJob &job) { mGFXTickJobQueue.push(job); } // could move here...
+
+    inline void updateUIScaleFactor(float scale_factor) { mScaleFactor = scale_factor; }
 
 private:
     int mWidth;
@@ -97,7 +99,7 @@ private:
     gui::GUIImageShader mGUIImageShader;
 
     // For loading async
-    Threads::ThreadQueue<GFXTickJob> mGFXTickJobQueue;
+    //Threads::ThreadQueue<GFXTickJob> mGFXTickJobQueue;
 
     // private methods
     inline void drawGUI(const gui::GUINode &gui_root) const;

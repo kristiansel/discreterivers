@@ -1,8 +1,9 @@
 #ifndef CREATETOGGLE_H
 #define CREATETOGGLE_H
 
-#include "gui.h"
-#include "guistyling.h"
+#include "../gui.h"
+#include "../guistyling.h"
+#include "textlabel.h"
 
 namespace gui {
 
@@ -17,7 +18,8 @@ inline gfx::gui::GUINodeHandle createToggle(gfx::gui::GUINodeHandle &parent,
 
     auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
 
-    btn_node->addElement( gfx::gui::TextElement(text, font) );
+    textLabel(btn_node, text, font);
+
     btn_node->stateUpdate.addCallback([is_toggled, bg_element](){
         if (is_toggled()) {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiHighlight() );

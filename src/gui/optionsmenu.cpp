@@ -4,8 +4,8 @@
 #include "submenus.h"
 
 #include "guistyling.h"
-#include "createbutton.h"
-#include "createtoggle.h"
+#include "components/createbutton.h"
+#include "components/createtoggle.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 
@@ -20,8 +20,7 @@ struct OptionsMenuState : public GUIStateBase
     ScaleFactor scale_factor;
 
     OptionsMenuState() :
-        scale_factor(ScaleFactor::Medium)
-    { /* default constructor */ }
+        scale_factor(ScaleFactor::Medium) {}
 };
 
 void createOptionsMenu(GUI &gui, GUINode &options_menu_root)
@@ -59,9 +58,9 @@ void createOptionsMenu(GUI &gui, GUINode &options_menu_root)
     GUINodeHandle ui_scaling_node = options_bg_node->addGUINode(
         GUITransform( { HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                         VertPos(90.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)}, {0.0, 0.0f} ));
-    ui_scaling_node->addElement( TextElement( "UI Scaling", font));
+    ui_scaling_node->addElement( TextElement( "Option 1...", font));
 
-    // Toggle world size
+    // Toggle option 1 size
     createToggle(options_bg_node, "Small", font,
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                  VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),

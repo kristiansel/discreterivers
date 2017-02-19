@@ -1,8 +1,8 @@
 #ifndef TEXTBOX_H
 #define TEXTBOX_H
 
-#include "gui.h"
-#include "guistyling.h"
+#include "../gui.h"
+#include "../guistyling.h"
 
 namespace gui {
 

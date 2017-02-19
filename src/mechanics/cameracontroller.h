@@ -5,6 +5,7 @@
 
 #include "../graphics/camera.h"
 #include "../common/flags.h"
+#include "../common/initptr.h"
 
 namespace mech {
 
@@ -37,7 +38,7 @@ public:
 
 private:
     // props
-    gfx::Camera * const mCameraPtr;
+    stdext::InitPtr<gfx::Camera> mCameraPtr;
 
     // state
     float           mSpeed;
@@ -49,7 +50,7 @@ private:
     CameraController() = delete;
 
 public:
-    CameraController(gfx::Camera * const camera_ptr, float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
+    CameraController(stdext::InitPtr<gfx::Camera> camera_ptr, float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
         mCameraPtr(camera_ptr),
         mSpeed(speed),
         mMouseTurnSpeed(mouse_turn_speed)

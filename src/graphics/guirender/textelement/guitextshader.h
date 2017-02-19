@@ -69,7 +69,7 @@ inline void GUITextShader::drawTextElement(const TextElement &text_element, cons
     // Bind vertex array
     glBindVertexArray(text_element.getGUITextVertices().getVertexArrayObject());
 
-    glDrawArrays(GL_TRIANGLES, 0, 6*text_element.getGUITextVertices().getNumCharacters());
+    glDrawArrays(GL_TRIANGLES, 0, text_element.getGUITextVertices().getNumVertices());
 }
 
 

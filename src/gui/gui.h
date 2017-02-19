@@ -28,12 +28,10 @@ public:
     gfx::gui::GUINode &getGUIRoot() { return mGUIRoot; }
 
     bool handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton button);
-
     void handleMouseButtonUp(int32_t x, int32_t y, gfx::gui::MouseButton button);
-
     void handleMouseMoved(int32_t x, int32_t y, int32_t x_mov, int32_t y_mov);
-
     void handleMouseWheelScroll(int32_t y);
+    void handleKeyPressEvent(SDL_Keycode k);
 
     void resize(int w, int h);
 
@@ -45,6 +43,8 @@ public:
     inline float getAbsFromPix(float pix) { return pix/mScaleFactor; }
     inline float getWindowAbsWidth() { return getAbsFromPix((float)(mWidth)); }
     inline float getWindowAbsHeight() { return getAbsFromPix((float)(mHeight)); }
+
+    void updateUIScaleFactor(float scale_factor);
 
 private:
     GUI();

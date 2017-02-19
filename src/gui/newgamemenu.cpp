@@ -7,9 +7,10 @@
 
 #include "gui.h"
 #include "guistyling.h"
-#include "createbutton.h"
-#include "createtoggle.h"
-#include "worldviewer.h"
+#include "components/createbutton.h"
+#include "components/createtoggle.h"
+#include "components/worldviewer.h"
+#include "components/textinput.h"
 #include "../createscene.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
@@ -72,10 +73,19 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
         {SizeSpec(420.0f, Units::Absolute, true),
          SizeSpec(150.0f, Units::Absolute, true)} );
 
+    // Seed
+    textInput(newgame_bg_node, "999", font, GUITransform(
+        {HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+         VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+
+        {SizeSpec(150.0f, Units::Absolute),
+         SizeSpec(30.0f, Units::Absolute)} ), [](int32_t c){ return c>47 && c<58; }); // only accept numeric
+
+
     // Toggle world shape
     createToggle(newgame_bg_node, "Disk", font,
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -90,7 +100,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     createToggle(newgame_bg_node, "Sphere", font,
                  HorzPos(150.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -105,7 +115,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     createToggle(newgame_bg_node, "Torus", font,
                  HorzPos(270.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -122,7 +132,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
     // Toggle world size
     createToggle(newgame_bg_node, "Small", font,
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -137,7 +147,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     createToggle(newgame_bg_node, "Medium", font,
                  HorzPos(150.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -152,7 +162,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     createToggle(newgame_bg_node, "Large", font,
                  HorzPos(270.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -165,6 +175,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                     return sr->planet_size == NewGameMenuState::PlanetSize::Large;
                  });
 
+    // Bottom buttons
     createButton(newgame_bg_node, "Generate", font,
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
