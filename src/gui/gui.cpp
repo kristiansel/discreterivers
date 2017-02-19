@@ -94,9 +94,11 @@ void GUI::processHoverStacks()
     std::swap(mNextHoverStack, mPrevHoverStack);
 }
 
-void GUI::handleMouseWheel(int32_t y)
+void GUI::handleMouseWheelScroll(int32_t y)
 {
-    std::cout << "Mouse wheel " << y << std::endl;
+    // send event to deepest hovered.
+    gfx::gui::GUINodePtr &deepest_hovered = mPrevHoverStack.back();
+    if (deepest_hovered) deepest_hovered->handleEvent(gfx::gui::MouseWheelScrollEvent{y});
 }
 
 void GUI::resize(int w, int h)

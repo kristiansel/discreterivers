@@ -38,6 +38,11 @@ struct MouseButtonUpEvent
     int32_t y;
 };
 
+struct MouseWheelScrollEvent
+{
+    int32_t y_rel;
+};
+
 struct MouseEnterEvent { };
 
 struct MouseLeaveEvent { };
@@ -68,6 +73,7 @@ using GUIEvent = stdext::either<
     MouseEnterEvent,
     MouseLeaveEvent,
     MouseDragEvent,
+    MouseWheelScrollEvent,
     KeyDownEvent,
     KeyUpEvent,
     ResizedEvent

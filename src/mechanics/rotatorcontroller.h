@@ -28,6 +28,7 @@ public:
 
     using MoveSignalFlags = stdext::Flags<Signal, Signal::Idle>;*/
     using TurnSignals = std::array<float, 2>;
+    using ScrollSignal = int32_t;
 
     // events
     /*enum Event {
@@ -44,6 +45,7 @@ private:
     float           mMouseTurnSpeed;
     //MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
+    ScrollSignal    mScrollSignal;
 
 public:
     RotatorController(float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
@@ -70,6 +72,7 @@ public:
     {
         //mSignalFlags.clearAll();
         mTurnSignals = {0.0f, 0.0f};
+        mScrollSignal = 0.0f;
     }
 
     /*inline void sendSignal(Signal signal)
@@ -81,6 +84,12 @@ public:
     {
         mTurnSignals[0] = turn_signals[0];
         mTurnSignals[1] = turn_signals[1];
+        update(); // immediate update
+    }
+
+    inline void sendScrollSignal(const ScrollSignal &scroll_signal)
+    {
+        mScrollSignal = scroll_signal;
         update(); // immediate update
     }
 
@@ -103,7 +112,12 @@ inline void RotatorController::update()
             vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[0], vmath::Vector3(0.0f, 1.0f, 0.0f))*
             vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[1], vmath::Vector3(1.0f, 0.0f, 0.0f))*
             mSceneNodePtr->transform.rotation;
+
+        mSceneNodePtr->transform.scale = (1.0f + mScrollSignal*0.1f) * mSceneNodePtr->transform.scale;
+
+        clearSignals();
     }
+
 }
 
 }

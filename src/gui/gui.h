@@ -33,7 +33,7 @@ public:
 
     void handleMouseMoved(int32_t x, int32_t y, int32_t x_mov, int32_t y_mov);
 
-    void handleMouseWheel(int32_t y);
+    void handleMouseWheelScroll(int32_t y);
 
     void resize(int w, int h);
 

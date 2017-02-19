@@ -142,7 +142,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
             break;
         }
         case SDL_MOUSEWHEEL: {
-            mGUI.handleMouseWheel(event.wheel.y);
+            mGUI.handleMouseWheelScroll(event.wheel.y);
             break;
         }
     }

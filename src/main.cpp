@@ -113,11 +113,8 @@ int main(int argc, char *argv[])
     // SDL event loop
     SDL_Event event;
     bool done = false;
-
-    // test mouse
     bool fullscreen = false;
 
-    // fps counter
     float filter_weight = 0.03f;
     engine::FPSCounter fps_counter(filter_weight);
 
@@ -154,7 +151,8 @@ int main(int argc, char *argv[])
                 break;
             case SDL_WINDOWEVENT: {
                 switch (event.window.event) {
-                    case SDL_WINDOWEVENT_SIZE_CHANGED: { // This is the most general resize event
+                    case SDL_WINDOWEVENT_SIZE_CHANGED: // This is the most general resize event
+                    {
                         // WOW, this event even triggers on startup :)
                         resizing_this_frame = true;
                         int resize_width = event.window.data1;
@@ -177,7 +175,7 @@ int main(int argc, char *argv[])
         // update based on events
         engine.update();
 
-        // interaction with gui and other parts of the system might have caused events
+        // Interaction with gui and other parts of the system might have caused events
         // related to SDL and the window system. These events are processed here...
         events::Queued::EventQueue &evt_queue = events::Queued::getEventQueue();
         while (!evt_queue.empty())
@@ -217,7 +215,7 @@ int main(int argc, char *argv[])
             //=================================//
             engine.draw();
 
-            // end of work
+            // end of meaningfull work, measure the FPS
             float fps_filtered_val = fps_counter.getFrameFPSFiltered();
             events::Immediate::broadcast(events::FPSUpdateEvent{fps_filtered_val});
 
@@ -233,7 +231,6 @@ int main(int argc, char *argv[])
 
     gfx::checkOpenGLErrors("program end");
 
-    // safe to clean up these before destructors are called?
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(mainWindow);
     SDL_Quit();

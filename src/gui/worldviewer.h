@@ -54,7 +54,6 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
 
     world_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
-        //gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
         switch (event.get_type())
         {
         case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseDragEvent>::value):
@@ -66,6 +65,14 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
                 sw_no_update->world_controller.sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
             break;
+        case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseWheelScrollEvent>::value):
+            {
+                const gfx::gui::MouseWheelScrollEvent &mwscroll_event = event.get_const<gfx::gui::MouseWheelScrollEvent>();
+                std::cout << "scrolled world viewer by " << mwscroll_event.y_rel << std::endl;
+                gfx::gui::GUIStateWriter<WorldViewerState> sw_no_update = state_handle.getStateWriterNoUpdate();
+                sw_no_update->world_controller.sendScrollSignal(mwscroll_event.y_rel);
+            }
+            break;
         case (gfx::gui::GUIEvent::is_a<gfx::gui::ResizedEvent>::value):
             {
                 const gfx::gui::ResizedEvent &resized_event = event.get_const<gfx::gui::ResizedEvent>();
@@ -74,6 +81,7 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
                 std::cout << "RESIZED CAM" << std::endl;
             }
             break;
+
         }
     });
 
