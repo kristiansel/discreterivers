@@ -4,44 +4,16 @@ namespace gfx {
 
 namespace gui {
 
-void onGUINodeStateUpdate(GUINode &gui_node)
+GUINode::GUINode(const GUITransform &gui_transform) :
+    mGUITransform(gui_transform), mGUIFlags(GUIFlag::Default), mGUIState(/*this*/), mGUIEventHandler([](const GUIEvent&){})
 {
-    //std::cout << " on state update " << std::endl;
-    gui_node.stateUpdate.invokeCallbacks();
-    for (auto &child : gui_node.mChildren )
-    {
-        onGUINodeStateUpdate(child);
-    }
-}
-
-/*
-GUINodePtr GUINode::handleMouseButtonDown(float x, float y, float w_abs, float h_abs) {
-    gui::AABB aabb = mGUITransform.getAABB(w_abs, h_abs);
-    if ( (x < aabb.xMax && x > aabb.xMin) &&
-         (y < aabb.yMax && y > aabb.yMin) &&
-          !mGUIFlags.checkFlag(GUIFlag::Hide) )
-    {
-
-        float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
-        float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
-
-        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
-        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
-
-        GUINodePtr deepest_captured = mGUIFlags.checkFlag(GUIFlag::ClickPassThru) ? nullptr : this;
-        for (auto &child : mChildren)
+    addStateUpdateCallback([this](){
+        for (auto &child : this->mChildren )
         {
-            GUINodePtr child_captured = child.handleMouseButtonDown(x_rel, y_rel, this_w_abs, this_h_abs);
-
-            deepest_captured = child_captured ? child_captured : deepest_captured;
+            child.onStateUpdate();
         }
-        return deepest_captured;
-    }
-    else
-    {
-        return nullptr;
-    }
-}*/
+    });
+}
 
 GUINodePtr GUINode::getDeepestClicked(float x, float y, float w_abs, float h_abs)
 {
@@ -115,6 +87,18 @@ inline bool GUINode::thisSizeChangesWithParent()
             (mGUITransform.getSize().y.units == Units::Relative || mGUITransform.getSize().y.mParentMinus));
 }
 
+inline void GUINode::onStateUpdate()
+{
+    //std::cout << " on state update " << std::endl;
+    mGUIState.invokeCallbacks();
+    for (auto &child : mChildren )
+    {
+        child.onStateUpdate();
+    }
+}
+
+void GUINode::forceStateUpdate() { onStateUpdate(); }
+
 void GUINode::resize(float w_abs, float h_abs)
 {
     //if (thisSizeChangesWithParent())
@@ -131,37 +115,6 @@ void GUINode::resize(float w_abs, float h_abs)
     //}
 }
 
-/*
-GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs)
-{
-    gui::AABB aabb = mGUITransform.getAABB(w_abs, h_abs);
-    if ( (x < aabb.xMax && x > aabb.xMin) &&
-         (y < aabb.yMax && y > aabb.yMin) &&
-          !mGUIFlags.checkFlag(GUIFlag::Hide) )
-    {
-        //if (debug) std::cout << " inside: " << this << std::endl;
-        float x_rel = (x-aabb.xMin)/(aabb.xMax-aabb.xMin);
-        float y_rel = (y-aabb.yMin)/(aabb.yMax-aabb.yMin);
-
-        float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
-        float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
-
-        //if (debug) std::cout << " # children: " << mChildren.size() << std::endl;
-        GUINodePtr child_hovered = nullptr;
-        for (auto &child : mChildren)
-        {
-            GUINodePtr result = child.getDeepestHovered(x_rel, y_rel, this_w_abs, this_h_abs);
-            child_hovered = result ? result : child_hovered;
-        }
-        //if (debug) std::cout << " child_hovered: " << (child_hovered ? true : false) << std::endl;
-        return (child_hovered != nullptr) ? child_hovered : this;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-*/
 
 } // gui
 

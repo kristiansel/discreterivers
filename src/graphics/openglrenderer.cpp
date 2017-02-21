@@ -159,7 +159,9 @@ void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) co
 
     drawScene(camera, mSceneRoot);
 
+    std::cout << "pre draw gui" << std::endl;
     drawGUI(gui_root);
+    std::cout << "post draw gui" << std::endl;
 }
 
 
@@ -247,21 +249,25 @@ inline void OpenGLRenderer::drawGUIRecursive(const gui::GUINode &gui_node, vmath
             case (gui::GUIElement::is_a<gui::TextElement>::value):
                 // render text
                 {
+                    std::cout << "draw TextElement" << std::endl;
                     mGUITextShader.drawTextElement(child_element.get_const<gui::TextElement>(), mv);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::BackgroundElement>::value):
                 {
+                    std::cout << "draw BackgroundElement" << std::endl;
                     mGUIShader.drawBGElement(child_element.get_const<gui::BackgroundElement>(), mv);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::ImageElement>::value):
                 {
+                    std::cout << "draw ImageElement" << std::endl;
                     mGUIImageShader.drawImageElement(child_element.get_const<gui::ImageElement>(), mv);
                 }
                 break;
             case (gui::GUIElement::is_a<gui::SceneElement>::value):
                 {
+                    std::cout << "draw SceneElement" << std::endl;
                     vmath::Vector4 bl = mv * vmath::Vector4(0.0f, 0.0f, 0.0f, 1.0f);
                     vmath::Vector4 tr = mv * vmath::Vector4(1.0f, 1.0f, 0.0f, 1.0f);
                     bl = bl + vmath::Vector4(1.0, 1.0, 0.0, 1.0f);

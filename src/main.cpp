@@ -107,6 +107,9 @@ int main(int argc, char *argv[])
     //=================================//
     engine::Engine engine(width, height, scale_factor);
 
+    bool valgrind_test;
+    if (valgrind_test) std::cout << "valgrind better catch this...." << std::endl; // and it does, well done!
+
     // SDL event loop
     SDL_Event event;
     bool done = false;
@@ -138,7 +141,8 @@ int main(int argc, char *argv[])
             switch(event.type)
             {
             case SDL_KEYDOWN:
-                if (event.key.repeat == 0) engine.handleKeyPressEvents(event.key.keysym.sym);
+                //if (event.key.repeat == 0)
+                engine.handleKeyPressEvents(event.key.keysym.sym);
                 break;
             case SDL_MOUSEBUTTONDOWN:   // nice
             case SDL_MOUSEBUTTONUP:     // case
@@ -169,8 +173,13 @@ int main(int argc, char *argv[])
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
+        std::cout << "got past input handling" << std::endl;
+
         // update based on events
         engine.update();
+
+
+        std::cout << "got past engine update" << std::endl;
 
         // Interaction with gui and other parts of the system might have caused events
         // related to SDL and the window system. These events are processed here...
@@ -212,6 +221,8 @@ int main(int argc, char *argv[])
             evt_queue.pop();
         }
 
+        std::cout << "got past late events" << std::endl;
+
         // User interaction might have caused asynchronous jobs to spawn in separate threads.
         // When these jobs are complete, final processing is done here in the main thread
         sys::Async::processReturnedJobs();
@@ -223,6 +234,8 @@ int main(int argc, char *argv[])
             //=================================//
             engine.draw();
 
+            std::cout << "got past draw" << std::endl;
+
             // end of meaningfull work, measure the FPS
             float fps_filtered_val = fps_counter.getFrameFPSFiltered();
             events::Immediate::broadcast(events::FPSUpdateEvent{fps_filtered_val});
@@ -230,6 +243,8 @@ int main(int argc, char *argv[])
             // OOPS! This function call can sleep the main thread
             SDL_GL_SwapWindow(mainWindow);
         }
+
+        std::cout << "got past swap window" << std::endl;
 
     } // End while(!done) // main loop
 

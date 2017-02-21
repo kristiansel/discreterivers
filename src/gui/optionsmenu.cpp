@@ -121,7 +121,7 @@ void createOptionsMenu(GUI &gui, GUINode &options_menu_root)
                  180.0f,
                  [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 
-    options_bg_node->onStateUpdate();
+    options_bg_node->forceStateUpdate();
 
 }
 

@@ -28,7 +28,7 @@ struct SceneData {
 using PlanetShape = events::GenerateWorldEvent::PlanetShape;
 using PlanetSize = events::GenerateWorldEvent::PlanetSize;
 
-inline SceneData createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector)
+inline SceneData createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector, int planet_seed)
 {
 #ifdef PROFILE
     for (int num_pts = 500; num_pts < 4000; num_pts += 500)
@@ -40,6 +40,8 @@ inline SceneData createPlanetData(PlanetShape planet_shape_selector, PlanetSize 
         PROFILE_END(altplanet_generate);
     }
 #endif
+    srand(planet_seed);
+
     // parse input arguments
     AltPlanet::PlanetShape alt_planet_shape = planet_shape_selector == PlanetShape::Sphere ?
         AltPlanet::PlanetShape::Sphere      : planet_shape_selector == PlanetShape::Disk ?

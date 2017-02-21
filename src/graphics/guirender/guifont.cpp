@@ -50,6 +50,9 @@ GUIFont::GUIFont(const char * font_file_name, float abs_size, float scale_factor
     }
 
     mTexAtlas = createTextureAtlas(face, max_width, max_rows, n_chars);
+
+    // clean up after freetype
+    FT_Done_FreeType(ft_library);
 }
 
 inline Texture GUIFont::createTextureAtlas(FT_Face &face, unsigned int max_width, unsigned int max_rows, unsigned int n_chars)

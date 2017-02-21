@@ -30,9 +30,14 @@ struct NewGameMenuState : public GUIStateBase
     PlanetShape planet_shape;
     PlanetSize  planet_size;
 
+    int planet_seed;
+
+    static const int planet_seed_default = 0;
+
     NewGameMenuState() :
         planet_shape(PlanetShape::Sphere),
-        planet_size(PlanetSize::Medium)
+        planet_size(PlanetSize::Medium),
+        planet_seed(planet_seed_default)
     { /* default constructor */ }
 };
 
@@ -74,13 +79,27 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
          SizeSpec(150.0f, Units::Absolute, true)} );
 
     // Seed
-    textInput(newgame_bg_node, "999", font, GUITransform(
+    GUINodeHandle seed_node = textInput(newgame_bg_node, font, GUITransform(
         {HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
          VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
 
         {SizeSpec(150.0f, Units::Absolute),
-         SizeSpec(30.0f, Units::Absolute)} ), [](int32_t c){ return c>47 && c<58; }); // only accept numeric
-
+         SizeSpec(30.0f, Units::Absolute)} ),
+        [state_handle] (const std::string &s)   // on text input update
+        {
+            GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+            sw->planet_seed = std::stoi(s);
+            /*try { sw->planet_seed = std::stoi(s); }
+            catch (...) { sw->planet_seed = NewGameMenuState::planet_seed_default; }*/
+        },
+        [state_handle] ()                       // on state update
+        {
+            GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+            return std::to_string(sr->planet_seed);
+        },
+        "999", // starting text
+        12, // max number of characters
+        [](int32_t c){ return c>47 && c<58; }); // only accept numeric
 
     // Toggle world shape
     createToggle(newgame_bg_node, "Disk", font,
@@ -183,7 +202,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  [state_handle]()
                  {
                      GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
-                     events::Immediate::broadcast(events::GenerateWorldEvent{sr->planet_shape, sr->planet_size});
+                     events::Immediate::broadcast(events::GenerateWorldEvent{sr->planet_shape, sr->planet_size, sr->planet_seed});
                  });
 
     createButton(newgame_bg_node, "Back", font,
@@ -193,7 +212,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
 
     // update the state
-    newgame_bg_node->onStateUpdate();
+    newgame_bg_node->forceStateUpdate();
 }
 
 } // namespace gui

@@ -71,6 +71,11 @@ struct ResizedEvent
     float h_abs;
 };
 
+struct FocusGainedEvent {};
+
+struct FocusLostEvent {};
+
+
 using GUIEvent = stdext::either<
     MouseMoveEvent,
     MouseButtonDownEvent,
@@ -82,7 +87,9 @@ using GUIEvent = stdext::either<
     KeyDownEvent,
     KeyUpEvent,
     KeyPressEvent,
-    ResizedEvent
+    ResizedEvent,
+    FocusGainedEvent,
+    FocusLostEvent
 >;
 
 }

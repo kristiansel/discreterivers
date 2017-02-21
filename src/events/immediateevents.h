@@ -84,6 +84,8 @@ struct GenerateWorldEvent
 
     PlanetShape planet_shape;
     PlanetSize planet_size;
+
+    int planet_seed;
 };
 
 struct UIScaleFactorUpdate {

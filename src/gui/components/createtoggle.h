@@ -20,7 +20,7 @@ inline gfx::gui::GUINodeHandle createToggle(gfx::gui::GUINodeHandle &parent,
 
     textLabel(btn_node, text, font);
 
-    btn_node->stateUpdate.addCallback([is_toggled, bg_element](){
+    btn_node->addStateUpdateCallback([is_toggled, bg_element](){
         if (is_toggled()) {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiHighlight() );
         } else {

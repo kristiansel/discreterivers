@@ -30,9 +30,13 @@ bool GUI::handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton butt
     gfx::gui::GUINodePtr mouse_down_node = mGUIRoot.getDeepestClicked(x_rel, y_rel, abs_width, abs_height);
 
     if (mouse_down_node) mouse_down_node->handleEvent(gfx::gui::MouseButtonDownEvent{button, x, y});
+    if (mActiveNode) mActiveNode->handleEvent(gfx::gui::FocusLostEvent());
+
 
     mMouseCapturedNode = mouse_down_node;
     mActiveNode        = mouse_down_node;
+
+    if (mActiveNode) mActiveNode->handleEvent(gfx::gui::FocusGainedEvent());
 
     return (mouse_down_node != nullptr);
 }

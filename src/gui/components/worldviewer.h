@@ -95,7 +95,7 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
             sys::Async::addJob(
                 // The asynchronous operation
                         [evt]()->SceneData{
-                            return createPlanetData(evt.planet_shape, evt.planet_size);
+                            return createPlanetData(evt.planet_shape, evt.planet_size, evt.planet_seed);
                         },
                 // Process the result on return
                         [scene_element, loading_msg_node, state_handle](const SceneData &scene_data)->void{
