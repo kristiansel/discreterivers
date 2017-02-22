@@ -7,7 +7,7 @@
 
 namespace events {
 
-namespace Queued
+namespace Deferred
 {
 
 struct QuitEvent {};

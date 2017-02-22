@@ -32,7 +32,7 @@ struct WorldViewerState : public gfx::gui::GUIStateBase
 };
 
 
-gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
+inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
                                           const gfx::gui::GUIFont &font,
                                           gfx::gui::GUITransform::Position &&pos,
                                           gfx::gui::GUITransform::Size &&size)
@@ -104,6 +104,7 @@ gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
                             loading_msg_node->hide(); // <--- Hide loading message
                             gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
                             sw->world_controller.setControlledNode(&scene_node);
+                            events::Immediate::broadcast(events::FinishGenerateWorldEvent());
                         });
         }
     );

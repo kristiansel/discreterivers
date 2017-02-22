@@ -183,31 +183,31 @@ int main(int argc, char *argv[])
 
         // Interaction with gui and other parts of the system might have caused events
         // related to SDL and the window system. These events are processed here...
-        events::Queued::EventQueue &evt_queue = events::Queued::getEventQueue();
+        events::Deferred::EventQueue &evt_queue = events::Deferred::getEventQueue();
         while (!evt_queue.empty())
         {
-            events::Queued::Event &evt = evt_queue.front();
+            events::Deferred::Event &evt = evt_queue.front();
             // do something with evt
             switch(evt.get_type())
             {
-            case (events::Queued::Event::is_a<events::Queued::QuitEvent>::value):
+            case (events::Deferred::Event::is_a<events::Deferred::QuitEvent>::value):
                 {
                     done = true;
                 }
                 break;
-            case (events::Queued::Event::is_a<events::Queued::ToggleFullscreenEvent>::value):
+            case (events::Deferred::Event::is_a<events::Deferred::ToggleFullscreenEvent>::value):
                 {
                     SDL_SetWindowFullscreen(mainWindow, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
                     fullscreen = !fullscreen;
                 }
                 break;
-            case (events::Queued::Event::is_a<events::Queued::IncrUIScaleFactor>::value):
+            case (events::Deferred::Event::is_a<events::Deferred::IncrUIScaleFactor>::value):
                 {
                     scale_factor = std::min(scale_factor+0.1f, appconstraints::max_ui_scale_factor);
                     engine.updateUIScaleFactor(scale_factor);
                 }
                 break;
-            case (events::Queued::Event::is_a<events::Queued::DecrUIScaleFactor>::value):
+            case (events::Deferred::Event::is_a<events::Deferred::DecrUIScaleFactor>::value):
                 {
                     scale_factor = std::max(scale_factor-0.1f, appconstraints::min_ui_scale_factor);
                     engine.updateUIScaleFactor(scale_factor);

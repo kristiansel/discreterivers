@@ -92,7 +92,7 @@ void Engine::handleKeyPressEvents(SDL_Keycode k)
         break;
     }
     case (SDLK_F11): {
-        events::Queued::emitEvent(events::Queued::ToggleFullscreenEvent());
+        events::Deferred::emitEvent(events::Deferred::ToggleFullscreenEvent());
         break;
     }
     case(SDLK_ESCAPE):
@@ -101,11 +101,11 @@ void Engine::handleKeyPressEvents(SDL_Keycode k)
         break;
     case(SDLK_PLUS):
     case(SDLK_KP_PLUS):
-        events::Queued::emitEvent(events::Queued::IncrUIScaleFactor());
+        events::Deferred::emitEvent(events::Deferred::IncrUIScaleFactor());
         break;
     case(SDLK_MINUS):
     case(SDLK_KP_MINUS):
-        events::Queued::emitEvent(events::Queued::DecrUIScaleFactor());
+        events::Deferred::emitEvent(events::Deferred::DecrUIScaleFactor());
         break;
     } // switch k
 }

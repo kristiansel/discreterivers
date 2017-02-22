@@ -31,13 +31,15 @@ struct NewGameMenuState : public GUIStateBase
     PlanetSize  planet_size;
 
     int planet_seed;
+    bool planet_generated;
 
     static const int planet_seed_default = 0;
 
     NewGameMenuState() :
         planet_shape(PlanetShape::Sphere),
-        planet_size(PlanetSize::Medium),
-        planet_seed(planet_seed_default)
+        planet_size(PlanetSize::Small),
+        planet_seed(planet_seed_default),
+        planet_generated(false)
     { /* default constructor */ }
 };
 
@@ -63,6 +65,18 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     events::Immediate::add_callback<events::ToggleMainMenuEvent>(
         [newgame_bg_node] (const events::ToggleMainMenuEvent &evt) { newgame_bg_node->hide(); }
+    );
+
+    events::Immediate::add_callback<events::ChooseOriginEvent>(
+        [newgame_bg_node] (const events::ChooseOriginEvent &evt) { newgame_bg_node->hide(); }
+    );
+
+
+    events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
+        [state_handle] (const events::FinishGenerateWorldEvent &evt) {
+            GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+            sw->planet_generated = true;
+        }
     );
 
     GUINodeHandle title_node = newgame_bg_node->addGUINode(
@@ -97,7 +111,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
             GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
             return std::to_string(sr->planet_seed);
         },
-        "999", // starting text
+        "0", // default value text
         12, // max number of characters
         [](int32_t c){ return c>47 && c<58; }); // only accept numeric
 
@@ -196,13 +210,28 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     // Bottom buttons
     createButton(newgame_bg_node, "Generate", font,
-                 HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                 HorzPos(150.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  180.0f,
                  [state_handle]()
                  {
-                     GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
-                     events::Immediate::broadcast(events::GenerateWorldEvent{sr->planet_shape, sr->planet_size, sr->planet_seed});
+                      GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
+                      sw->planet_generated = false;
+                      events::Immediate::broadcast(events::GenerateWorldEvent{sw->planet_shape, sw->planet_size, sw->planet_seed});
+                 });
+
+    createButton(newgame_bg_node, "Next", font,
+                 HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
+                 90.0f,
+                 [state_handle]()  // on click
+                 {
+                     events::Immediate::broadcast(events::ChooseOriginEvent());
+                 },
+                 [state_handle]()  // is active
+                 {
+                    GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->planet_generated;
                  });
 
     createButton(newgame_bg_node, "Back", font,

@@ -15,6 +15,8 @@ inline vmath::Vector4 colorGuiElement() { return 2.0f*colorGuiBase(); }
 
 inline vmath::Vector4 colorGuiHighlight() { return 4.0f*colorGuiBase(); }
 
+inline vmath::Vector4 colorGuiInactive() { return 1.3f*colorGuiBase(); }
+
 }
 
 }

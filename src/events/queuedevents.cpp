@@ -2,7 +2,7 @@
 
 namespace events {
 
-namespace Queued {
+namespace Deferred {
 
 
 EventQueue &getEventQueue()
@@ -16,6 +16,6 @@ void emitEvent(Event e)
     getEventQueue().push(e);
 }
 
-} // namespace Queued
+} // namespace Deferred
 
 } // namespace event

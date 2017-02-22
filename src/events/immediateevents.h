@@ -72,6 +72,8 @@ struct LoadGameEvent {};
 
 struct OptionsEvent {};
 
+struct ChooseOriginEvent {};
+
 struct FPSUpdateEvent
 {
     float fps;
@@ -87,6 +89,8 @@ struct GenerateWorldEvent
 
     int planet_seed;
 };
+
+struct FinishGenerateWorldEvent {};
 
 struct UIScaleFactorUpdate {
     enum class ScaleFactor { Small, Medium, Large };

@@ -10,13 +10,20 @@ void createGUI(GUI &gui)
 {
     gfx::gui::GUINode &gui_root_node = gui.getGUIRoot();
 
+    // main menu
     createMainMenu(gui, gui_root_node);
+
+    // main menu submenus
     createNewGameMenu(gui, gui_root_node);
     createSaveGameMenu(gui, gui_root_node);
     createLoadGameMenu(gui, gui_root_node);
     createOptionsMenu(gui, gui_root_node);
+
+    // extra
     createProfilingPane(gui, gui_root_node);
 
+    // deeper menus
+    createChooseOriginMenu(gui, gui_root_node);
 }
 
 bool GUI::handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton button)

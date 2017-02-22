@@ -22,19 +22,19 @@ inline gfx::gui::GUINodeHandle textInput(gfx::gui::GUINodeHandle &parent,
                     const gfx::gui::GUITransform transf,
                     const std::function<void(const std::string&)> &write_text,
                     const std::function<std::string(void)> &read_text,
-                    const std::string &starting_text,
-
+                    const std::string &default_value_text,
                     unsigned int n_chars_max,
                     const std::function<bool(int32_t)> &key_filter = [](int32_t) { return true; })
 {
     gfx::gui::GUINodeHandle text_node_hdl = parent->addGUINode(transf);
 
     gfx::gui::GUIElementHandle bg_element_hdl = text_node_hdl->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
-    gfx::gui::GUIElementHandle text_element_hdl = text_node_hdl->addElement( gfx::gui::TextElement( starting_text, font) );
+    gfx::gui::GUIElementHandle text_element_hdl = text_node_hdl->addElement( gfx::gui::TextElement( default_value_text, font) );
 
 
     text_node_hdl->setGUIEventHandler(
-        [text_element_hdl, bg_element_hdl, /*state_handle,*/read_text, write_text, &font, key_filter, n_chars_max]
+        [text_element_hdl, bg_element_hdl, /*state_handle,*/read_text, write_text,
+        &font, key_filter, n_chars_max, default_value_text]
         (const gfx::gui::GUIEvent &event){
             switch (event.get_type())
             {
@@ -55,8 +55,11 @@ inline gfx::gui::GUINodeHandle textInput(gfx::gui::GUINodeHandle &parent,
                     else if (key_code == SDLK_BACKSPACE)
                     {
                         std::string text = read_text();
-                        if (text.size() > 0) text.pop_back();
-                        try { write_text(text); } catch (...) {}
+                        if (text.size() > 0)
+                        {
+                            text.pop_back();
+                            try { write_text(text); } catch (...) { write_text(default_value_text); }
+                        }
                     }
                 }
                 break;

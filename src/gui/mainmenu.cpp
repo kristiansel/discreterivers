@@ -73,7 +73,7 @@ void createMainMenu(GUI &gui, GUINode &main_menu_root)
     });
     auto exit_btn_node      = createButton(main_bg_node, "Exit", font, 0.5f, 0.820f, 180.0f, []()
     {
-        events::Queued::emitEvent(events::Queued::QuitEvent());
+        events::Deferred::emitEvent(events::Deferred::QuitEvent());
         std::cout << "Clicked exit game!"     << std::endl;
     });
 
