@@ -80,8 +80,9 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
     );
 
     GUINodeHandle title_node = newgame_bg_node->addGUINode(
-        GUITransform( {HorzPos(0.0f, Units::Relative, HorzAnchor::Left),
-                       VertPos(0.0f, Units::Relative, VertAnchor::Top)}, {0.15f, 0.10f} ));
+        GUITransform( {HorzPos(10.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                       VertPos(0.0f, Units::Absolute, VertAnchor::Top)}, {0.15f, 0.10f} ));
+
 
     title_node->addElement( TextElement( "New game - World Generation", heading_font));
 
@@ -93,9 +94,16 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
          SizeSpec(150.0f, Units::Absolute, true)} );
 
     // Seed
-    GUINodeHandle seed_node = textInput(newgame_bg_node, font, GUITransform(
-        {HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-         VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+    GUINodeHandle seed_node = newgame_bg_node->addGUINode(
+        GUITransform({HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                      VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                     {SizeSpec(150.0f, Units::Absolute),
+                      SizeSpec(60.0f, Units::Absolute)} ));
+
+    seed_node->addElement( TextElement( "World seed number", font));
+    textInput(seed_node, font, GUITransform(
+        {HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+         VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
 
         {SizeSpec(150.0f, Units::Absolute),
          SizeSpec(30.0f, Units::Absolute)} ),
@@ -115,10 +123,17 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
         12, // max number of characters
         [](int32_t c){ return c>47 && c<58; }); // only accept numeric
 
-    // Toggle world shape
-    createToggle(newgame_bg_node, "Disk", font,
-                 HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    // Shape
+    GUINodeHandle shape_node = newgame_bg_node->addGUINode(
+        GUITransform({HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                     VertPos(130.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                     {SizeSpec(360.0f, Units::Absolute),
+                      SizeSpec(60.0f, Units::Absolute)} ));
+
+    shape_node->addElement( TextElement( "World shape", font));
+    createToggle(shape_node, "Disk", font,
+                 HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -131,9 +146,9 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                      return sr->planet_shape == NewGameMenuState::PlanetShape::Disk;
                  });
 
-    createToggle(newgame_bg_node, "Sphere", font,
-                 HorzPos(150.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    createToggle(shape_node, "Sphere", font,
+                 HorzPos(120.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -146,9 +161,9 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                       return sr->planet_shape == NewGameMenuState::PlanetShape::Sphere;
                  });
 
-    createToggle(newgame_bg_node, "Torus", font,
-                 HorzPos(270.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(120.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    createToggle(shape_node, "Torus", font,
+                 HorzPos(240.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -162,10 +177,17 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  });
 
 
-    // Toggle world size
-    createToggle(newgame_bg_node, "Small", font,
-                 HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    // Size
+    GUINodeHandle size_node = newgame_bg_node->addGUINode(
+        GUITransform({HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                     VertPos(200.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                     {SizeSpec(360.0f, Units::Absolute),
+                      SizeSpec(60.0f, Units::Absolute)} ));
+
+    size_node->addElement( TextElement( "World size", font));
+    createToggle(size_node, "Small", font,
+                 HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -178,9 +200,9 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                      return sr->planet_size == NewGameMenuState::PlanetSize::Small;
                  });
 
-    createToggle(newgame_bg_node, "Medium", font,
-                 HorzPos(150.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    createToggle(size_node, "Medium", font,
+                 HorzPos(120.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {
@@ -193,9 +215,9 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                      return sr->planet_size == NewGameMenuState::PlanetSize::Medium;
                  });
 
-    createToggle(newgame_bg_node, "Large", font,
-                 HorzPos(270.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
-                 VertPos(180.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+    createToggle(size_node, "Large", font,
+                 HorzPos(240.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
                  [state_handle] ()
                  {

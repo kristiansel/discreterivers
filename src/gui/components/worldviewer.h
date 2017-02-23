@@ -14,21 +14,7 @@ namespace gui {
 
 struct WorldViewerState : public gfx::gui::GUIStateBase
 {
-    //bool hover;
-
-    bool lmb_down;
-    bool rmb_down;
-
-    int32_t prev_mouse_x;
-    int32_t prev_mouse_y;
-
     mech::RotatorController world_controller;
-
-    WorldViewerState() :
-        //hover(false),
-        lmb_down(false), rmb_down(false),
-        prev_mouse_x(0), prev_mouse_y(0) {}
-
 };
 
 
@@ -80,7 +66,7 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
                 const gfx::gui::ResizedEvent &resized_event = event.get_const<gfx::gui::ResizedEvent>();
                 gfx::Camera &cam = scene_element->get<gfx::gui::SceneElement>().getCamera();
                 cam.updateAspect(resized_event.w_abs/resized_event.h_abs);
-                std::cout << "RESIZED CAM" << std::endl;
+                //std::cout << "RESIZED CAM" << std::endl;
             }
             break;
 
@@ -94,11 +80,15 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
             loading_msg_node->show(); // <--- Show loading message
             sys::Async::addJob(
                 // The asynchronous operation
-                        [evt]()->SceneData{
+                        [evt]()->stdext::OwningInitPtr<SceneData> {
                             return createPlanetData(evt.planet_shape, evt.planet_size, evt.planet_seed);
                         },
                 // Process the result on return
-                        [scene_element, loading_msg_node, state_handle](const SceneData &scene_data)->void{
+                        [scene_element, loading_msg_node, state_handle](stdext::OwningInitPtr<SceneData> &scene_data)->void{
+                            // move the pointer into world object
+
+                            // world object fires something
+
                             gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
                             createScene(scene_node, scene_data);
                             loading_msg_node->hide(); // <--- Hide loading message

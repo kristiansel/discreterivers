@@ -9,6 +9,7 @@
 #include "guistyling.h"
 #include "components/createbutton.h"
 #include "components/createtoggle.h"
+#include "components/mapviewer.h"
 #include "components/textinput.h"
 #include "../createscene.h"
 #include "../events/immediateevents.h"
@@ -51,10 +52,17 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
 
 
     GUINodeHandle title_node = choose_origin_bg_node->addGUINode(
-        GUITransform( {HorzPos(0.0f, Units::Relative, HorzAnchor::Left),
-                       VertPos(0.0f, Units::Relative, VertAnchor::Top)}, {0.15f, 0.10f} ));
+        GUITransform( {HorzPos(10.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                       VertPos(0.0f, Units::Absolute, VertAnchor::Top)}, {0.15f, 0.10f} ));
 
     title_node->addElement( TextElement( "New game - Choose Origin", heading_font));
+
+    createMapViewer(choose_origin_bg_node, font,
+        {HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+         VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+
+        {SizeSpec(420.0f,  Units::Absolute, true),
+         SizeSpec(150.0f, Units::Absolute, true)} );
 
 
     createButton(choose_origin_bg_node, "Next", font,

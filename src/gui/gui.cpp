@@ -19,11 +19,12 @@ void createGUI(GUI &gui)
     createLoadGameMenu(gui, gui_root_node);
     createOptionsMenu(gui, gui_root_node);
 
-    // extra
-    createProfilingPane(gui, gui_root_node);
 
     // deeper menus
     createChooseOriginMenu(gui, gui_root_node);
+
+    // extra (goes in the bottom to be on top in the gui)
+    createProfilingPane(gui, gui_root_node);
 }
 
 bool GUI::handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton button)

@@ -6,6 +6,7 @@
 #include "../graphics/openglrenderer.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
+#include "../state/gamestate.h"
 #include "../mechanics/cameracontroller.h"
 
 #include "mousestate.h"
@@ -19,8 +20,10 @@ namespace engine {
 class Engine
 {
     // big members
-    gfx::OpenGLRenderer mRenderer; // must be initialized before GUI!
-    gui::GUI mGUI;  // needs valid opengl context and glew init
+    state::GameState    mState;
+    gfx::OpenGLRenderer mRenderer;  // must be initialized before GUI!
+    gui::GUI            mGUI;       // needs valid opengl context and glew init
+
 
     // to be moved
     gfx::Camera camera; // init order important!

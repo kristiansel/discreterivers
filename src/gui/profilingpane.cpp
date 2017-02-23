@@ -16,8 +16,10 @@ void createProfilingPane(GUI &gui, GUINode &profiling_pane_root)
     const GUIFont &font = gui.getDefaultFont();
 
     GUINodeHandle fps_counter_node = profiling_pane_root.addGUINode(
-        GUITransform( {HorzPos(0.7f, Units::Relative, HorzAnchor::Right),
-                                 VertPos(1.0f, Units::Relative, VertAnchor::Bottom)}, {0.15f, 0.05f} ));
+        GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                       VertPos(0.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                      {SizeSpec(100.0f,  Units::Absolute),
+                       SizeSpec(15.0f,  Units::Absolute)}));
 
     GUIElementHandle fps_text_element = fps_counter_node->addElement(
                 TextElement("FPS:", font) );
@@ -32,8 +34,10 @@ void createProfilingPane(GUI &gui, GUINode &profiling_pane_root)
     });
 
     GUINodeHandle frame_time_node = profiling_pane_root.addGUINode(
-        GUITransform( {HorzPos(0.7f, Units::Relative, HorzAnchor::Right),
-                                 VertPos(1.0f, Units::Relative, VertAnchor::Bottom)}, {0.15f, 0.10f} ));
+        GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
+                       VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                      {SizeSpec(100.0f,  Units::Absolute),
+                       SizeSpec(15.0f,  Units::Absolute)}));
 
     GUIElementHandle frame_time_text_element = frame_time_node->addElement(
                 TextElement("Frame time:", font) );

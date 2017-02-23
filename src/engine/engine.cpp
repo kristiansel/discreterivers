@@ -3,6 +3,7 @@
 namespace engine {
 
 Engine::Engine(int w, int h, float scale_factor) :
+    mState(),
     mRenderer(w, h, scale_factor),
     mGUI(w, h, scale_factor),
 

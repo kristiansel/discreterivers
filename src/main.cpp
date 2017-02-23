@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2); // hint*/
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2); // hint
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     //int width = 2800;    int height = 1600;
@@ -204,12 +204,14 @@ int main(int argc, char *argv[])
             case (events::Deferred::Event::is_a<events::Deferred::IncrUIScaleFactor>::value):
                 {
                     scale_factor = std::min(scale_factor+0.1f, appconstraints::max_ui_scale_factor);
+                    std::cout << "scale_factor = " << scale_factor << std::endl;
                     engine.updateUIScaleFactor(scale_factor);
                 }
                 break;
             case (events::Deferred::Event::is_a<events::Deferred::DecrUIScaleFactor>::value):
                 {
                     scale_factor = std::max(scale_factor-0.1f, appconstraints::min_ui_scale_factor);
+                    std::cout << "scale_factor = " << scale_factor << std::endl;
                     engine.updateUIScaleFactor(scale_factor);
                 }
                 break;
