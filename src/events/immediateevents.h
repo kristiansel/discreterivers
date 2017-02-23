@@ -3,6 +3,8 @@
 
 #include <list>
 #include <functional>
+#include "../state/macrostate.h"
+#include "../common/pointer.h"
 
 namespace events {
 
@@ -90,7 +92,10 @@ struct GenerateWorldEvent
     int planet_seed;
 };
 
-struct FinishGenerateWorldEvent {};
+struct FinishGenerateWorldEvent
+{
+    Ptr::ReadPtr<MacroState> scene_data;
+};
 
 struct UIScaleFactorUpdate {
     enum class ScaleFactor { Small, Medium, Large };

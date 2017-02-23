@@ -2,25 +2,23 @@
 #define GAMESTATE_H
 
 #include <list>
-#include "../common/initptr.h"
+#include "../common/pointer.h"
 #include "macrostate.h"
 
 namespace state {
-
-using MacroState = SceneData;
 
 struct MicroState {};
 
 class GameState
 {
     // zero or one macro state
-    stdext::OwningInitPtr<MacroState> mMacroStatePtr;
+    Ptr::OwningPtr<MacroState> mMacroStatePtr;
 
     // zero or several serving micro-states
     //std::list<MicroState> mServingMicroStatePtrs;
 
     // zero or one mirror micro-state
-    stdext::OwningInitPtr<MicroState> mMicroStatePtr;
+    Ptr::OwningPtr<MicroState> mMicroStatePtr;
 
 public:
     GameState();

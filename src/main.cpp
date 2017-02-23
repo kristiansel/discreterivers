@@ -173,13 +173,13 @@ int main(int argc, char *argv[])
             }   // End switch
         } // while(SDL_PollEvent(&event)))
 
-        std::cout << "got past input handling" << std::endl;
+        //std::cout << "got past input handling" << std::endl;
 
         // update based on events
         engine.update();
 
 
-        std::cout << "got past engine update" << std::endl;
+        //std::cout << "got past engine update" << std::endl;
 
         // Interaction with gui and other parts of the system might have caused events
         // related to SDL and the window system. These events are processed here...
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
             evt_queue.pop();
         }
 
-        std::cout << "got past late events" << std::endl;
+        //std::cout << "got past late events" << std::endl;
 
         // User interaction might have caused asynchronous jobs to spawn in separate threads.
         // When these jobs are complete, final processing is done here in the main thread
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
             //=================================//
             engine.draw();
 
-            std::cout << "got past draw" << std::endl;
+            //std::cout << "got past draw" << std::endl;
 
             // end of meaningfull work, measure the FPS
             float fps_filtered_val = fps_counter.getFrameFPSFiltered();
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
             SDL_GL_SwapWindow(mainWindow);
         }
 
-        std::cout << "got past swap window" << std::endl;
+        //std::cout << "got past swap window" << std::endl;
 
     } // End while(!done) // main loop
 

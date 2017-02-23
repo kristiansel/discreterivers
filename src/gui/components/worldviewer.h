@@ -23,6 +23,13 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
                                           gfx::gui::GUITransform::Position &&pos,
                                           gfx::gui::GUITransform::Size &&size)
 {
+    //TODO: Register a callback here such that:
+    //  When this gui node is mounted/visible
+    //      Then it subscribes to updates in the macro-world
+    //      With loading etc while updating
+    //  When it becomes invisible etc
+    //      Stop subscribing...
+
     gfx::gui::GUINodeHandle world_scene_node = parent->addGUINode(
         gfx::gui::GUITransform( std::move(pos), std::move(size) ));
 
@@ -37,7 +44,7 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
     //loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
     textLabel(loading_msg_node, "Generating world...", font);
 
-    gfx::Camera camera(1.0f);
+    gfx::Camera camera(gfx::PerspectiveProjection(1.0f, M_PI_4, 0.1f, 100.0f));
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
 
@@ -69,35 +76,25 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
                 //std::cout << "RESIZED CAM" << std::endl;
             }
             break;
-
         }
     });
 
-
     events::Immediate::add_callback<events::GenerateWorldEvent>(
-        [scene_element, loading_msg_node, state_handle] (const events::GenerateWorldEvent &evt) {
+        [scene_element, loading_msg_node] (const events::GenerateWorldEvent &evt) {
             scene_element->get<gfx::gui::SceneElement>().getSceneRoot().clearAll();
             loading_msg_node->show(); // <--- Show loading message
-            sys::Async::addJob(
-                // The asynchronous operation
-                        [evt]()->stdext::OwningInitPtr<SceneData> {
-                            return createPlanetData(evt.planet_shape, evt.planet_size, evt.planet_seed);
-                        },
-                // Process the result on return
-                        [scene_element, loading_msg_node, state_handle](stdext::OwningInitPtr<SceneData> &scene_data)->void{
-                            // move the pointer into world object
+    });
 
-                            // world object fires something
+    events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
+        [scene_element, loading_msg_node, state_handle] (const events::FinishGenerateWorldEvent &evt) {
+            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+            Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
+            createScene(scene_node, scene_data);
+            loading_msg_node->hide(); // <--- Hide loading message
+            gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
+            sw->world_controller.setControlledNode(&scene_node);
+    });
 
-                            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
-                            createScene(scene_node, scene_data);
-                            loading_msg_node->hide(); // <--- Hide loading message
-                            gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
-                            sw->world_controller.setControlledNode(&scene_node);
-                            events::Immediate::broadcast(events::FinishGenerateWorldEvent());
-                        });
-        }
-    );
     return world_scene_node;
 }
 

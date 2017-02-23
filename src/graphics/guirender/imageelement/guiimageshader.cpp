@@ -56,7 +56,7 @@ GUIImageShader::GUIImageShader()
     glBindVertexArray(mVertexArrayObject);
 
     const GLfloat vertices[] = {
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
+        0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
     };
 
     glGenBuffers(1, &mPositionArrayBuffer);
@@ -66,7 +66,7 @@ GUIImageShader::GUIImageShader()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
     const GLfloat texcoords[] = {
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
+        0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
     };
 
     glGenBuffers(1, &mTexCoordArrayBuffer);

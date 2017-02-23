@@ -235,6 +235,8 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  HorzPos(150.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  180.0f,
+
+
                  [state_handle]()
                  {
                       GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();

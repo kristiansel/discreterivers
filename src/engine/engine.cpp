@@ -8,7 +8,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    camera((float)(w)/(float)(h)),
+    camera(gfx::PerspectiveProjection((float)(w)/(float)(h), M_PI_4, 0.1f, 100.0f)),
     mCameraController(&camera),
     mGUICapturedMouse(false)
 

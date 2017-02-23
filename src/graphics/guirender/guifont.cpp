@@ -175,18 +175,18 @@ GUIFont::TextSizeAbs GUIFont::updateTextData(const char * text, vmath::Vector4 *
 
         // quad of two triangles
         position_data[i*6+0] = vmath::Vector4{x2,     -y0-y2,     0,    1}; // 0
-        position_data[i*6+1] = vmath::Vector4{x2 + w, -y0-y2,     0,    1}; // 1
-        position_data[i*6+2] = vmath::Vector4{x2,     -y0-y2 - h, 0,    1}; // 2
+        position_data[i*6+1] = vmath::Vector4{x2,     -y0-y2 - h, 0,    1}; // 2
+        position_data[i*6+2] = vmath::Vector4{x2 + w, -y0-y2,     0,    1}; // 1
         position_data[i*6+3] = vmath::Vector4{x2,     -y0-y2 - h, 0,    1}; // 2
-        position_data[i*6+4] = vmath::Vector4{x2 + w, -y0-y2,     0,    1}; // 1
-        position_data[i*6+5] = vmath::Vector4{x2 + w, -y0-y2 - h, 0,    1}; // 3
+        position_data[i*6+4] = vmath::Vector4{x2 + w, -y0-y2 - h, 0,    1}; // 3
+        position_data[i*6+5] = vmath::Vector4{x2 + w, -y0-y2,     0,    1}; // 1
 
         texcoord_data[i*6+0] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_begin[1]};   // 0
-        texcoord_data[i*6+1] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
-        texcoord_data[i*6+2] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]};     // 2
+        texcoord_data[i*6+1] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]};     // 2
+        texcoord_data[i*6+2] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
         texcoord_data[i*6+3] = gfx::TexCoords{pos_info.texco_begin[0],    pos_info.texco_end[1]};     // 2
-        texcoord_data[i*6+4] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
-        texcoord_data[i*6+5] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]};     // 3
+        texcoord_data[i*6+4] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_end[1]};     // 3
+        texcoord_data[i*6+5] = gfx::TexCoords{pos_info.texco_end[0],      pos_info.texco_begin[1]};   // 1
  // 0
         x += (draw_info.advance.x/64) * sx;
         y += (draw_info.advance.y/64) * sy;

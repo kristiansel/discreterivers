@@ -1,9 +1,11 @@
 #ifndef MACRODEBUGASSERT_H
 #define MACRODEBUGASSERT_H
 
+#include <iostream>
+
 #ifndef NDEBUG
   #include <cassert>
-  #define DEBUG_ASSERT(condition)                                                  \
+  #define DEBUG_ASSERT(condition)                                               \
   {                                                                             \
       if(!(condition))                                                          \
       {                                                                         \

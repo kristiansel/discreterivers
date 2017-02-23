@@ -101,7 +101,7 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
     vmath::Matrix4 mv = camera.getCamMatrixInverse() * model_matrix;
 
     // combined model view projection matrix
-    vmath::Matrix4 p = camera.mProjectionMatrix;
+    vmath::Matrix4 p = camera.getProjectionMatrix();
 
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniformMatrix4fv(mUniforms.p, 1, false, (const GLfloat*)&(p[0]));

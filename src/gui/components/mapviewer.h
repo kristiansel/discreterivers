@@ -9,13 +9,13 @@
 #include "../../events/immediateevents.h"
 #include "../../common/threads/threadpool.h"
 #include "../../system/async.h"
-#include "../../mechanics/rotatorcontroller.h"
+#include "../../mechanics/mapcontroller.h"
 
 namespace gui {
 
 struct MapViewerState : public gfx::gui::GUIStateBase
 {
-    //mech::MapController map_controller;
+    mech::MapController map_controller;
 };
 
 
@@ -24,13 +24,13 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
                                                gfx::gui::GUITransform::Position &&pos,
                                                gfx::gui::GUITransform::Size &&size)
 {
-    gfx::gui::GUINodeHandle map_scene_node = parent->addGUINode(
-        gfx::gui::GUITransform( std::move(pos), std::move(size) ));
-
-    map_scene_node->addElement( gfx::gui::BackgroundElement( styling::colorGuiElement() ) );
-
-    gfx::gui::GUIStateHandle<MapViewerState> state_handle = map_scene_node->setState(MapViewerState());
-
+    //TODO: Register a callback here such that:
+    //  When this gui node is mounted/visible
+    //      Then it subscribes to updates in the macro-world
+    //      With loading etc while updating
+    //  When it becomes invisible etc
+    //      Stop subscribing...
+    //
     // hook up a create map function on the "world generated event"
     // need to include planet shape in planet data and use the getUV virtual function
     // convert the UV to regular vertices, normalize and fit with an orthogonal camera and use
@@ -38,15 +38,18 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
     // good to go. Choose a texture... Need to implement getUV for torus.. test with sphere first..
     // After that is good, create controller for map and keep it in state
 
-    /*gfx::gui::GUINodeHandle loading_msg_node = map_scene_node->addGUINode(
-            gfx::gui::GUITransform( {gfx::gui::HorzPos(0.5f, gfx::gui::Units::Relative, gfx::gui::HorzAnchor::Middle),
-                                     gfx::gui::VertPos(0.5f, gfx::gui::Units::Relative, gfx::gui::VertAnchor::Middle)}, {0.15f, 0.10f} ));
-    loading_msg_node->hide();
-    //loading_msg_node->addElement( gfx::gui::TextElement( "Generating Map...", font ) );
-    textLabel(loading_msg_node, "Generating Map...", font);
 
-    gfx::Camera camera(1.0f);
-    camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
+    gfx::gui::GUINodeHandle map_scene_node = parent->addGUINode(
+        gfx::gui::GUITransform( std::move(pos), std::move(size) ));
+
+    map_scene_node->addElement( gfx::gui::BackgroundElement( styling::colorGuiElement() ) );
+
+    gfx::gui::GUIStateHandle<MapViewerState> state_handle = map_scene_node->setState(MapViewerState());
+
+
+    //gfx::Camera camera(gfx::PerspectiveProjection(1.0f, M_PI_4, 0.1f, 100.0f));
+    gfx::Camera camera(gfx::OrthographicProjection(1.0f, 0.5f, -10.0f, 10.0f));
+    camera.mTransform.position = vmath::Vector3(0.5f, 0.5f, 0.0f);
     gfx::gui::GUIElementHandle scene_element = map_scene_node->addElement( gfx::gui::SceneElement(camera));
 
     map_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
@@ -79,29 +82,24 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
             break;
 
         }
-    });*/
+    });
 
-
-    /*events::Immediate::add_callback<events::GenerateMapEvent>(
-        [scene_element, loading_msg_node, state_handle] (const events::GenerateMapEvent &evt) {
+    events::Immediate::add_callback<events::GenerateWorldEvent>(
+        [scene_element/*, loading_msg_node*/] (const events::GenerateWorldEvent &evt) {
             scene_element->get<gfx::gui::SceneElement>().getSceneRoot().clearAll();
-            loading_msg_node->show(); // <--- Show loading message
-            sys::Async::addJob(
-                // The asynchronous operation
-                        [evt]()->SceneData{
-                            return createPlanetData(evt.planet_shape, evt.planet_size, evt.planet_seed);
-                        },
-                // Process the result on return
-                        [scene_element, loading_msg_node, state_handle](const SceneData &scene_data)->void{
-                            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
-                            createScene(scene_node, scene_data);
-                            loading_msg_node->hide(); // <--- Hide loading message
-                            gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriter();
-                            sw->map_controller.setControlledNode(&scene_node);
-                            events::Immediate::broadcast(events::FinishGenerateMapEvent());
-                        });
-        }
-    );*/
+            //loading_msg_node->show(); // <--- Show loading message
+    });
+
+    events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
+        [scene_element, /*loading_msg_node,*/ state_handle] (const events::FinishGenerateWorldEvent &evt) {
+            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+            Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
+            createMap(scene_node, scene_data);
+            //loading_msg_node->hide(); // <--- Hide loading message
+            gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriter();
+            sw->map_controller.setControlledNode(&scene_node);
+    });
+
     return map_scene_node;
 }
 

@@ -21,6 +21,8 @@ struct AABB {float width; float height;};
 class BaseShape
 {
 public:
+    virtual ~BaseShape() {}
+
     /**
      * @brief shapeFunction: Override this function to define planet shape.
      * @param point: Input point to transform to planet shape surface
@@ -100,7 +102,6 @@ public:
         SurfaceLine surface_line = shapeFunction(point);
         return (vmath::lengthSqr(point - surface_line.zeroHeightPt));
     }
-
 };
 
 /* // need shape to be 3d, reimagine the disk as a squashed sphere (with two sides, exciting)
@@ -127,6 +128,7 @@ class Sphere : public BaseShape
 {
 public:
     Sphere(float radius) : radius(radius) {}
+
     SurfaceLine shapeFunction(const vmath::Vector3 &point) const
     {
         return {vmath::Vector3(0.f, 0.f, 0.f), vmath::normalize(point), radius};
@@ -149,7 +151,7 @@ public:
         for(int i = 0; i<texco_out.size(); i++)
         {
             auto d = vmath::normalize(points[i]);
-            float u = 0.5+atan(2.0f*d[2]*d[0])/(2.0f*M_PI);
+            float u = 0.5+atan2(d[2], d[0])/(2.0f*M_PI);
             float v = 0.5-asin(d[1])/M_PI;
             texco_out[i] = {u, v};
         }
@@ -164,6 +166,7 @@ class Torus : public BaseShape
 {
 public:
     Torus(float major_radius, float minor_radius) : major_radius(major_radius), minor_radius(minor_radius) {}
+
     SurfaceLine shapeFunction(const vmath::Vector3 &point) const
     {
         vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
@@ -189,6 +192,12 @@ public:
 
         for(int i = 0; i<texco_out.size(); i++)
         {
+            /*const vmath::Vector3 &point = points[i];
+            vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
+            vmath::Vector3 circle_to_point = point-circle_point;
+            float minor_angle = getOrientedAngle(circle_point, circle_to_point, circle_tangent);
+            flat major_angle = getOrientedAngle(circle_point, vmath::Vector3(1.0f, 0.0f, 0.0f), vmath::Vector3(0.0f, 1.0f, 0.0f));*/
+
             texco_out[i] = {0, 0};
         }
         return texco_out;

@@ -47,7 +47,7 @@ GUIShader::GUIShader()
     glBindVertexArray(mVertexArrayObject);
 
     const GLfloat vertices[] = {
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
+        0.0f, 1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
     };
 
     glGenBuffers(1, &mPositionArrayBuffer);

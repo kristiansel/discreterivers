@@ -1,5 +1,5 @@
-#ifndef ROTATORCONTROLLER_H
-#define ROTATORCONTROLLER_H
+#ifndef MAPCONTROLLER_H
+#define MAPCONTROLLER_H
 
 #include <array>
 
@@ -9,7 +9,7 @@
 
 namespace mech {
 
-class RotatorController
+class MapController
 {
 public:
     // signals
@@ -43,16 +43,16 @@ private:
 
     // state
     float           mSpeed;
-    float           mMouseTurnSpeed;
+    float           mMouseScrollSpeed;
     //MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
     ScrollSignal    mScrollSignal;
 
 public:
-    RotatorController(float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
+    MapController(float speed = 1.0f, float mouse_scroll_speed = 2.0f) :
         mSceneNodePtr(nullptr),
         mSpeed(speed),
-        mMouseTurnSpeed(mouse_turn_speed)
+        mMouseScrollSpeed(mouse_scroll_speed)
     {
         clearSignals();
     }
@@ -103,16 +103,14 @@ public:
 };
 
 // inline methods
-inline void RotatorController::update()
+inline void MapController::update()
 {
     if (mSceneNodePtr)
-    {   
+    {
         //std::cout << "sending turn signals " << mTurnSignals[0] << ", " << mTurnSignals[1] << std::endl;
 
-        mSceneNodePtr->transform.rotation =
-            vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[0], vmath::Vector3(0.0f, 1.0f, 0.0f))*
-            vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[1], vmath::Vector3(1.0f, 0.0f, 0.0f))*
-            mSceneNodePtr->transform.rotation;
+        mSceneNodePtr->transform.position = vmath::Vector3(-mSpeed*mTurnSignals[0], mSpeed*mTurnSignals[1], 0.0f) +
+            mSceneNodePtr->transform.position;
 
         mSceneNodePtr->transform.scale = (1.0f + mScrollSignal*0.1f) * mSceneNodePtr->transform.scale;
 

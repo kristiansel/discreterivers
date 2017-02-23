@@ -13,7 +13,7 @@
 #include "guievent.h"
 #include "../texture.h"
 #include "../../common/flags.h"
-#include "../../common/initptr.h"
+#include "../../common/pointer.h"
 #include "../../common/statecontainer.h"
 #include "../../common/gfx_primitives.h"
 #include "../../common/resmanager/refcounted.h"
@@ -28,7 +28,7 @@ namespace gui {
 class GUINode;
 using GUINodeHandle = std::list<GUINode>::iterator;
 using GUIElementHandle = std::list<GUIElement>::iterator;
-using GUINodePtr = stdext::InitPtr<gui::GUINode>;
+using GUINodePtr = Ptr::WritePtr<gui::GUINode>;
 
 using GUIStateContainer = State::StateContainer;
 using GUIStateBase = State::StateBase;
