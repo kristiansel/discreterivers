@@ -33,7 +33,7 @@ class ReadPtr
 
     ReadPtr() = delete;
 public:
-    ReadPtr(T *ptr) : p_(ptr) { DEBUG_ASSERT(ptr!=nullptr); }
+    ReadPtr(const T *ptr) : p_(ptr) { DEBUG_ASSERT(ptr!=nullptr); }
 
     const T*     operator->() const { return p_; }
 

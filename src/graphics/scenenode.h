@@ -30,7 +30,7 @@ struct SceneNode
                                      const Material &material);
 
     inline LightHandle addLight(const vmath::Vector4 &color,
-                         const Transform &transform = Transform());
+                                const vmath::Vector4 &position = vmath::Vector4(0.0f));
 
     inline void clearChildren() { mChildren.clear(); }
     inline void clearSceneObjects() { mSceneObjects.clear(); }
@@ -63,7 +63,7 @@ inline SceneNodeHandle SceneNode::addSceneNode()
 }
 
 inline SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
-                                         const Material &material)
+                                                   const Material &material)
 {
     mSceneObjects.emplace_back( material, geometry );
     return (--mSceneObjects.end());
@@ -71,9 +71,9 @@ inline SceneObjectHandle SceneNode::addSceneObject(const Geometry &geometry,
 
 
 inline LightHandle SceneNode::addLight(const vmath::Vector4 &color,
-                     const Transform &transform)
+                                       const vmath::Vector4 &position)
 {
-    mLights.emplace_back( transform, color );
+    mLights.emplace_back( position, color );
     return (--mLights.end());
 }
 

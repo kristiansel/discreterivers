@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include "../graphics/scenenode.h"
+#include "../graphics/camera.h"
 #include "../common/flags.h"
 #include "../common/pointer.h"
 
@@ -39,33 +39,35 @@ public:
 
 private:
     // props
-    Ptr::WritePtr<gfx::SceneNode> mSceneNodePtr;
+    Ptr::WritePtr<gfx::Camera> mCameraPtr;
 
     // state
     float           mSpeed;
     float           mMouseScrollSpeed;
+    float           mScaleFactor;
+
     //MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
     ScrollSignal    mScrollSignal;
 
 public:
-    MapController(float speed = 1.0f, float mouse_scroll_speed = 2.0f) :
-        mSceneNodePtr(nullptr),
+    MapController(float speed = 0.25f*0.0062832f) : // 2π/1000 = 0.0062832f
+        mCameraPtr(nullptr),
         mSpeed(speed),
-        mMouseScrollSpeed(mouse_scroll_speed)
+        mScaleFactor(1.0f)
     {
         clearSignals();
     }
 
     // mutators
-    inline void setControlledNode(gfx::SceneNode * const scenenode_ptr)
+    inline void setControlled(Ptr::WritePtr<gfx::Camera> camera_ptr)
     {
-        mSceneNodePtr = scenenode_ptr;
+        mCameraPtr = camera_ptr;
     }
 
-    inline void clearControlledNode()
+    inline void clearControlled()
     {
-        mSceneNodePtr = nullptr;
+        mCameraPtr = nullptr;
     }
 
     // mutators
@@ -105,14 +107,15 @@ public:
 // inline methods
 inline void MapController::update()
 {
-    if (mSceneNodePtr)
+    if (mCameraPtr)
     {
-        //std::cout << "sending turn signals " << mTurnSignals[0] << ", " << mTurnSignals[1] << std::endl;
+        mScaleFactor = std::min(2.0f, std::max(0.1f, mScaleFactor - mScrollSignal * 0.1f));
 
-        mSceneNodePtr->transform.position = vmath::Vector3(-mSpeed*mTurnSignals[0], mSpeed*mTurnSignals[1], 0.0f) +
-            mSceneNodePtr->transform.position;
+        mCameraPtr->mTransform.position = vmath::Vector3(mSpeed*mScaleFactor*mTurnSignals[0], -mSpeed*mScaleFactor*mTurnSignals[1], 0.0f) +
+            mCameraPtr->mTransform.position;
 
-        mSceneNodePtr->transform.scale = (1.0f + mScrollSignal*0.1f) * mSceneNodePtr->transform.scale;
+        //std::cout << "scale factor " << mScaleFactor << std::endl;
+        mCameraPtr->mTransform.scale = mScaleFactor * vmath::Vector3(1.0f);
 
         clearSignals();
     }

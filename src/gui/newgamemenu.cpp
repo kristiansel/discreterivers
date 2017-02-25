@@ -32,6 +32,7 @@ struct NewGameMenuState : public GUIStateBase
 
     int planet_seed;
     bool planet_generated;
+    bool generating_planet;
 
     static const int planet_seed_default = 0;
 
@@ -39,7 +40,8 @@ struct NewGameMenuState : public GUIStateBase
         planet_shape(PlanetShape::Sphere),
         planet_size(PlanetSize::Small),
         planet_seed(planet_seed_default),
-        planet_generated(false)
+        planet_generated(false),
+        generating_planet(false)
     { /* default constructor */ }
 };
 
@@ -76,6 +78,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
         [state_handle] (const events::FinishGenerateWorldEvent &evt) {
             GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
             sw->planet_generated = true;
+            sw->generating_planet = false;
         }
     );
 
@@ -235,13 +238,17 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  HorzPos(150.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  180.0f,
-
-
                  [state_handle]()
                  {
                       GUIStateWriter<NewGameMenuState> sw = state_handle.getStateWriter();
                       sw->planet_generated = false;
+                      sw->generating_planet = true;
                       events::Immediate::broadcast(events::GenerateWorldEvent{sw->planet_shape, sw->planet_size, sw->planet_seed});
+                 },
+                 [state_handle]()  // is active
+                 {
+                    GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
+                    return sr->generating_planet == false;
                  });
 
     createButton(newgame_bg_node, "Next", font,

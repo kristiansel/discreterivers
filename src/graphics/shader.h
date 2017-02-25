@@ -9,6 +9,7 @@
 
 #include "camera.h"
 #include "renderflags.h"
+#include "light.h"
 
 namespace gfx {
 
@@ -26,10 +27,12 @@ public:
     {
         GLint mv;
         GLint p;
+        GLint z_offset;
         GLint tex;
         GLint color;
-        GLint light_position;
-        GLint light_color;
+        GLint num_lights;
+        GLint light_position_array;
+        GLint light_color_array;
     };
 
     inline void clearDrawObjects() const
@@ -48,8 +51,34 @@ public:
                                          render_flags);
     }
 
+    inline void clearLightObjects() const
+    {
+        mLightObjectsVector.clear();
+    }
+
+    inline void addLightObject(const Light &light) const
+    {
+        mLightObjectsVector.push_back(light);
+    }
+
     inline void drawDrawObjects( const Camera &camera ) const
     {
+        /*vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
+
+        int num_lights = 2;
+
+        std::array<vmath::Vector4, 10> light_position_array;
+        light_position_array[0] = vp_matrix * vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
+        light_position_array[1] = vp_matrix * vmath::Vector4(10.0f, -10.0f, 10.0f, 0.0f);
+
+        std::array<vmath::Vector4, 10> light_color_array;
+        light_color_array[0] = vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+        light_color_array[1] = vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+
+        glUniform1i(mUniforms.num_lights, (GLint)num_lights);
+        glUniform4fv(mUniforms.light_position_array, num_lights, (const GLfloat*)&light_position_array);
+        glUniform4fv(mUniforms.light_color_array, num_lights, (const GLfloat*)&light_color_array);*/
+
         // actually draw the batched draw objects
         for (const auto &draw_object : mDrawObjectsVector)
         {
@@ -79,13 +108,20 @@ private:
         DrawObject();
     };
 
+    struct LightObject
+    {
+        vmath::Vector4 position;
+        vmath::Vector4 color;
+    };
+
     inline void drawDrawObject(const DrawObject &draw_object, const Camera &camera) const;
 
     GLuint mShaderProgramID;
 
     Uniforms mUniforms;
 
-    mutable std::vector<DrawObject> mDrawObjectsVector;
+    mutable std::vector<DrawObject>  mDrawObjectsVector;
+    mutable std::vector<Light> mLightObjectsVector;
 };
 
 // inline functions
@@ -106,6 +142,7 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
     glUniformMatrix4fv(mUniforms.mv, 1, false, (const GLfloat*)&(mv[0]));
     glUniformMatrix4fv(mUniforms.p, 1, false, (const GLfloat*)&(p[0]));
     glUniform4fv(mUniforms.color, 1, (const GLfloat*)&material_data.color);
+    glUniform1f(mUniforms.z_offset, (const GLfloat)material_data.z_offset);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, material_data.texID);

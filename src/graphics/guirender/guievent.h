@@ -20,8 +20,8 @@ struct MouseMoveEvent
 
 struct MouseDragEvent
 {
-    int32_t x_rel;
-    int32_t y_rel;
+    float x_rel;
+    float y_rel;
 };
 
 struct MouseButtonDownEvent

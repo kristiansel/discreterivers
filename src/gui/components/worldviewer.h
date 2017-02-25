@@ -55,9 +55,7 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
             {
                 const gfx::gui::MouseDragEvent &drag_event = event.get_const<gfx::gui::MouseDragEvent>();
                 gfx::gui::GUIStateWriter<WorldViewerState> sw_no_update = state_handle.getStateWriterNoUpdate();
-                float mouse_angle_x = static_cast<float>(drag_event.x_rel)*0.0062832f; // 2π/1000?
-                float mouse_angle_y = static_cast<float>(drag_event.y_rel)*0.0062832f;
-                sw_no_update->world_controller.sendTurnSignals({mouse_angle_x, mouse_angle_y});
+                sw_no_update->world_controller.sendTurnSignals({drag_event.x_rel, drag_event.y_rel});
             }
             break;
         case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseWheelScrollEvent>::value):

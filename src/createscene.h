@@ -129,6 +129,32 @@ inline Ptr::OwningPtr<MacroState> createPlanetData(PlanetShape planet_shape_sele
     );
 }
 
+inline gfx::SceneObjectHandle add_trivial_object(const std::vector<vmath::Vector3> &points,
+                                                const std::vector<gfx::Triangle> &triangles,
+                                                const vmath::Vector4 &color,
+                                                gfx::SceneNodeHandle &scene_node)
+{
+    std::vector<vmath::Vector4> position_data;
+
+    for (int i = 0; i<points.size(); i++)
+    {
+        position_data.push_back((const vmath::Vector4&)(points[i]));
+        position_data.back().setW(1.0f);
+    }
+
+    std::vector<vmath::Vector4> normal_data;
+    gfx::generateNormals(&normal_data, position_data, triangles);
+
+    gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+
+    gfx::Primitives primitives = gfx::Primitives(triangles);
+    gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+
+    gfx::Material material = gfx::Material(color);
+
+    return scene_node->addSceneObject(geometry, material);
+}
+
 inline void createScene(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene_data)
 {
     /*gfx::SceneNodeHandle light_scene_node = scene_root.addSceneNode();
@@ -202,32 +228,6 @@ inline void createScene(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> sce
 
     //alt_planet_triangles_so->setWireframe(true);
 
-    auto add_trivial_object = [](   const std::vector<vmath::Vector3> points,
-            const std::vector<gfx::Triangle> triangles,
-            const vmath::Vector4 &color,
-            gfx::SceneNodeHandle &scene_node)
-    {
-        std::vector<vmath::Vector4> position_data;
-
-        for (int i = 0; i<points.size(); i++)
-        {
-            position_data.push_back((const vmath::Vector4&)(points[i]));
-            position_data.back().setW(1.0f);
-        }
-
-        std::vector<vmath::Vector4> normal_data;
-        gfx::generateNormals(&normal_data, position_data, triangles);
-
-        gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
-
-        gfx::Primitives primitives = gfx::Primitives(triangles);
-        gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
-
-        gfx::Material material = gfx::Material(color);
-
-        return scene_node->addSceneObject(geometry, material);
-    };
-
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(scene_data->alt_ocean_points, scene_data->alt_ocean_triangles,
                                                              vmath::Vector4(0.2f, 0.2f, 0.8f, 1.0f), planet_scene_node);
@@ -249,12 +249,42 @@ inline void createScene(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> sce
         gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
         vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
-        gfx::Material material = gfx::Material(color);
+        float z_offset = +0.005;
+        gfx::Material material = gfx::Material(color, z_offset);
 
         return planet_scene_node->addSceneObject(geometry, material);
     })();
 
     std::cout << "rivers_sceneobject" << std::endl;
+}
+
+inline gfx::SceneObjectHandle add_trivial_map_object(const std::vector<vmath::Vector3> &points,
+                                                     const std::vector<gfx::Triangle> &triangles,
+                                                     const vmath::Vector4 &color,
+                                                     gfx::SceneNodeHandle &scene_node,
+                                                     const AltPlanet::Shape::BaseShape *planet_shape)
+{
+    std::vector<gfx::TexCoords> map_uv_coords = planet_shape->getUV(points);
+
+    std::vector<vmath::Vector4> position_data;
+    for (int i = 0; i<points.size(); i++)
+    {
+        const gfx::TexCoords &uv = map_uv_coords[i];
+        float h = planet_shape->getHeight(points[i]);
+        position_data.push_back(vmath::Vector4{uv[0], uv[1], h, 1.0f});
+    }
+
+    std::vector<vmath::Vector4> normal_data(points.size(), vmath::Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+    //gfx::generateNormals(&normal_data, position_data, triangles);
+
+    gfx::Vertices vertices = gfx::Vertices(position_data, normal_data /*, texcoords*/);
+
+    gfx::Primitives primitives = gfx::Primitives(triangles);
+    gfx::Geometry geometry = gfx::Geometry(vertices, primitives);
+
+    gfx::Material material = gfx::Material(color);
+
+    return scene_node->addSceneObject(geometry, material);
 }
 
 inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene_data)
@@ -267,38 +297,40 @@ inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene
 
     // get the position data
     std::vector<vmath::Vector4> map_position_data;
-    float max_x = std::numeric_limits<float>::min();
-    float min_x = std::numeric_limits<float>::max();
+//    float max_x = std::numeric_limits<float>::min();
+//    float min_x = std::numeric_limits<float>::max();
 
-    float max_y = std::numeric_limits<float>::min();
-    float min_y = std::numeric_limits<float>::max();
+//    float max_y = std::numeric_limits<float>::min();
+//    float min_y = std::numeric_limits<float>::max();
 
-    float max_z = std::numeric_limits<float>::min();
-    float min_z = std::numeric_limits<float>::max();
+//    float max_z = std::numeric_limits<float>::min();
+//    float min_z = std::numeric_limits<float>::max();
     for (int i = 0; i<scene_data->alt_planet_points.size(); i++)
     {
         const gfx::TexCoords &uv = map_uv_coords[i];
         float h = scene_data->planet_base_shape->getHeight(scene_data->alt_planet_points[i]);
         map_position_data.push_back(vmath::Vector4{uv[0], uv[1], h, 1.0f});
 
-        max_x = uv[0] > max_x ? uv[0] : max_x;
-        min_x = uv[0] < min_x ? uv[0] : min_x;
+//        max_x = uv[0] > max_x ? uv[0] : max_x;
+//        min_x = uv[0] < min_x ? uv[0] : min_x;
 
-        max_y = uv[1] > max_y ? uv[1] : max_y;
-        min_y = uv[1] < min_y ? uv[1] : min_y;
+//        max_y = uv[1] > max_y ? uv[1] : max_y;
+//        min_y = uv[1] < min_y ? uv[1] : min_y;
 
-        max_z = h > max_z ? h : max_z;
-        min_z = h < min_z ? h : min_z;
+//        max_z = h > max_z ? h : max_z;
+//        min_z = h < min_z ? h : min_z;
     }
 
-    std::cout << "range of map points:" << std::endl;
-    std::cout << "x(" << min_x << ", " << max_x << ")" << std::endl;
-    std::cout << "y(" << min_y << ", " << max_y << ")" << std::endl;
-    std::cout << "z(" << min_z << ", " << max_z << ")" << std::endl;
+//    std::cout << "range of map points:" << std::endl;
+//    std::cout << "x(" << min_x << ", " << max_x << ")" << std::endl;
+//    std::cout << "y(" << min_y << ", " << max_y << ")" << std::endl;
+//    std::cout << "z(" << min_z << ", " << max_z << ")" << std::endl;
 
     // get normals
     std::vector<vmath::Vector4> map_normal_data;
     gfx::generateNormals(&map_normal_data, map_position_data, scene_data->alt_planet_triangles);
+
+    gfx::Vertices map_climate_verts = gfx::Vertices(map_position_data, map_normal_data, scene_data->clim_mat_texco);
 
     gfx::SceneObjectHandle map_triangles_so = ([&]()
     {
@@ -308,8 +340,6 @@ inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene
         gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
                 climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::linear);
 
-        gfx::Vertices map_climate_verts = gfx::Vertices(map_position_data, map_normal_data, scene_data->clim_mat_texco);
-
         gfx::Primitives primitives = gfx::Primitives(scene_data->alt_planet_triangles);
         gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);
 
@@ -317,6 +347,35 @@ inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene
     })(); // immediately invoked lambda!
 
     std::cout << "created map scene object" << std::endl;
+
+    // Add planet ocean scene object
+    gfx::SceneObjectHandle alt_ocean_so = add_trivial_map_object(scene_data->alt_ocean_points, scene_data->alt_ocean_triangles,
+                                                vmath::Vector4(0.2f, 0.2f, 0.8f, 1.0f), map_scene_node, scene_data->planet_base_shape);
+
+    std::cout << "alt_ocean_so" << std::endl;
+
+    // Add planet lakes scene object
+    gfx::SceneObjectHandle alt_lakes_so = add_trivial_map_object(scene_data->alt_lake_points, scene_data->alt_lake_triangles,
+                                                vmath::Vector4(0.6f, 0.6f, 0.9f, 1.0f), map_scene_node, scene_data->planet_base_shape);
+
+    std::cout << "alt_lakes_so" << std::endl;
+
+    // Add planet rivers scene object
+    gfx::SceneObjectHandle rivers_sceneobject = ([&]()
+    {
+        const std::vector<gfx::Line> &rivers_primitives_data = scene_data->alt_river_lines;
+
+        gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
+        gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);
+
+        vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
+        float z_offset = +0.005;
+        gfx::Material material = gfx::Material(color, z_offset);
+
+        return map_scene_node->addSceneObject(geometry, material);
+    })();
+
+    std::cout << "rivers_sceneobject" << std::endl;
 
 }
 

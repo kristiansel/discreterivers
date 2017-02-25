@@ -37,11 +37,11 @@ OpenGLRenderer::OpenGLRenderer(int w, int h, float scale_factor)  :
 
 
     // Hi DPI
-    //glLineWidth(2.2f*1.2f);
-    //glPointSize(2.2f*2.6f);
+    glLineWidth(2.2f*1.2f);
+    glPointSize(2.2f*2.6f);
 
-    glLineWidth(1.2f);
-    glPointSize(2.6f);
+    //glLineWidth(1.2f);
+    //glPointSize(2.6f);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -93,41 +93,22 @@ inline void OpenGLRenderer::drawScene(const Camera &camera, const SceneNode &sce
         }
     }*/
 
-    vmath::Vector4 light_position_world;
-    vmath::Vector4 light_color;
-    if (mLightObjectsVector.size()>0)
-    {
-        // use first light
-        light_position_world = mLightObjectsVector[0].mPosition;
-        light_color = mLightObjectsVector[0].mColor;
-    }
-    else // default light
-    {
-        light_position_world = vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
-        light_color = vmath::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
-    vmath::Vector4 light_position = vp_matrix * light_position_world;
-
-    glUniform4fv(mMainShader.getUniforms().light_position, 1, (const GLfloat*)&light_position);
-    glUniform4fv(mMainShader.getUniforms().light_color, 1, (const GLfloat*)&light_color);
-
     mMainShader.clearDrawObjects(); // could/does this need to be optimized?
+    mMainShader.clearLightObjects();
 
     drawSceneRecursive(scene_root, vmath::Matrix4::identity());
 
-
     mMainShader.drawDrawObjects(camera);
-
 
     glDisable(GL_DEPTH_TEST);
 }
 
-inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_root, const vmath::Matrix4 parent_transform) const
+inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_node, const vmath::Matrix4 parent_transform) const
 {
-    vmath::Matrix4 mv_matrix = parent_transform * scene_root.transform.getTransformMatrix();
+    vmath::Matrix4 mv_matrix = parent_transform * scene_node.transform.getTransformMatrix();
 
-    for (const auto &scene_object : scene_root.getSceneObjects())
+    // add scene object to drawing buffer
+    for (const auto &scene_object : scene_node.getSceneObjects())
     {
         RenderFlags so_rflags = scene_object.getRenderFlags();
         if (!so_rflags.checkFlag(RenderFlags::Hidden)) // woops branching in tight loop, optimize me please!
@@ -141,9 +122,15 @@ inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_root, cons
         }
     }
 
-    for (const auto &scene_node : scene_root.mChildren)
+    // add lights to light buffer
+    for (const auto &light : scene_node.getLights())
     {
-        drawSceneRecursive(scene_node, mv_matrix);
+        mMainShader.addLightObject(light);
+    }
+
+    for (const auto &child : scene_node.mChildren)
+    {
+        drawSceneRecursive(child, mv_matrix);
     }
 }
 

@@ -48,9 +48,12 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
 
 
     //gfx::Camera camera(gfx::PerspectiveProjection(1.0f, M_PI_4, 0.1f, 100.0f));
-    gfx::Camera camera(gfx::OrthographicProjection(1.0f, 0.5f, -10.0f, 10.0f));
+    gfx::Camera camera(gfx::OrthographicProjection(1.0f, 0.5f, -100.0f, 100.0f));
     camera.mTransform.position = vmath::Vector3(0.5f, 0.5f, 0.0f);
     gfx::gui::GUIElementHandle scene_element = map_scene_node->addElement( gfx::gui::SceneElement(camera));
+    Ptr::WritePtr<gfx::Camera> cam_ptr = scene_element->get<gfx::gui::SceneElement>().getCameraWriter();
+    gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriterNoUpdate();
+    sw->map_controller.setControlled(cam_ptr);
 
     map_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
         switch (event.get_type())
@@ -59,9 +62,7 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
             {
                 const gfx::gui::MouseDragEvent &drag_event = event.get_const<gfx::gui::MouseDragEvent>();
                 gfx::gui::GUIStateWriter<MapViewerState> sw_no_update = state_handle.getStateWriterNoUpdate();
-                float mouse_angle_x = static_cast<float>(drag_event.x_rel)*0.0062832f; // 2π/1000?
-                float mouse_angle_y = static_cast<float>(drag_event.y_rel)*0.0062832f;
-                sw_no_update->map_controller.sendTurnSignals({mouse_angle_x, mouse_angle_y});
+                sw_no_update->map_controller.sendTurnSignals({drag_event.x_rel, drag_event.y_rel});
             }
             break;
         case (gfx::gui::GUIEvent::is_a<gfx::gui::MouseWheelScrollEvent>::value):
@@ -96,8 +97,8 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
             Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
             createMap(scene_node, scene_data);
             //loading_msg_node->hide(); // <--- Hide loading message
-            gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriter();
-            sw->map_controller.setControlledNode(&scene_node);
+            //gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriter();
+            //sw->map_controller.setControlledNode(&scene_node);
     });
 
     return map_scene_node;

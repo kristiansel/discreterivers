@@ -9,7 +9,7 @@ namespace gfx {
 class Material
 {
 public:
-    inline explicit Material(const vmath::Vector4 &color_in);
+    inline explicit Material(const vmath::Vector4 &color_in, float z_offset = 0.0f);
     inline explicit Material(const char * texture_file);
     inline explicit Material(void * pixels, int w, int h, gl_type type, Texture::filter tex_filter);
 
@@ -19,11 +19,12 @@ public:
     struct DrawData {
         vmath::Vector4 color;
         GLuint texID;
+        float z_offset;
     };
 
     DrawData getDrawData() const
     {
-        return { mColor, mTexture.getTextureID() };
+        return { mColor, mTexture.getTextureID(), mZOffset };
     }
 
 private:
@@ -31,22 +32,23 @@ private:
 
     vmath::Vector4 mColor;
     Texture mTexture;
+    float mZOffset;
 };
 
-inline Material::Material(const vmath::Vector4 &color_in) :
-    mColor(color_in), mTexture(color_in)
+inline Material::Material(const vmath::Vector4 &color_in, float z_offset) :
+    mColor(color_in), mTexture(color_in), mZOffset(z_offset)
 {
 
 }
 
 inline Material::Material(const char * texture_file) :
-    mColor{0, 0, 0, 1}, mTexture(texture_file)
+    mColor{0, 0, 0, 1}, mTexture(texture_file), mZOffset(0.0f)
 {
 
 }
 
 inline Material::Material(void * pixels, int w, int h, gl_type type, Texture::filter tex_filter) :
-    mColor{0, 0, 0, 1}, mTexture(pixels, w, h, type, tex_filter) {}
+    mColor{0, 0, 0, 1}, mTexture(pixels, w, h, type, tex_filter), mZOffset(0.0f) {}
 
 
 inline Material Material::VertexColors(const std::vector<float> &vertex_colors,

@@ -42,16 +42,14 @@ private:
     Ptr::WritePtr<gfx::SceneNode> mSceneNodePtr;
 
     // state
-    float           mSpeed;
     float           mMouseTurnSpeed;
     //MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
     ScrollSignal    mScrollSignal;
 
 public:
-    RotatorController(float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
+    RotatorController(float mouse_turn_speed = 1.0f*0.0062832f) :
         mSceneNodePtr(nullptr),
-        mSpeed(speed),
         mMouseTurnSpeed(mouse_turn_speed)
     {
         clearSignals();

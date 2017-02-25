@@ -13,40 +13,51 @@ Shader::Shader()
     "layout(location = 2) in vec2 vertex_tex_coords;"
 
     "out vec4 position;"
-    "out vec4 normal;"
+    "out vec3 normal;"
     "out vec2 tex_coords;"
 
     "uniform mat4 mv;"
     "uniform mat4 p;"
+    "uniform float z_offset;"
 
     "void main() {"
     "  tex_coords = vertex_tex_coords;"
     "  position = mv * vec4(vertex_position.xyz, 1.0);"
-    "  normal = mv * vec4(vertex_normal.xyz, 0.0);"
-    "  gl_Position = p * position;"
+    //"  vec4 n4 = transpose(inverse(mv)) * vec4(vertex_normal.xyz, 0.0);"
+    "  vec4 n4 = mv * vec4(vertex_normal.xyz, 0.0);"
+    "  normal = normalize(n4.xyz);"
+    "  gl_Position = p * (position + vec4(0, 0, z_offset, 0));"
     "}";
 
     const char * fragment_shader_src =
     "#version 330\n"
 
     "in vec4 position;"
-    "in vec4 normal;"
+    "in vec3 normal;"
     "in vec2 tex_coords;"
 
     "out vec4 frag_color;"
 
     "uniform sampler2D tex;"
     "uniform vec4 color;"
-    "uniform vec4 light_position;"
-    "uniform vec4 light_color;"
+    "uniform int  num_lights = 0;"
+    "uniform vec4 light_position_array[10];"
+    "uniform vec4 light_color_array[10];"
+
+    "uniform vec3 ambient = vec3(0.05, 0.05, 0.05);"
 
     "void main() {"
+    "  vec3 total_light = ambient;" // initialize light accumulator
+    "  "
+    "  for (int i = 0; i<min(num_lights, 10); i++)"
+    "  {"
+    "    vec3 light_dir_cam_space = normalize((light_position_array[i] - position).xyz);"
+    "    float nDotL = dot(normal, light_dir_cam_space);"
+    "    total_light = total_light + max(nDotL, 0) * light_color_array[i].rgb;"
+    "  }"
+    "  "
     "  vec4 texel = texture(tex, tex_coords);"
-    "  /*vec4 col = 0.5*(texel+color);*/"
-    "  vec4 lightdirection = light_position - position;"
-    "  float nDotL = dot(normal.xyz, normalize(lightdirection.xyz));"
-    "  frag_color = vec4(texel.rgb * max(nDotL, 0), 1.0);"
-    "  /*frag_color = vec4(vec3(tex_coords, 0) * max(nDotL, 0), 1.0);*/"
+    "  frag_color = vec4(texel.rgb * total_light, 1.0);"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
@@ -57,10 +68,12 @@ Shader::Shader()
 
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
     mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
+    mUniforms.z_offset = glGetUniformLocation(mShaderProgramID, "z_offset") ;
     mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
     mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
-    mUniforms.light_position = glGetUniformLocation(mShaderProgramID, "light_position") ;
-    mUniforms.light_color = glGetUniformLocation(mShaderProgramID, "light_color") ;
+    mUniforms.num_lights = glGetUniformLocation(mShaderProgramID, "num_lights") ;
+    mUniforms.light_position_array = glGetUniformLocation(mShaderProgramID, "light_position_array") ;
+    mUniforms.light_color_array = glGetUniformLocation(mShaderProgramID, "light_color_array") ;
 
     // Set shader uniform value
     glUniform1i(mUniforms.tex, 0); // ALWAYS CHANNEL 0

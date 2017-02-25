@@ -7,11 +7,11 @@ namespace gfx {
 
 struct Light
 {
-    Light(const Transform &transform, const vmath::Vector4 &color)
-        : mTransform(transform), mColor(color) {}
+    Light(const vmath::Vector4 &p, const vmath::Vector4 &c)
+        : position(p), color(c) {}
 
-    Transform mTransform;
-    vmath::Vector4 mColor;
+    vmath::Vector4 position;
+    vmath::Vector4 color;
 };
 
 } // namespace gfx
