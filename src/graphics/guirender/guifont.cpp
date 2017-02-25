@@ -123,8 +123,9 @@ Texture GUIFont::getTextureAtlas() const
 GUIFont::RenderResult GUIFont::render(const std::string &text, float w_abs, float h_abs) const
 {
     unsigned int size = text.size();
-    std::vector<vmath::Vector4> position_data(6*size);
-    std::vector<gfx::TexCoords> texcoord_data(6*size);
+    unsigned int verts_per_letter = 6;
+    std::vector<vmath::Vector4> position_data(verts_per_letter*size);
+    std::vector<gfx::TexCoords> texcoord_data(verts_per_letter*size);
 
     TextSizeAbs tsize = updateTextData(text.c_str(), &position_data[0], &texcoord_data[0], (unsigned int)(w_abs*mScaleFactor));
 
@@ -203,7 +204,7 @@ GUIFont::TextSizeAbs GUIFont::updateTextData(const char * text, vmath::Vector4 *
         }
     }
 
-    return {x/sx*mScaleFactor, (y/sy + (float)(mLineHeight))*mScaleFactor};
+    return {x/sx/mScaleFactor, (y/sy + (float)(mLineHeight))/mScaleFactor};
 }
 
 
