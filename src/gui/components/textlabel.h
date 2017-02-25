@@ -6,7 +6,7 @@
 
 namespace gui {
 
-inline gfx::gui::GUINodeHandle textLabel(gfx::gui::GUINodeHandle &parent,
+inline gfx::gui::GUIElementHandle textLabel(gfx::gui::GUINodeHandle &parent,
                     const std::string &text, const gfx::gui::GUIFont &font)
 {
     auto render_result = font.render(text);
@@ -26,7 +26,7 @@ inline gfx::gui::GUINodeHandle textLabel(gfx::gui::GUINodeHandle &parent,
     //text_node_hdl->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiBase() ) );
     gfx::gui::GUIElementHandle text_element_hdl = text_node_hdl->addElement( gfx::gui::TextElement( render_result ) );
 
-    return text_node_hdl;
+    return text_element_hdl;
 }
 
 } // namespace gui

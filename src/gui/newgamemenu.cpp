@@ -34,7 +34,7 @@ struct NewGameMenuState : public GUIStateBase
     bool planet_generated;
     bool generating_planet;
 
-    static const int planet_seed_default = 0;
+    static const int planet_seed_default = 634623;
 
     NewGameMenuState() :
         planet_shape(PlanetShape::Sphere),
@@ -134,7 +134,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                       SizeSpec(60.0f, Units::Absolute)} ));
 
     shape_node->addElement( TextElement( "World shape", font));
-    createToggle(shape_node, "Disk", font,
+    /*createToggle(shape_node, "Disk", font,
                  HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
                  90.0f,
@@ -147,7 +147,14 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  {
                      GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
                      return sr->planet_shape == NewGameMenuState::PlanetShape::Disk;
-                 });
+                 });*/
+
+    createButton(shape_node, "Disk", font,
+                 HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                 VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top),
+                 90.0f,
+                 [](){},
+                 []() { return false; });   // is active
 
     createToggle(shape_node, "Sphere", font,
                  HorzPos(120.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),

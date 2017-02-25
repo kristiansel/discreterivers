@@ -82,16 +82,7 @@ private:
     // Main scene shader stuff
     Shader mMainShader;
 
-    // should be shared among shaders
-    struct LightObject
-    {
-        vmath::Vector4 mPosition;
-        vmath::Vector4 mColor;
-    };
-
     SceneNode mSceneRoot;
-
-    mutable std::vector<LightObject> mLightObjectsVector;
 
     // GUI shader stuff
     gui::GUIShader mGUIShader;

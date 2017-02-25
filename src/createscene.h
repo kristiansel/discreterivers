@@ -11,6 +11,7 @@
 #include "events/immediateevents.h"
 #include "state/macrostate.h"
 
+#include "common/stdext.h"
 #include "common/pointer.h"
 
 using PlanetShape = events::GenerateWorldEvent::PlanetShape;
@@ -155,7 +156,7 @@ inline gfx::SceneObjectHandle add_trivial_object(const std::vector<vmath::Vector
     return scene_node->addSceneObject(geometry, material);
 }
 
-inline void createScene(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene_data)
+inline void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> scene_data)
 {
     /*gfx::SceneNodeHandle light_scene_node = scene_root.addSceneNode();
     gfx::LightHandle light = ([](const gfx::SceneNodeHandle &scene_node)
@@ -167,6 +168,7 @@ inline void createScene(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> sce
         return scene_node->addLight(color, transform);
     })(light_scene_node);*/
 
+    gfx::SceneNode &scene_root = *scene_root_hdl;
     gfx::SceneNodeHandle planet_scene_node = scene_root.addSceneNode();
 
     // Create some alt planet vertex data to share
@@ -287,8 +289,10 @@ inline gfx::SceneObjectHandle add_trivial_map_object(const std::vector<vmath::Ve
     return scene_node->addSceneObject(geometry, material);
 }
 
-inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene_data)
+inline void createMap(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> scene_data)
 {
+    gfx::SceneNode &scene_root = *scene_root_hdl;
+
     //DEBUG_ASSERT(false&&"implement create map");
     gfx::SceneNodeHandle map_scene_node = scene_root.addSceneNode();
 
@@ -363,7 +367,15 @@ inline void createMap(gfx::SceneNode &scene_root, Ptr::ReadPtr<MacroState> scene
     // Add planet rivers scene object
     gfx::SceneObjectHandle rivers_sceneobject = ([&]()
     {
-        const std::vector<gfx::Line> &rivers_primitives_data = scene_data->alt_river_lines;
+        const std::vector<gfx::Line> &unfiltered = scene_data->alt_river_lines;
+        std::vector<gfx::Line> rivers_primitives_data(unfiltered.size());
+
+        auto it = std::copy_if (unfiltered.begin(), unfiltered.end(), rivers_primitives_data.begin(),
+            [&](const gfx::Line &l){
+                return vmath::length(map_position_data[l[0]]-map_position_data[l[1]])<0.97f;
+            }
+        );
+        rivers_primitives_data.resize(std::distance(rivers_primitives_data.begin(),it));  // shrink container to new size
 
         gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
         gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);

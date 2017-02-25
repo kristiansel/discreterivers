@@ -56,7 +56,7 @@ public:
     }
 
     // mutators
-    inline void setControlledNode(gfx::SceneNode * const scenenode_ptr)
+    inline void setControlledNode(Ptr::WritePtr<gfx::SceneNode> scenenode_ptr)
     {
         mSceneNodePtr = scenenode_ptr;
     }

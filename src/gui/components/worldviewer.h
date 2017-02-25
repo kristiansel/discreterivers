@@ -47,6 +47,12 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
     gfx::Camera camera(gfx::PerspectiveProjection(1.0f, M_PI_4, 0.1f, 100.0f));
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
+    gfx::SceneNode &scene_root = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+
+    gfx::SceneNodeHandle world_node = scene_root.addSceneNode();
+
+    gfx::SceneNodeHandle light_node = scene_root.addSceneNode();
+    light_node->addLight(vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
 
     world_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
         switch (event.get_type())
@@ -78,19 +84,22 @@ inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent
     });
 
     events::Immediate::add_callback<events::GenerateWorldEvent>(
-        [scene_element, loading_msg_node] (const events::GenerateWorldEvent &evt) {
-            scene_element->get<gfx::gui::SceneElement>().getSceneRoot().clearAll();
+        [world_node, loading_msg_node] (const events::GenerateWorldEvent &evt) {
+            world_node->clearAll();
             loading_msg_node->show(); // <--- Show loading message
     });
 
     events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
-        [scene_element, loading_msg_node, state_handle] (const events::FinishGenerateWorldEvent &evt) {
-            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+        [world_node, loading_msg_node, state_handle] (const events::FinishGenerateWorldEvent &evt) {
             Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
-            createScene(scene_node, scene_data);
-            loading_msg_node->hide(); // <--- Hide loading message
+
+            // add stuff to scene
+            createScene(world_node, scene_data);
+
+            // update gui
             gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
-            sw->world_controller.setControlledNode(&scene_node);
+            loading_msg_node->hide(); // <--- Hide loading message
+            sw->world_controller.setControlledNode(Ptr::WritePtr<gfx::SceneNode>(&(*world_node)));
     });
 
     return world_scene_node;

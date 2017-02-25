@@ -18,13 +18,15 @@ inline gfx::gui::GUINodeHandle createButton(gfx::gui::GUINodeHandle &parent,
 
     auto bg_element = btn_node->addElement( gfx::gui::BackgroundElement( gui::styling::colorGuiElement() ) );
 
-    textLabel(btn_node, text, font);
+    auto text_el = textLabel(btn_node, text, font);
 
-    btn_node->addStateUpdateCallback([is_active, bg_element](){
+    btn_node->addStateUpdateCallback([is_active, bg_element, text_el](){
         if (is_active()) {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiElement() );
+            text_el->get<gfx::gui::TextElement>().setColor(gui::styling::colorTextDefault());
         } else {
             bg_element->get<gfx::gui::BackgroundElement>().setColor(gui::styling::colorGuiInactive() );
+            text_el->get<gfx::gui::TextElement>().setColor(gui::styling::colorTextInactive());
         }
     });
 

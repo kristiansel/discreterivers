@@ -26,6 +26,8 @@ public:
     inline const GLuint getFontAtlasTextureID() const { return mTextObject.getFontAtlasTexture().getTextureID(); }
 
     inline const vmath::Vector4 &getColor() const { return mColor; }
+    inline void setColor(const vmath::Vector4 &color) { mColor = color; }
+
     inline void setTextRenderResult(const GUIFont::RenderResult &render_result)
     {
         mTextObject = render_result.text_object;

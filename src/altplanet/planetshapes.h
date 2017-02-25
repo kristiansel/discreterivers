@@ -5,8 +5,9 @@
 
 #define _VECTORMATH_DEBUG
 #include "../dep/vecmath/vectormath_aos.h"
-
 #include "../common/gfx_primitives.h"
+
+#include "../common/orientedangle.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -153,7 +154,8 @@ public:
             auto d = vmath::normalize(points[i]);
             float u = 0.5+atan2(d[2], d[0])/(2.0f*M_PI);
             float v = 0.5-asin(d[1])/M_PI;
-            texco_out[i] = {u, v};
+            //texco_out[i] = {u, v};
+            texco_out[i] = {2.0f*u, v};
         }
         return texco_out;
     }
@@ -192,13 +194,15 @@ public:
 
         for(int i = 0; i<texco_out.size(); i++)
         {
-            /*const vmath::Vector3 &point = points[i];
+            const vmath::Vector3 &point = points[i];
             vmath::Vector3 circle_point = major_radius*vmath::normalize({point[0], 0.0f, point[2]});
             vmath::Vector3 circle_to_point = point-circle_point;
-            float minor_angle = getOrientedAngle(circle_point, circle_to_point, circle_tangent);
-            flat major_angle = getOrientedAngle(circle_point, vmath::Vector3(1.0f, 0.0f, 0.0f), vmath::Vector3(0.0f, 1.0f, 0.0f));*/
+            vmath::Vector3 circle_tangent = vmath::cross(vmath::Vector3(0.0f, 1.0f, 0.0f), circle_point);
+            float minor_angle = mathext::orientedAngle(circle_point, circle_to_point, circle_tangent);
+            float major_angle = mathext::orientedAngle(circle_point, vmath::Vector3(1.0f, 0.0f, 0.0f), vmath::Vector3(0.0f, 1.0f, 0.0f));
 
-            texco_out[i] = {0, 0};
+            //texco_out[i] = {0.5f+major_angle/(float)(4.0*M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // 0,1
+            texco_out[i] = {2.0f + major_angle/(float)(M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // x scaled
         }
         return texco_out;
     }

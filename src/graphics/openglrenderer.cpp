@@ -125,7 +125,7 @@ inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_node, cons
     // add lights to light buffer
     for (const auto &light : scene_node.getLights())
     {
-        mMainShader.addLightObject(light);
+        mMainShader.addLightObject(mv_matrix * light.position, light.color);
     }
 
     for (const auto &child : scene_node.mChildren)

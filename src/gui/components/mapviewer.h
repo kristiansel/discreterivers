@@ -55,6 +55,14 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
     gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriterNoUpdate();
     sw->map_controller.setControlled(cam_ptr);
 
+    gfx::SceneNode &scene_root = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+
+    gfx::SceneNodeHandle map_node = scene_root.addSceneNode();
+
+    gfx::SceneNodeHandle light_node = scene_root.addSceneNode();
+    light_node->addLight(vmath::Vector4(5.0f, 5.0f, 10.0f, 0.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+
+
     map_scene_node->setGUIEventHandler([state_handle, scene_element](const gfx::gui::GUIEvent &event) {
         switch (event.get_type())
         {
@@ -86,19 +94,16 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
     });
 
     events::Immediate::add_callback<events::GenerateWorldEvent>(
-        [scene_element/*, loading_msg_node*/] (const events::GenerateWorldEvent &evt) {
-            scene_element->get<gfx::gui::SceneElement>().getSceneRoot().clearAll();
+        [map_node/*, loading_msg_node*/] (const events::GenerateWorldEvent &evt) {
+            map_node->clearAll();
             //loading_msg_node->show(); // <--- Show loading message
     });
 
     events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
-        [scene_element, /*loading_msg_node,*/ state_handle] (const events::FinishGenerateWorldEvent &evt) {
-            gfx::SceneNode &scene_node = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
+        [map_node, /*loading_msg_node,*/ state_handle] (const events::FinishGenerateWorldEvent &evt) {
             Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
-            createMap(scene_node, scene_data);
+            createMap(map_node, scene_data);
             //loading_msg_node->hide(); // <--- Hide loading message
-            //gfx::gui::GUIStateWriter<MapViewerState> sw = state_handle.getStateWriter();
-            //sw->map_controller.setControlledNode(&scene_node);
     });
 
     return map_scene_node;

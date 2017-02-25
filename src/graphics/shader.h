@@ -56,28 +56,14 @@ public:
         mLightObjectsVector.clear();
     }
 
-    inline void addLightObject(const Light &light) const
+    inline void addLightObject(const vmath::Vector4 &world_pos, const vmath::Vector4 &color) const
     {
-        mLightObjectsVector.push_back(light);
+        mLightObjectsVector.push_back({world_pos, color});
     }
 
     inline void drawDrawObjects( const Camera &camera ) const
     {
-        /*vmath::Matrix4 vp_matrix = camera.getCamMatrixInverse();
-
-        int num_lights = 2;
-
-        std::array<vmath::Vector4, 10> light_position_array;
-        light_position_array[0] = vp_matrix * vmath::Vector4(10.0f, 10.0f, 10.0f, 0.0f);
-        light_position_array[1] = vp_matrix * vmath::Vector4(10.0f, -10.0f, 10.0f, 0.0f);
-
-        std::array<vmath::Vector4, 10> light_color_array;
-        light_color_array[0] = vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-        light_color_array[1] = vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-
-        glUniform1i(mUniforms.num_lights, (GLint)num_lights);
-        glUniform4fv(mUniforms.light_position_array, num_lights, (const GLfloat*)&light_position_array);
-        glUniform4fv(mUniforms.light_color_array, num_lights, (const GLfloat*)&light_color_array);*/
+        drawLights(camera);
 
         // actually draw the batched draw objects
         for (const auto &draw_object : mDrawObjectsVector)
@@ -85,6 +71,8 @@ public:
             drawDrawObject(draw_object, camera);
         }
     }
+
+    inline void drawLights(const Camera &camera) const;
 
 private:
     class DrawObject
@@ -110,7 +98,7 @@ private:
 
     struct LightObject
     {
-        vmath::Vector4 position;
+        vmath::Vector4 world_pos;
         vmath::Vector4 color;
     };
 
@@ -121,7 +109,7 @@ private:
     Uniforms mUniforms;
 
     mutable std::vector<DrawObject>  mDrawObjectsVector;
-    mutable std::vector<Light> mLightObjectsVector;
+    mutable std::vector<LightObject> mLightObjectsVector;
 };
 
 // inline functions
@@ -169,6 +157,25 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
                    geometry_data.primitives.mNumIndices, GL_UNSIGNED_INT, (void*)0 );
 
     checkOpenGLErrors("After draw elements");
+}
+
+inline void Shader::drawLights(const Camera &camera) const
+{
+    vmath::Matrix4 v = camera.getCamMatrixInverse();
+
+    int num_lights = std::min((int)(mLightObjectsVector.size()), 10);
+    std::array<vmath::Vector4, 10> light_position_array;
+    std::array<vmath::Vector4, 10> light_color_array;
+
+    for (int i = 0; i<num_lights; i++)
+    {
+        light_position_array[i] = v * mLightObjectsVector[i].world_pos;
+        light_color_array[i]    = mLightObjectsVector[i].color;
+    }
+
+    glUniform1i(mUniforms.num_lights, (GLint)num_lights);
+    glUniform4fv(mUniforms.light_position_array, num_lights, (const GLfloat*)&light_position_array);
+    glUniform4fv(mUniforms.light_color_array, num_lights, (const GLfloat*)&light_color_array);
 }
 
 
