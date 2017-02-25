@@ -51,7 +51,7 @@ private:
     ScrollSignal    mScrollSignal;
 
 public:
-    MapController(float speed = 0.25f*0.0062832f) : // 2π/1000 = 0.0062832f
+    MapController(float speed = 0.27f*0.0062832f) : // 2π/1000 = 0.0062832f
         mCameraPtr(nullptr),
         mSpeed(speed),
         mScaleFactor(1.0f)

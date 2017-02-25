@@ -79,7 +79,7 @@ void GUI::handleMouseMoved(int32_t x, int32_t y, int32_t x_mov, int32_t y_mov)
     if (mMouseCapturedNode)
     {
         //std::cout << "x_rel " << x_rel << ", y_rel " << y_rel << std::endl;
-        mMouseCapturedNode->handleEvent(gfx::gui::MouseDragEvent{x_mov*mScaleFactor, y_mov*mScaleFactor});
+        mMouseCapturedNode->handleEvent(gfx::gui::MouseDragEvent{x_mov/mScaleFactor, y_mov/mScaleFactor});
     }
 }
 
