@@ -6,7 +6,7 @@ Shader::Shader()
 {
     // set up shaders
     const char * vertex_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "layout(location = 0) in vec4 vertex_position;"
     "layout(location = 1) in vec4 vertex_normal;"
@@ -30,7 +30,7 @@ Shader::Shader()
     "}";
 
     const char * fragment_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "in vec4 position;"
     "in vec3 normal;"

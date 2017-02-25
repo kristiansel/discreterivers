@@ -9,7 +9,7 @@ GUITextShader::GUITextShader(int w, int h) :
 {
     // set up shaders
     const char * vertex_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "layout(location = 0) in vec4 vertex_position;"
     "layout(location = 1) in vec2 vertex_tex_coords;"
@@ -23,7 +23,7 @@ GUITextShader::GUITextShader(int w, int h) :
     "}";
 
     const char * fragment_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "in vec2 tex_coords;"
 
@@ -33,7 +33,7 @@ GUITextShader::GUITextShader(int w, int h) :
     "uniform vec4 color;"
 
     "void main() {"
-    "  frag_color = vec4(1, 1, 1, texture2D(tex, tex_coords).r) * color;"
+    "  frag_color = vec4(1, 1, 1, texture(tex, tex_coords).r) * color;"
     "}";
 
     std::cout << "compiling shaders" << std::endl;

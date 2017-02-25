@@ -7,7 +7,7 @@ GUIShader::GUIShader()
 {
     // set up shaders
     const char * vertex_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "layout(location = 0) in vec4 vertex_position;"
 
@@ -18,7 +18,7 @@ GUIShader::GUIShader()
     "}";
 
     const char * fragment_shader_src =
-    "#version 330\n"
+    "#version 410\n"
 
     "out vec4 frag_color;"
 

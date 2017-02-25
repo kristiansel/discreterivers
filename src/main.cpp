@@ -28,10 +28,11 @@ namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    //=================================//
+    //= o o o =========================//
     //         SDL2 Window code        //
     //=================================//
-    if (SDL_Init(SDL_INIT_VIDEO) != 0){
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2); // hint
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // hint
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     //int width = 2800;    int height = 1600;
