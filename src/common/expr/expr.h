@@ -40,10 +40,17 @@ struct attribs {};
 template<typename ...Types>
 struct expr;
 
+template<typename ...Types>
+struct make_expr_helper;
+
+class expr_base_base;
+
 class expr_base
 {
+    friend struct expr_base_base;
+
     template<typename ...Types>
-    friend struct expr;
+    friend struct make_expr_helper;
 
     expr_base() {}
 public:
@@ -52,23 +59,30 @@ public:
     op_type op_;
     node_type nt_;
     val_type vt_;
-    std::vector<const expr_base*> operands_;
+    std::vector<expr_base> operands_;
     float literal_;
 };
 
+class expr_base_base
+{
+protected:
+    expr_base_base() {}
 
-template<typename ...Types>
-struct make_expr_helper;
+    expr_base expr_info_;
+
+    template<typename ...Types>
+    friend struct make_expr_helper;
+
+    template<typename ...Types>
+    friend std::string get_expr_string(const expr<Types...> &e);
+};
 
 template<typename ...Types>
 struct expr;
 
 template<typename ExprType, typename ...Uniforms, typename ...Attribs>
-class expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> : public expr_base
+class expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> : public expr_base_base
 {
-    friend struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>;
-    expr() {}
-public:
 
 };
 
@@ -79,7 +93,7 @@ struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>
     make_0ary_expr(node_type nt, val_type vt)
     {
         expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> out;
-        out.init(op_type::none, nt, vt);
+        out.expr_info_.init(op_type::none, nt, vt);
         std::cout << "created identity expression" << std::endl;
         return out;
     }
@@ -90,8 +104,8 @@ struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>
          const expr<AExprType, uniforms<AUniforms...>, attribs<AAttribs...>> &a)
     {
         expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> out;
-        out.init(o, nt, vt);
-        out.operands_.push_back(&a);
+        out.expr_info_.init(o, nt, vt);
+        out.expr_info_.operands_.push_back(a.expr_info_);
         std::cout << "created unary expression" << std::endl;
         return out;
     }
@@ -104,9 +118,9 @@ struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>
          const expr<BExprType, uniforms<BUniforms...>, attribs<BAttribs...>> &b)
     {
         expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> out;
-        out.init(o, nt, vt);
-        out.operands_.push_back(&a);
-        out.operands_.push_back(&b);
+        out.expr_info_.init(o, nt, vt);
+        out.expr_info_.operands_.push_back(a.expr_info_);
+        out.expr_info_.operands_.push_back(b.expr_info_);
         std::cout << "created binary expression" << std::endl;
         return out;
     }
@@ -121,10 +135,10 @@ struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>
          const expr<CExprType, uniforms<CUniforms...>, attribs<CAttribs...>> &c)
     {
         expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> out;
-        out.init(o, nt, vt);
-        out.operands_.push_back(&a);
-        out.operands_.push_back(&b);
-        out.operands_.push_back(&c);
+        out.expr_info_.init(o, nt, vt);
+        out.expr_info_.operands_.push_back(a.expr_info_);
+        out.expr_info_.operands_.push_back(b.expr_info_);
+        out.expr_info_.operands_.push_back(c.expr_info_);
         std::cout << "created trinary expression" << std::endl;
         return out;
     }
@@ -141,11 +155,11 @@ struct make_expr_helper<ExprType, uniforms<Uniforms...>, attribs<Attribs...>>
          const expr<DExprType, uniforms<DUniforms...>, attribs<DAttribs...>> &d)
     {
         expr<ExprType, uniforms<Uniforms...>, attribs<Attribs...>> out;
-        out.init(o, nt, vt);
-        out.operands_.push_back(&a);
-        out.operands_.push_back(&b);
-        out.operands_.push_back(&c);
-        out.operands_.push_back(&d);
+        out.expr_info_.init(o, nt, vt);
+        out.expr_info_.operands_.push_back(a.expr_info_);
+        out.expr_info_.operands_.push_back(b.expr_info_);
+        out.expr_info_.operands_.push_back(c.expr_info_);
+        out.expr_info_.operands_.push_back(d.expr_info_);
         std::cout << "created quatary expression" << std::endl;
         return out;
     }
@@ -234,6 +248,14 @@ struct result_type
 //      OPERATORS         //
 //========================//
 
+// addition
+template<typename... ATerminals, typename... BTerminals>
+auto operator+(const expr<svec4, ATerminals...> &a,
+               const expr<svec4, BTerminals...> &b) -> decltype(result_type<svec4>::combine_bin(op_type::add, a, b))
+{
+    return result_type<svec4>::combine_bin(op_type::add, a, b);
+}
+
 // multiplication
 // mat4 * vec4
 template<typename... ATerminals, typename... BTerminals>
@@ -250,6 +272,15 @@ auto operator*(const expr<svec4, ATerminals...> &a,
 {
     return result_type<svec4>::combine_bin(op_type::mul, a, b);
 }
+
+// mat4 * mat4
+template<typename... ATerminals, typename... BTerminals>
+auto operator*(const expr<smat4, ATerminals...> &a,
+               const expr<smat4, BTerminals...> &b) -> decltype(result_type<smat4>::combine_bin(op_type::mul, a, b))
+{
+    return result_type<smat4>::combine_bin(op_type::mul, a, b);
+}
+
 
 // texture sample
 template<typename... ATerminals, typename... BTerminals>
@@ -295,31 +326,21 @@ auto make_vec4(const expr<sfloat, ATerminals...> &a,
 
 // partial expr specialization for "member" operators
 template<typename ...Uniforms, typename ...Attribs>
-class expr<svec4, uniforms<Uniforms...>, attribs<Attribs...>> : public expr_base
+class expr<svec4, uniforms<Uniforms...>, attribs<Attribs...>> : public expr_base_base
 {
-    friend struct make_expr_helper<svec4, uniforms<Uniforms...>, attribs<Attribs...>>;
-    expr() {}
 public:
+    expr() {}
     expr<sfloat, uniforms<Uniforms...>, attribs<Attribs...>> r() { return extract_r(*this); }
 };
 
 template<>
-class expr<sfloat, uniforms< >, attribs< >> : public expr_base
+class expr<sfloat, uniforms< >, attribs< >>  : public expr_base_base
 {
-    friend struct make_expr_helper<sfloat, uniforms< >, attribs< >>;
-    expr() {}
 public:
-    expr(float l) { expr_base::init(op_type::none, node_type::literal, sfloat::valtype, l); }
+    friend expr<sfloat, uniforms< >, attribs < > > make_expr(float l);
+    expr() {}
+    expr(float l) { expr_info_.init(op_type::none, node_type::literal, sfloat::valtype, l); }
 };
-
-/*template<typename... Terminals>
-struct expr<sfloat, Terminals...>
-{
-    friend struct make_expr_helper<sfloat, Terminals...>;
-    expr() {}
-public:
-    expr(float l) { expr_base::init(op_type::none, node_type::literal, sfloat::valtype, l); }
-};*/
 
 //========================//
 //      Make functions    //
@@ -354,7 +375,7 @@ make_expr(float l)
     auto out = make_expr_helper<sfloat, uniforms< >,
                                         attribs < >
                 >::make_0ary_expr(node_type::literal, sfloat::valtype);
-    out.literal_ = l;
+    out.expr_info_.literal_ = l;
     return out;
 }
 
@@ -368,9 +389,14 @@ inline lit(float l) { return make_expr(l); }
 
 //{ none, add, sub, mul, div, sample, extract0, makevec2, makevec3, makevec4};
 
-std::string get_expr_string(const expr_base *e_ptr, int n_uni = 0, int n_attr = 0)
+template<typename... Ts>
+std::string get_expr_string(const expr<Ts...> &e)
 {
-    const expr_base &e = *e_ptr;
+    return get_expr_info_string(e.expr_info_);
+}
+
+std::string get_expr_info_string(const expr_base &e, int n_uni = 0, int n_attr = 0)
+{
     std::string out = "";
     switch (e.op_)
     {
@@ -385,55 +411,55 @@ std::string get_expr_string(const expr_base *e_ptr, int n_uni = 0, int n_attr = 
     case(op_type::add):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = get_expr_string(e.operands_[0])+"+"+get_expr_string(e.operands_[1]);
+            out = get_expr_info_string(e.operands_[0])+"+"+get_expr_info_string(e.operands_[1]);
         }
         break;
     case(op_type::sub):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = get_expr_string(e.operands_[0])+"-"+get_expr_string(e.operands_[1]);
+            out = get_expr_info_string(e.operands_[0])+"-"+get_expr_info_string(e.operands_[1]);
         }
         break;
     case(op_type::mul):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = get_expr_string(e.operands_[0])+"*"+get_expr_string(e.operands_[1]);
+            out = get_expr_info_string(e.operands_[0])+"*"+get_expr_info_string(e.operands_[1]);
         }
         break;
     case(op_type::div):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = get_expr_string(e.operands_[0])+"/"+get_expr_string(e.operands_[1]);
+            out = get_expr_info_string(e.operands_[0])+"/"+get_expr_info_string(e.operands_[1]);
         }
         break;
     case(op_type::sample):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = "texture("+get_expr_string(e.operands_[0])+","+get_expr_string(e.operands_[1])+")";
+            out = "texture("+get_expr_info_string(e.operands_[0])+","+get_expr_info_string(e.operands_[1])+")";
         }
         break;
     case(op_type::extract0):
         {
             DEBUG_ASSERT(e.operands_.size()==1);
-            out = get_expr_string(e.operands_[0])+".x";
+            out = get_expr_info_string(e.operands_[0])+".x";
         }
         break;
     case(op_type::makevec2):
         {
             DEBUG_ASSERT(e.operands_.size()==2);
-            out = "vec2("+get_expr_string(e.operands_[0])+","+get_expr_string(e.operands_[1])+")";
+            out = "vec2("+get_expr_info_string(e.operands_[0])+","+get_expr_info_string(e.operands_[1])+")";
         }
         break;
     case(op_type::makevec3):
         {
             DEBUG_ASSERT(e.operands_.size()==3);
-            out = "vec3("+get_expr_string(e.operands_[0])+","+get_expr_string(e.operands_[1])+","+get_expr_string(e.operands_[2])+")";
+            out = "vec3("+get_expr_info_string(e.operands_[0])+","+get_expr_info_string(e.operands_[1])+","+get_expr_info_string(e.operands_[2])+")";
         }
         break;
     case(op_type::makevec4):
         {
             DEBUG_ASSERT(e.operands_.size()==4);
-            out = "vec4("+get_expr_string(e.operands_[0])+","+get_expr_string(e.operands_[1])+","+get_expr_string(e.operands_[2])+","+get_expr_string(e.operands_[3])+")";
+            out = "vec4("+get_expr_info_string(e.operands_[0])+","+get_expr_info_string(e.operands_[1])+","+get_expr_info_string(e.operands_[2])+","+get_expr_info_string(e.operands_[3])+")";
         }
         break;
     default:

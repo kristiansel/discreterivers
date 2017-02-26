@@ -23,7 +23,7 @@
 // to be removed
 #include "common/flags.h"
 #include "common/threads/threadpool.h"
-#include "common/expr/expr.h"
+/*#include "common/expr/expr.h"
 
 struct tag
 {
@@ -31,24 +31,68 @@ struct tag
     struct texco_attr {};
     struct mv_uni  {};
     struct tex_uni {};
-    struct co_uni {};
-};
+    struct co_uni  {};
+    struct ad_uni  {};
+};*/
+
+#include "common/shexpr/shexpr.h"
 
 namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
-    /*
+    // test shexpr
+    attribute<svec4> pos;
+    attribute<svec2> texco;
+    uniform  <smat4> mv;
+
+    expr<svec4> pos_out = mv * pos;
+
+    std::string expr_str1 = get_expr_string(pos_out);
+    std::cout << "expression1 reads: " << std::endl;
+    std::cout << expr_str1 << std::endl;
+
+    //auto vert_shdr = shdr::make_vertex_shader( pos_out, texco );
+
+    /*uniform<stex2d, tag::tex_uni> tex_uni;
+    uniform<svec4,  tag::co_uni > col_uni;
+
+    auto tex   = make_expr(tex_uni);
+    auto col   = make_expr(col_uni);
+
+    auto lit1  = lit(1);
+
+    auto tex_sample   = texture(tex, texco);
+    auto tex_sample_r = tex_sample.r();
+    auto alpha_white  = make_vec4(lit1, lit1, lit1, tex_sample_r);
+    //auto col_out      = alpha_white * col;
+
+    std::string expr_str = get_expr_string(alpha_white);
+    std::cout << "expression reads: " << std::endl;
+    std::cout << expr_str << std::endl;*/
+
     // test expr
-    attrib <svec4, tag::pos_attr  > pos_attr;
+    /*attrib <svec4, tag::pos_attr  > pos_attr;
     attrib <svec2, tag::texco_attr> texco_attr;
     uniform<smat4, tag::mv_uni    > mv_uni;
+    uniform<svec4, tag::ad_uni    > ad_uni;
 
     auto pos   = make_expr(pos_attr);
     auto texco = make_expr(texco_attr);
     auto mv    = make_expr(mv_uni);
+    auto ad    = make_expr(ad_uni);
 
-    auto pos_out = mv * pos;
+    expr<svec4,
+         uniforms<
+            uniform<svec4, tag::ad_uni>,
+            uniform<smat4, tag::mv_uni> >,
+         attribs <
+            attrib <svec4, tag::pos_attr> > >
+    pos_out = mv * mv * pos + ad;
+
+    std::string expr_str1 = get_expr_string(pos_out);
+    std::cout << "expression1 reads: " << std::endl;
+    std::cout << expr_str1 << std::endl;
 
     //auto vert_shdr = shdr::make_vertex_shader( pos_out, texco );
 
@@ -65,11 +109,11 @@ int main(int argc, char *argv[])
     auto alpha_white  = make_vec4(lit1, lit1, lit1, tex_sample_r);
     //auto col_out      = alpha_white * col;
 
-    std::string expr_str = get_expr_string(&alpha_white);
+    std::string expr_str = get_expr_string(alpha_white);
     std::cout << "expression reads: " << std::endl;
     std::cout << expr_str << std::endl;
-*/
-    //auto frag_shdr  = shdr::make_fragment_shader( col_out );
+
+    //auto frag_shdr  = shdr::make_fragment_shader( col_out );*/
 
     //= o o o =========================//
     //         SDL2 Window code        //
