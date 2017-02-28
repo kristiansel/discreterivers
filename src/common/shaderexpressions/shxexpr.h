@@ -1,0 +1,301 @@
+#ifndef SHEXPR_H
+#define SHEXPR_H
+
+#include <vector>
+
+namespace shx {
+
+enum class op_type       { none,
+                           add, sub, mul, div,
+                           sample,
+                           get0, get1, get2, get3,
+                           makevec2, makevec3, makevec4 };
+
+enum class node_type     { internal, uniform, attribute, literal };
+
+enum class val_type      { int_t, float_t, vec2_t, vec3_t, vec4_t, mat3_t, mat4_t, tex2d_t};
+
+struct int_t       { static const val_type valtype = val_type::int_t;     };
+struct float_t     { static const val_type valtype = val_type::float_t;   };
+struct vec2_t      { static const val_type valtype = val_type::vec2_t;    };
+struct vec3_t      { static const val_type valtype = val_type::vec3_t;    };
+struct vec4_t      { static const val_type valtype = val_type::vec4_t;    };
+struct mat3_t      { static const val_type valtype = val_type::mat3_t;    };
+struct mat4_t      { static const val_type valtype = val_type::mat4_t;    };
+struct tex2d_t     { static const val_type valtype = val_type::tex2d_t;   };
+
+template<typename T>
+struct uniform {};
+
+template<typename T>
+struct attribute {};
+
+struct expr_info_t
+{
+    op_type     op_;
+    node_type   nt_;
+    val_type    vt_;
+
+    std::vector<expr_info_t> operands_;
+
+    struct {
+        union {
+            float literal_float;
+            int   literal_int;
+            const void* term_ptr;
+        };
+    } terminal_;
+};
+
+template<typename T>
+struct expr_helper;
+
+struct expr_base
+{
+protected:
+    expr_base() {}
+public:
+    expr_base(op_type op, node_type nt, val_type vt) :
+       expr_info_{op, nt, vt, {}, 1.0f} {}
+
+    template<typename T>
+    friend struct make_expr_helper;
+
+    expr_info_t expr_info_;
+};
+
+#define EXPR_TRAITS(T)  public:                                                                         \
+                        template<typename D>                                                            \
+                        friend class expr_helper;                                                       \
+                                                                                                        \
+                        /* implicit construct from attribute */                                         \
+                        expr(const attribute<T> &attr) :                                                \
+                            expr_base(op_type::none, node_type::attribute, val_type(T::valtype))        \
+                            { expr_info_.terminal_.term_ptr = &attr; }                                  \
+                                                                                                        \
+                        /* implicit construct from uniform  */                                          \
+                        expr(const uniform<T> &uni) :                                                   \
+                            expr_base(op_type::none, node_type::uniform, val_type(T::valtype))          \
+                            { expr_info_.terminal_.term_ptr = &uni; }                                   \
+                                                                                                        \
+                        /* not default constructible */                                                 \
+                        private:                                                                        \
+                        expr() {}
+
+
+template<typename T>
+class expr : public expr_base
+{
+    EXPR_TRAITS(T)
+};
+
+template<typename T>
+struct expr_helper
+{
+    template<typename... Ts>
+    static expr<T> make_nary_expr(op_type op, node_type nt, val_type vt, const expr<Ts>... n)
+    {
+        expr<T> out;
+        out.expr_info_.op_ = op;
+        out.expr_info_.nt_ = nt;
+        out.expr_info_.vt_ = vt;
+        out.expr_info_.operands_ = {n.expr_info_...};
+        return out;
+    }
+};
+
+// operators
+
+// template specializations (should macro out some of this...)
+template<>
+struct expr<float_t> : public expr_base
+{
+    EXPR_TRAITS(float_t)
+public:
+    expr<float_t>(const float &f)
+    {
+        expr_info_.op_ = op_type::none;
+        expr_info_.nt_ = node_type::literal;
+        expr_info_.vt_ = val_type::float_t;
+        expr_info_.terminal_.literal_float = f;
+    }
+};
+
+template<>
+struct expr<int_t> : public expr_base
+{
+    EXPR_TRAITS(int_t)
+public:
+    expr<int_t>(const int &i)
+    {
+        expr_info_.op_ = op_type::none;
+        expr_info_.nt_ = node_type::literal;
+        expr_info_.vt_ = val_type::int_t;
+        expr_info_.terminal_.literal_int = i;
+    }
+};
+
+template<>
+struct expr<vec4_t> : public expr_base
+{
+    EXPR_TRAITS(vec4_t)
+public:
+    expr<float_t> x() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> y() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> z() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> w() { return expr_helper<float_t>::make_nary_expr(op_type::get3, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> r() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> g() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> b() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> a() { return expr_helper<float_t>::make_nary_expr(op_type::get3, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> s() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> t() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> p() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> q() { return expr_helper<float_t>::make_nary_expr(op_type::get3, node_type::internal, val_type(float_t::valtype), *this); }
+};
+
+template<>
+struct expr<vec3_t> : public expr_base
+{
+    EXPR_TRAITS(vec3_t)
+public:
+    expr<float_t> x() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> y() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> z() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> r() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> g() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> b() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> s() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> t() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> p() { return expr_helper<float_t>::make_nary_expr(op_type::get2, node_type::internal, val_type(float_t::valtype), *this); }
+};
+
+template<>
+struct expr<vec2_t> : public expr_base
+{
+    EXPR_TRAITS(vec2_t)
+public:
+    expr<float_t> x() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> y() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> r() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> g() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+
+    expr<float_t> s() { return expr_helper<float_t>::make_nary_expr(op_type::get0, node_type::internal, val_type(float_t::valtype), *this); }
+    expr<float_t> t() { return expr_helper<float_t>::make_nary_expr(op_type::get1, node_type::internal, val_type(float_t::valtype), *this); }
+};
+
+// normal operators
+expr<vec4_t> operator*(const expr<mat4_t> &a, const expr<vec4_t> &b)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::mul, node_type::internal, val_type(vec4_t::valtype), a, b);
+}
+
+expr<vec4_t> operator*(const expr<vec4_t> &a, const expr<vec4_t> &b)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::mul, node_type::internal, val_type(vec4_t::valtype), a, b);
+}
+
+expr<mat4_t> operator*(const expr<mat4_t> &a, const expr<mat4_t> &b)
+{
+    return expr_helper<mat4_t>::make_nary_expr(op_type::mul, node_type::internal, val_type(mat4_t::valtype), a, b);
+}
+
+expr<float_t> operator*(const expr<float_t> &a, const expr<float_t> &b)
+{
+    return expr_helper<float_t>::make_nary_expr(op_type::mul, node_type::internal, val_type(float_t::valtype), a, b);
+}
+
+
+// addition
+expr<vec4_t> operator+(const expr<vec4_t> &a, const expr<vec4_t> &b)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::add, node_type::internal, val_type(vec4_t::valtype), a, b);
+}
+
+expr<vec3_t> operator+(const expr<vec3_t> &a, const expr<vec3_t> &b)
+{
+    return expr_helper<vec3_t>::make_nary_expr(op_type::add, node_type::internal, val_type(vec3_t::valtype), a, b);
+}
+
+expr<vec2_t> operator+(const expr<vec2_t> &a, const expr<vec2_t> &b)
+{
+    return expr_helper<vec2_t>::make_nary_expr(op_type::add, node_type::internal, val_type(vec2_t::valtype), a, b);
+}
+
+expr<mat3_t> operator+(const expr<mat3_t> &a, const expr<mat3_t> &b)
+{
+    return expr_helper<mat3_t>::make_nary_expr(op_type::add, node_type::internal, val_type(mat3_t::valtype), a, b);
+}
+
+expr<mat4_t> operator+(const expr<mat4_t> &a, const expr<mat4_t> &b)
+{
+    return expr_helper<mat4_t>::make_nary_expr(op_type::add, node_type::internal, val_type(mat4_t::valtype), a, b);
+}
+
+expr<float_t> operator+(const expr<float_t> &a, const expr<float_t> &b)
+{
+    return expr_helper<float_t>::make_nary_expr(op_type::add, node_type::internal, val_type(float_t::valtype), a, b);
+}
+
+// subtraction
+expr<vec4_t> operator-(const expr<vec4_t> &a, const expr<vec4_t> &b)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(vec4_t::valtype), a, b);
+}
+
+expr<vec3_t> operator-(const expr<vec3_t> &a, const expr<vec3_t> &b)
+{
+    return expr_helper<vec3_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(vec3_t::valtype), a, b);
+}
+
+expr<vec2_t> operator-(const expr<vec2_t> &a, const expr<vec2_t> &b)
+{
+    return expr_helper<vec2_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(vec2_t::valtype), a, b);
+}
+
+expr<mat3_t> operator-(const expr<mat3_t> &a, const expr<mat3_t> &b)
+{
+    return expr_helper<mat3_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(mat3_t::valtype), a, b);
+}
+
+expr<mat4_t> operator-(const expr<mat4_t> &a, const expr<mat4_t> &b)
+{
+    return expr_helper<mat4_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(mat4_t::valtype), a, b);
+}
+
+expr<float_t> operator-(const expr<float_t> &a, const expr<float_t> &b)
+{
+    return expr_helper<float_t>::make_nary_expr(op_type::sub, node_type::internal, val_type(float_t::valtype), a, b);
+}
+
+
+// functions
+expr<vec4_t> texture(const expr<tex2d_t> &a, const expr<vec2_t> &b)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::sample, node_type::internal, val_type(vec4_t::valtype), a, b);
+}
+
+expr<vec4_t> vec4(const expr<float_t> &f0, const expr<float_t> &f1, const expr<float_t> &f2, const expr<float_t> &f3)
+{
+    return expr_helper<vec4_t>::make_nary_expr(op_type::makevec4, node_type::internal, val_type(vec4_t::valtype), f0, f1, f2, f3);
+}
+
+expr<vec3_t> vec3(const expr<float_t> &f0, const expr<float_t> &f1, const expr<float_t> &f2)
+{
+    return expr_helper<vec3_t>::make_nary_expr(op_type::makevec3, node_type::internal, val_type(vec3_t::valtype), f0, f1, f2);
+}
+
+expr<vec2_t> vec2(const expr<float_t> &f0, const expr<float_t> &f1)
+{
+    return expr_helper<vec2_t>::make_nary_expr(op_type::makevec2, node_type::internal, val_type(vec2_t::valtype), f0, f1);
+}
+
+
+} // namespace shx
+
+#endif // SHEXPR_H

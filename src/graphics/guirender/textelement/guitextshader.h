@@ -38,13 +38,8 @@ private:
     } mOriginalResolution;*/
 
     vmath::Matrix4 mRescaleMatrix;
-
     GLuint mShaderProgramID;
-
     Uniforms mUniforms;
-
-    GLuint mVertexArrayObject;
-    GLuint mPositionArrayBuffer;
 };
 
 inline void GUITextShader::drawTextElement(const TextElement &text_element, const vmath::Matrix4 &mv_in) const
