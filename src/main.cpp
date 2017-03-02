@@ -157,15 +157,14 @@ int main(int argc, char *argv[])
     shx::attribute<shx::vec4_t > pos;
     shx::attribute<shx::vec2_t > texco;
     shx::uniform  <shx::mat4_t > mv;
-    //shx::uniform  <shx::mat3_t > m2;
-    //shx::uniform  <shx::mat3_t > m3;
     //shx::uniform  <shx::tex2d_t> t;
 
     shx::expr<shx::vec4_t > pos_out = mv * pos;
     shx::expr<shx::vec2_t > texco_out = texco;
-    //shx::expr<shx::float_t> test2_out = shx::expr<shx::vec4_t>(pos).x() + shx::expr<shx::vec4_t>(pos).g() + texture(t, texco).q();
+    //shx::expr<shx::float_t> test2_out = pos.x() + pos.g() + texture(t, texco).q();
 
-    auto vert_shdr = shx::opengl::make_vertex_shader( pos_out, texco_out/*, test2_out*/);
+    shx::opengl::vertex_shader<shx::vec2_t>
+    vert_shdr = shx::opengl::make_vertex_shader( pos_out, texco_out/*, test2_out*/);
 
     // fragment shader
     shx::uniform<shx::tex2d_t> tex;
@@ -175,68 +174,33 @@ int main(int argc, char *argv[])
     shx::expr<shx::float_t>  tex_sample_r = tex_sample.r();
     shx::expr<shx::vec4_t >  col_out      = shx::vec4(1.0f, 1.0f, 1.0f, tex_sample_r) * color;
 
-    //auto vert_shdr = shdr::make_fragment_shader( col_out, texco ); // first arg is frag color, rest are "in" parameters
+    shx::opengl::fragment_shader<shx::vec2_t>
+    frag_shdr = shx::opengl::make_fragment_shader( col_out, texco_out ); // first arg is frag color, rest are "in" parameters
 
-    /*uniform<stex2d, tag::tex_uni> tex_uni;
-    uniform<svec4,  tag::co_uni > col_uni;
+    shx::opengl::shader_program shader_program = shx::opengl::shader_program::create(vert_shdr, frag_shdr);
 
-    auto tex   = make_expr(tex_uni);
-    auto col   = make_expr(col_uni);
+    // create some geometry/material/draw data for this shader...
+    // std::array<vector4, n_pos> = {pos data...}
+    // std::array<vector2, n_pos> = {tex data...}
+    // shx::opengl::vertices<vec4_t, vec2_t> vertices(pos_data, tex_data);
+    // shx::opengl::primitives triangles(indices); // optional...
+    // texture = something..????
+/*
+    shader_program.activate();
 
-    auto lit1  = lit(1);
+    // inside a function like draw(
+    // bind uniform and attribute values to something
 
-    auto tex_sample   = texture(tex, texco);
-    auto tex_sample_r = tex_sample.r();
-    auto alpha_white  = make_vec4(lit1, lit1, lit1, tex_sample_r);
-    //auto col_out      = alpha_white * col;
+    send all relevant uniforms...
 
-    std::string expr_str = get_expr_string(alpha_white);
-    std::cout << "expression reads: " << std::endl;
-    std::cout << expr_str << std::endl;*/
+    activate/bind all relevant textures...
 
-    // test expr
-    /*attrib <svec4, tag::pos_attr  > pos_attr;
-    attrib <svec2, tag::texco_attr> texco_attr;
-    uniform<smat4, tag::mv_uni    > mv_uni;
-    uniform<svec4, tag::ad_uni    > ad_uni;
+    activate vertex arrays..
 
-    auto pos   = make_expr(pos_attr);
-    auto texco = make_expr(texco_attr);
-    auto mv    = make_expr(mv_uni);
-    auto ad    = make_expr(ad_uni);
+    activate element arrays...
 
-    expr<svec4,
-         uniforms<
-            uniform<svec4, tag::ad_uni>,
-            uniform<smat4, tag::mv_uni> >,
-         attribs <
-            attrib <svec4, tag::pos_attr> > >
-    pos_out = mv * mv * pos + ad;
-
-    std::string expr_str1 = get_expr_string(pos_out);
-    std::cout << "expression1 reads: " << std::endl;
-    std::cout << expr_str1 << std::endl;
-
-    //auto vert_shdr = shdr::make_vertex_shader( pos_out, texco );
-
-    uniform<stex2d, tag::tex_uni> tex_uni;
-    uniform<svec4,  tag::co_uni > col_uni;
-
-    auto tex   = make_expr(tex_uni);
-    auto col   = make_expr(col_uni);
-
-    auto lit1  = lit(1);
-
-    auto tex_sample   = texture(tex, texco);
-    auto tex_sample_r = tex_sample.r();
-    auto alpha_white  = make_vec4(lit1, lit1, lit1, tex_sample_r);
-    //auto col_out      = alpha_white * col;
-
-    std::string expr_str = get_expr_string(alpha_white);
-    std::cout << "expression reads: " << std::endl;
-    std::cout << expr_str << std::endl;
-
-    //auto frag_shdr  = shdr::make_fragment_shader( col_out );*/
+    draw...
+    */
 
     // finish test ====================================================================================================================
 
