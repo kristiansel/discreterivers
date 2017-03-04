@@ -179,6 +179,10 @@ int main(int argc, char *argv[])
 
     shx::opengl::shader_program shader_program = shx::opengl::shader_program::create(vert_shdr, frag_shdr);
 
+    // shx::func<something>::of<something else> f = x*2 // how to separate arguments, how to refer to x?
+
+    // move this into some material for example usage...
+
     // create some geometry/material/draw data for this shader...
     // std::array<vector4, n_pos> = {pos data...}
     // std::array<vector2, n_pos> = {tex data...}

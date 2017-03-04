@@ -21,6 +21,7 @@
 #include "guirender/guinode.h"
 #include "guirender/bgelement/guishader.h"
 #include "guirender/textelement/guitextshader.h"
+#include "guirender/textelement/shxtest/textshadermat.h"
 #include "guirender/imageelement/guiimageshader.h"
 #include "guirender/guitextvertices.h"
 #include "guirender/guifont.h"
