@@ -6,6 +6,8 @@
 #include <string>
 #include <sstream>
 #include <functional>
+#include <utility>
+#include <tuple>
 #include "shxexpr.h"
 #include "../macro/macrodebugassert.h"
 #include "../../graphics/gfxcommon.h"
@@ -77,11 +79,13 @@ std::string get_type_str(val_type vt);
 
 template<typename ... Ts>
 vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs)
+//vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &out_vars)
 {
     vertex_shader<Ts...> vs_out;
 
     std::map<int, term_info> inparams;
     int n_inparams = 0;
+
 
     std::string              expr_str =   get_glsl(pos_out_expr.expr_info_,
                                                    vs_out.uniforms_, vs_out.attributes_, inparams,
@@ -91,7 +95,9 @@ vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const 
                                                    vs_out.uniforms_, vs_out.attributes_, inparams,
                                                    vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams)... };
 
-    std::vector<val_type> out_val_types = { Ts::valtype... };
+    //const std::string &expr_str = out_strs[0];
+
+    std::vector<val_type> out_val_types = { vec4_t::valtype, Ts::valtype... };
 
     std::stringstream vs;
     vs <<  "#version 410\n";
@@ -292,6 +298,20 @@ shader_program shader_program::create(const vertex_shader<IOTypes...> &vertex_sh
     return sp_out;
 }
 
+
+template<typename ...Ts>
+struct typelist_traits
+{
+    static const std::size_t n_types = sizeof...(Ts);
+
+    template <std::size_t i>
+    struct types
+    {
+        using type = typename std::tuple_element<i, std::tuple<Ts...>>::type ;
+    };
+};
+
+
 template<typename GeomType, typename MatType,  typename ... ExtraUnisTs, typename ... IOTypes>
 static shader_program create_from_functions(
         const std::function<out<expr<vec4_t>, IOTypes...  >(GeomType g, ExtraUnisTs... unis)> vertex_shader,
@@ -300,6 +320,30 @@ static shader_program create_from_functions(
     shader_program sp_out;
     return sp_out;
 }
+
+
+template<typename ShaderImpl, typename GeometryType, typename MaterialType, typename VarsInOut, typename ExtraUniforms>
+class shader;
+
+template<typename ShaderImpl, typename... GeomTypes, typename... MatTypes, typename... IOTypes, typename... ExtraUniTypes>
+class shader<ShaderImpl, geometry<GeomTypes...>, material<MatTypes...>, iovars<IOTypes...>, uniforms<ExtraUniTypes...>>
+{
+public:
+    shader()
+    {
+        geometry<GeomTypes...>      geometry;
+        material<MatTypes...>       material;
+        iovars<IOTypes...>         varsinout;
+        uniforms<ExtraUniTypes...> extraunis;
+
+        ShaderImpl &shader_impl = static_cast<ShaderImpl&>(*this);
+
+        int n[sizeof...(IOTypes)];
+
+    }
+};
+
+
 
 } // namespace opengl
 

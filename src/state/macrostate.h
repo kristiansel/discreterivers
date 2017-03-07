@@ -2,7 +2,7 @@
 #define MACROSTATE_H
 
 #include "../common/gfx_primitives.h"
-#include "../altplanet/altplanet.h"
+#include "../altplanet/planetshapes.h"
 
 //namespace state {
 

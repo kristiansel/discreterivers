@@ -12,6 +12,10 @@ void subdivideGeometry(  std::vector<vmath::Vector3> &points,
                          std::vector<std::vector<gfx::Triangle>> &subd_triangles,
                          const int num_subdivisions);
 
+
+void subdivideOnce(  std::vector<vmath::Vector3> &points,
+                     std::vector<gfx::Triangle> &triangles);
+
 } // namespace AltPlanet
 
 

@@ -68,7 +68,31 @@ public:
      */
     //virtual int getEulerCharacteristic() const = 0;
 
+
+
+    /**
+     * @brief getUV: Calculate UV coordinates according to planet shape
+     * @return: Structure representing the UV coordinates of the supplied points
+     */
     virtual std::vector<gfx::TexCoords> getUV(const std::vector<vmath::Vector3> &points) const = 0;
+
+    /**
+     * @brief aspectUV: Get the aspect ratio that minimizes spatial distortion in uv coordinates
+     * @return: float representing the aspect ratio to multiply u by.
+     */
+    virtual float aspectUV() const = 0;
+
+    /**
+     * @brief wrapU: Should u coordinate wrap?
+     * @return: boolean indicating u coordinate wraps
+     */
+    virtual bool wrapU() const = 0;
+
+    /**
+     * @brief wrapV: Should v coordinate wrap?
+     * @return: boolean indicating u coordinate wraps
+     */
+    virtual bool wrapV() const = 0;
 
     //////////////////////////////////////////////////
     // Functions that utilize the virtual functions //
@@ -154,11 +178,17 @@ public:
             auto d = vmath::normalize(points[i]);
             float u = 0.5+atan2(d[2], d[0])/(2.0f*M_PI);
             float v = 0.5-asin(d[1])/M_PI;
-            //texco_out[i] = {u, v};
-            texco_out[i] = {2.0f*u, v};
+            //texco_out[i] = {2.0f*u, v};
+            texco_out[i] = {u, v};
         }
         return texco_out;
     }
+
+    float aspectUV() const { return 2.0f; }
+
+    bool wrapU() const { return true; }
+
+    bool wrapV() const { return false; }
 
 private:
     float radius;
@@ -201,11 +231,18 @@ public:
             float minor_angle = mathext::orientedAngle(circle_point, circle_to_point, circle_tangent);
             float major_angle = mathext::orientedAngle(circle_point, vmath::Vector3(1.0f, 0.0f, 0.0f), vmath::Vector3(0.0f, 1.0f, 0.0f));
 
-            //texco_out[i] = {0.5f+major_angle/(float)(4.0*M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // 0,1
-            texco_out[i] = {2.0f + major_angle/(float)(M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // x scaled
+            texco_out[i] = {0.5f+major_angle/(float)(2.0*M_PI), 0.5f+minor_angle/(float)(2.0*M_PI)}; // 0,1
+            //texco_out[i] = {2.0f + major_angle/(float)(M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // x scaled
+            //texco_out[i] = { major_angle/(float)(2.0*M_PI), minor_angle/(float)(2.0*M_PI) }; // normalized to 0 to 1
         }
         return texco_out;
     }
+
+    float aspectUV() const { return 4.0f; }
+
+    bool wrapU() const { return true; }
+
+    bool wrapV() const { return true; }
 
 private:
     float major_radius;

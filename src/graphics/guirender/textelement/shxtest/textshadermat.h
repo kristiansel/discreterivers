@@ -41,20 +41,22 @@ using ExtraUniforms = shx::uniforms<
 >;
 
 using VarsInOut = shx::iovars<
-    shx::vec2_t
+    shx::vec2_t,
+    shx::vec3_t,
+    shx::vec4_t
 >;
 
 
-class TextElementShader /*: public shx::shader_program<TextElementGeom, TextElementMat, AdditionalUniforms>*/
+class TextElementShader : public shx::opengl::shader<TextElementShader, TextElementGeom, TextElementMat, VarsInOut, ExtraUniforms>
 {
 public:
     // base class makes sure that these are instantiated.?
     // how to deal with io?
     // make just one function that returns position and color? could be it.
     shx::out<shx::expr<shx::vec4_t>,
-             shx::expr<shx::vec2_t>> inline vertexShader(  TextElementGeom geom,
-                                                           TextElementMat   mat,
-                                                           ExtraUniforms   unis)
+             shx::expr<shx::vec2_t>> inline vertexShader(  const TextElementGeom &geom,
+                                                           const TextElementMat   &mat,
+                                                           const ExtraUniforms   &unis)
     {
         shx::attribute<shx::vec4_t> pos   = geom.get<0>();
         shx::attribute<shx::vec2_t> texco = geom.get<1>();
@@ -65,9 +67,9 @@ public:
         return shx::make_out(pos_out, texco_out);
     }
 
-    shx::out<shx::expr<shx::vec4_t>> inline fragmentShader(  VarsInOut       in,
-                                                             TextElementMat mat,
-                                                             ExtraUniforms unis)
+    shx::out<shx::expr<shx::vec4_t>> inline fragmentShader(  const VarsInOut       &in,
+                                                             const TextElementMat &mat,
+                                                             const ExtraUniforms &unis)
     {
         shx::uniform<shx::tex2d_t> tex = mat.get<0>();
         shx::uniform<shx::vec4_t > col = mat.get<1>();
@@ -78,6 +80,8 @@ public:
         shx::expr<shx::vec4_t >  col_out      = shx::vec4(1.0f, 1.0f, 1.0f, tex_sample_r) * col;
         return shx::make_out(col_out);
     }
+
+    void kjashda() { std::cout << "testing" << std::endl; }
 
 };
 

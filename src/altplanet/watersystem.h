@@ -7,7 +7,7 @@
 #include "../common/gfx_primitives.h"
 #include "../common/typetag.h"
 #include "planetshapes.h"
-#include "altplanet.h"
+#include "planetgeometry.h"
 #include "adjacency.h"
 
 namespace AltPlanet

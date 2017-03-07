@@ -23,47 +23,12 @@
 // to be removed
 #include "common/flags.h"
 #include "common/threads/threadpool.h"
-/*#include "common/expr/expr.h"
-
-struct tag
-{
-    struct pos_attr   {};
-    struct texco_attr {};
-    struct mv_uni  {};
-    struct tex_uni {};
-    struct co_uni  {};
-    struct ad_uni  {};
-};*/
 
 #include "common/shaderexpressions/shxexpr.h"
 #include "common/shaderexpressions/shxdebugoutput.h"
 #include "common/shaderexpressions/shxopengl.h"
 
-/*"layout(location = 0) in vec4 vertex_position;"
-"layout(location = 1) in vec2 vertex_tex_coords;"
-
-"out vec2 tex_coords;"
-"uniform mat4 mv;"
-
-"void main() {"
-"  tex_coords = vertex_tex_coords;"
-"  gl_Position = mv * vertex_position;"
-"}";
-
-const char * fragment_shader_src =
-"#version 410\n"
-
-"in vec2 tex_coords;"
-
-"out vec4 frag_color;"
-
-"uniform sampler2D tex;"
-"uniform vec4 color;"
-
-"void main() {"
-"  frag_color = vec4(1, 1, 1, texture(tex, tex_coords).r) * color;"
-"}";*/
-
+#include "graphics/guirender/textelement/shxtest/textshadermat.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -147,12 +112,18 @@ int main(int argc, char *argv[])
     std::cout << "SDL2 stencil buffer bit depth: " << stencil_size << std::endl;
     std::cout << "sdl_get_ret: " << sdl_get_ret << std::endl;
 
+    // set custom cursor
+    SDL_Surface * cursor_surface = SDL_LoadBMP("res/textures/cursor.bmp");
+    SDL_Cursor * cursor = SDL_CreateColorCursor(cursor_surface, 0, 0);
+    SDL_SetCursor(cursor);
+
     //=================================//
     //     Initialize game engine      //
     //=================================//
     engine::Engine engine(width, height, scale_factor);
 
     // test stuff====================================================================================================================
+    /*
     // vertex shader
     shx::attribute<shx::vec4_t > pos;
     shx::attribute<shx::vec2_t > texco;
@@ -164,7 +135,7 @@ int main(int argc, char *argv[])
     //shx::expr<shx::float_t> test2_out = pos.x() + pos.g() + texture(t, texco).q();
 
     shx::opengl::vertex_shader<shx::vec2_t>
-    vert_shdr = shx::opengl::make_vertex_shader( pos_out, texco_out/*, test2_out*/);
+    vert_shdr = shx::opengl::make_vertex_shader( pos_out, texco_out);
 
     // fragment shader
     shx::uniform<shx::tex2d_t> tex;
@@ -189,7 +160,7 @@ int main(int argc, char *argv[])
     // shx::opengl::vertices<vec4_t, vec2_t> vertices(pos_data, tex_data);
     // shx::opengl::primitives triangles(indices); // optional...
     // texture = something..????
-/*
+
     shader_program.activate();
 
     // inside a function like draw(
@@ -205,6 +176,9 @@ int main(int argc, char *argv[])
 
     draw...
     */
+
+    gfx::gui::TextElementShader te_shdr;
+    te_shdr.kjashda();
 
     // finish test ====================================================================================================================
 
@@ -356,6 +330,11 @@ int main(int argc, char *argv[])
     //=================================//
 
     gfx::checkOpenGLErrors("program end");
+    std::cout << "Checking SDL error: " << SDL_GetError() << std::endl;
+
+    // set custom cursor
+    if (cursor) SDL_FreeCursor(cursor);
+    if (cursor_surface) SDL_FreeSurface(cursor_surface);
 
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(mainWindow);

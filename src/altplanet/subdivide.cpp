@@ -1,6 +1,11 @@
 #include "subivide.h"
 #include <map>
 
+#include "../common/mathext.h"
+#include "../common/macro/macrodebugassert.h"
+
+using namespace MathExt;
+
 namespace AltPlanet
 {
 
@@ -9,7 +14,20 @@ using IntpairIntMapType = std::map<std::pair<int, int>, int>;
 inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
                                   const vmath::Vector3 &p2)
 {
-    return 0.5f*(p1 + p2);
+    vmath::Vector3 out = 0.5f*(p1 + p2);
+
+    // could add a random component in every direction
+    //float d = vmath::length(p2-p1)*0.125f;
+    //
+    //DEBUG_ASSERT(!(d!=d)&&"length between p1 and p2 is NaN");
+    //
+    //out = out + vmath::Vector3(frand(-d, d), frand(-d, d), frand(-d, d));
+    //
+    // problem with this approach: Triangles will end up crossing over each other...
+
+    out = out + (p2-p1)*0.125f*frand(-1, 1); // this is good enough for now
+
+    return out;
 }
 
 int getSubdPointIndex(const int i1,
@@ -35,15 +53,88 @@ int getSubdPointIndex(const int i1,
     else
     {
         // create the point
-        points.push_back(
-            getMidpoint(points[i_lo], points[i_hi])
-        );
+        vmath::Vector3 mid_pt = getMidpoint(points[i_lo], points[i_hi]);
+        points.push_back( mid_pt );
         int last_element_index = points.size() - 1;
 
         // add it to the cache
         midpoints_cache.insert( {midpoint_key, last_element_index} );
         return last_element_index;
     }
+}
+
+void subdivideOnce(  std::vector<vmath::Vector3> &points,
+                     std::vector<gfx::Triangle> &triangles)
+{
+    // check input
+    // check num_subdivisions positive
+
+    // create a copy of old triangles
+    std::vector<gfx::Triangle> old_triangles = triangles;
+    triangles.clear();
+
+    // Use a cache to keep points resulting from subidiving a shared edge
+    IntpairIntMapType midpoints_cache;
+
+    // for progress tracking
+    std::cout << "[" << std::string(10, ' ') << "]";
+
+    // get index of current last triangle
+    int prev_subdlvl_size = old_triangles.size();
+    for (int i = 0; i < prev_subdlvl_size; i++)
+    {
+        // progress bar
+        int progress_often= 10.0f*((float)(i)/(float)(prev_subdlvl_size))+1;
+        if ((i)%(prev_subdlvl_size/10)==0) {
+            std::cout << std::string(11, '\b')
+                      << std::string(progress_often, '=')
+                      << std::string(10-progress_often, ' ')
+                      << "]" << std::flush;
+        }
+
+        // get indices of the three new points (organized by sides)
+        gfx::Triangle const &prev_triangle = old_triangles[i];
+        int new_points_indices[] = {
+            getSubdPointIndex(prev_triangle[0], prev_triangle[1], points, midpoints_cache),
+            getSubdPointIndex(prev_triangle[1], prev_triangle[2], points, midpoints_cache),
+            getSubdPointIndex(prev_triangle[2], prev_triangle[0], points, midpoints_cache)
+        };
+
+        // create the subdivided triangles, using previously existing and new corners
+        triangles.push_back(
+            {
+                prev_triangle[0],
+                new_points_indices[0],
+                new_points_indices[2]
+            }
+        );
+
+        triangles.push_back(
+            {
+                prev_triangle[1],
+                new_points_indices[1],
+                new_points_indices[0]
+            }
+        );
+
+        triangles.push_back(
+            {
+                prev_triangle[2],
+                new_points_indices[2],
+                new_points_indices[1]
+            }
+        );
+
+        triangles.push_back(
+            {
+                new_points_indices[0],
+                new_points_indices[1],
+                new_points_indices[2]
+            }
+        );
+    } // for (int i = 0; i < prev_subdlvl_size; i++)
+
+    std::cout << std::endl;
 }
 
 

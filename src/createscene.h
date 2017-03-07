@@ -53,10 +53,17 @@ inline Ptr::OwningPtr<MacroState> createPlanetData(PlanetShape planet_shape_sele
     // generate planet
     // AltPlanet::PlanetGeometry alt_planet_geometry = AltPlanet::generate(3000, planet_shape);
 
-    std::vector<std::vector<gfx::Triangle>> subd_triangles;
-    AltPlanet::subdivideGeometry(alt_planet_geometry.points, alt_planet_geometry.triangles, subd_triangles, num_subdivisions);
-    // jitter the points around a bit...
-    // AltPlanet::jitterPoints(alt_planet_geometry.points);
+    for (int i = 0; i<num_subdivisions; i++)
+    {
+        // subdivide
+        AltPlanet::subdivideOnce(alt_planet_geometry.points, alt_planet_geometry.triangles);
+
+        // reproject points
+        AltPlanet::reproject(alt_planet_geometry.points, planet_shape);
+
+        // jitter the points around a bit...
+        // AltPlanet::jitterPoints(alt_planet_geometry.points);
+    }
 
     AltPlanet::perturbHeightNoise3D(alt_planet_geometry.points, planet_shape);
 
@@ -268,12 +275,18 @@ inline gfx::SceneObjectHandle add_trivial_map_object(const std::vector<vmath::Ve
 {
     std::vector<gfx::TexCoords> map_uv_coords = planet_shape->getUV(points);
 
+    float u_bias = -0.5f;
+    float v_bias = -0.5f;
+    float aspect_uv = planet_shape->aspectUV();
+    float u_scale = 2.0f * aspect_uv;
+    float v_scale = 2.0f;
+
     std::vector<vmath::Vector4> position_data;
     for (int i = 0; i<points.size(); i++)
     {
         const gfx::TexCoords &uv = map_uv_coords[i];
         float h = planet_shape->getHeight(points[i]);
-        position_data.push_back(vmath::Vector4{uv[0], uv[1], h, 1.0f});
+        position_data.push_back(vmath::Vector4{u_scale*(uv[0]+u_bias), v_scale*(uv[1]+v_bias), h, 1.0f});
     }
 
     std::vector<vmath::Vector4> normal_data(points.size(), vmath::Vector4(0.0f, 0.0f, 1.0f, 0.0f));
@@ -301,34 +314,55 @@ inline void createMap(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroSta
 
     // get the position data
     std::vector<vmath::Vector4> map_position_data;
-//    float max_x = std::numeric_limits<float>::min();
-//    float min_x = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::min();
+    float min_x = std::numeric_limits<float>::max();
 
-//    float max_y = std::numeric_limits<float>::min();
-//    float min_y = std::numeric_limits<float>::max();
+    float max_y = std::numeric_limits<float>::min();
+    float min_y = std::numeric_limits<float>::max();
 
-//    float max_z = std::numeric_limits<float>::min();
-//    float min_z = std::numeric_limits<float>::max();
+    float max_z = std::numeric_limits<float>::min();
+    float min_z = std::numeric_limits<float>::max();
+
+    float u_bias = -0.5f;
+    float v_bias = -0.5f;
+    float aspect_uv = scene_data->planet_base_shape->aspectUV();
+    float u_scale = 2.0f * aspect_uv;
+    float v_scale = 2.0f;
+
+    /*float u_bias = -0.5f;
+    float v_bias = 0.0f;
+    float aspect_uv = scene_data->planet_base_shape->aspectUV();
+    float u_scale = 1.0f;
+    float v_scale = 1.0f;*/
+
     for (int i = 0; i<scene_data->alt_planet_points.size(); i++)
     {
         const gfx::TexCoords &uv = map_uv_coords[i];
         float h = scene_data->planet_base_shape->getHeight(scene_data->alt_planet_points[i]);
-        map_position_data.push_back(vmath::Vector4{uv[0], uv[1], h, 1.0f});
 
-//        max_x = uv[0] > max_x ? uv[0] : max_x;
-//        min_x = uv[0] < min_x ? uv[0] : min_x;
+        float res_u = u_scale*(uv[0]+u_bias);
+        float res_v = v_scale*(uv[1]+v_bias);
 
-//        max_y = uv[1] > max_y ? uv[1] : max_y;
-//        min_y = uv[1] < min_y ? uv[1] : min_y;
+        map_position_data.push_back(vmath::Vector4{res_u, res_v, h, 1.0f});
 
-//        max_z = h > max_z ? h : max_z;
-//        min_z = h < min_z ? h : min_z;
+        max_x = res_u > max_x ? res_u : max_x;
+        min_x = res_u < min_x ? res_u : min_x;
+
+        max_y = res_v > max_y ? res_v : max_y;
+        min_y = res_v < min_y ? res_v : min_y;
+
+        max_z = h > max_z ? h : max_z;
+        min_z = h < min_z ? h : min_z;
     }
 
-//    std::cout << "range of map points:" << std::endl;
-//    std::cout << "x(" << min_x << ", " << max_x << ")" << std::endl;
-//    std::cout << "y(" << min_y << ", " << max_y << ")" << std::endl;
-//    std::cout << "z(" << min_z << ", " << max_z << ")" << std::endl;
+    std::cout << "range of map points:" << std::endl;
+    std::cout << "x(" << min_x << ", " << max_x << ")" << std::endl;
+    std::cout << "y(" << min_y << ", " << max_y << ")" << std::endl;
+    std::cout << "z(" << min_z << ", " << max_z << ")" << std::endl;
+
+    // patch U and/or V direction
+
+
 
     // get normals
     std::vector<vmath::Vector4> map_normal_data;
@@ -341,11 +375,11 @@ inline void createMap(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroSta
         //auto climate_zone_tex = AltPlanet::Climate::createClimatePixels();
         auto climate_tex = AltPlanet::Climate::createClimateColorPixels();
 
-        gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
-                climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::linear);
-
         gfx::Primitives primitives = gfx::Primitives(scene_data->alt_planet_triangles);
         gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);
+
+        gfx::Material material = gfx::Material(static_cast<void*>(&climate_tex.pixels[0]),
+                climate_tex.w, climate_tex.h, gfx::gl_type(GL_FLOAT), gfx::Texture::filter::linear);
 
         return map_scene_node->addSceneObject(geometry, material);
     })(); // immediately invoked lambda!

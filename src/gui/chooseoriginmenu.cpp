@@ -11,7 +11,6 @@
 #include "components/createtoggle.h"
 #include "components/mapviewer.h"
 #include "components/textinput.h"
-#include "../createscene.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 #include "../system/async.h"
@@ -48,8 +47,6 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
     events::Immediate::add_callback<events::ChooseOriginEvent>(
         [choose_origin_bg_node] (const events::ChooseOriginEvent &evt) { choose_origin_bg_node->show(); }
     );
-
-
 
     GUINodeHandle title_node = choose_origin_bg_node->addGUINode(
         GUITransform( {HorzPos(10.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),

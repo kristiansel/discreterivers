@@ -348,11 +348,14 @@ public:
 
 
 // generic typelists for out and in parameters
-template<typename ...Ts>
-class out {};
+/*template<typename ...Ts>
+class out {};*/
 
 template<typename ...Ts>
-out<Ts...> make_out(Ts... args) { return out<Ts...>(); }
+using out = std::tuple<Ts...>;
+
+template<typename ...Ts>
+out<Ts...> inline make_out(Ts... args) { return std::make_tuple(args...); }
 
 // template<typename ...Ts>
 class in {};
@@ -371,7 +374,7 @@ public:
     };
 
     template <std::size_t i>
-    ExprType<typename comp<i>::type> get() { return ExprType<typename comp<i>::type>(); }
+    ExprType<typename comp<i>::type> get() const { return ExprType<typename comp<i>::type>(); }
 };
 
 template<typename ...Ts>

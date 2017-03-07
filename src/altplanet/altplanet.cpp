@@ -522,4 +522,14 @@ namespace AltPlanet
         }
     }
 
-}
+
+    void reproject(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape)
+    {
+        for (auto &pt : points)
+        {
+            pt = planet_shape.projectPoint(pt);
+        }
+    }
+
+} // namespace AltPlanet
+

@@ -15,7 +15,6 @@
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 #include "../common/threads/threadpool.h"
-#include "../altplanet/altplanet.h"
 #include "../system/async.h"
 
 namespace gui {
