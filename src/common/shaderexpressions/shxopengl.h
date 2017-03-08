@@ -11,6 +11,7 @@
 #include "shxexpr.h"
 #include "../macro/macrodebugassert.h"
 #include "../../graphics/gfxcommon.h"
+#include "../maptuple.h"
 
 /*#define SHX_GL_UNIFORM_TAG  "uni"
 #define SHX_GL_ATTR_TAG     "attr"
@@ -34,7 +35,8 @@ class vertex_shader
     friend class shader_program;
 
     template<typename ... Ts>
-    friend vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs);
+    //friend vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs);
+    friend vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &out_vars);
 
     GLint vertex_shader_id_;
 
@@ -69,17 +71,44 @@ class fragment_shader
 
 
 // forward declare parse function
+std::string get_type_str(val_type vt);
+
 std::string get_glsl(const expr_info_t &e,
                      std::map<int, uniform_info> &uniforms,
                      std::map<int, attribute_info> &attributes,
                      std::map<int, term_info> &inparams,
                      int &n_uniforms, int &n_attributes, int &n_inparams);
 
-std::string get_type_str(val_type vt);
+template<typename ExprT>
+struct get_expr_info // functor style
+{
+    expr_info_t operator()(const ExprT &e)
+    {
+        return e.expr_info_;
+    }
+};
+
+template<typename T>
+struct function_traits;
+
+template<typename R, typename ...Args>
+struct function_traits<std::function<R(Args...)>>
+{
+    static const std::size_t n_args = sizeof...(Args);
+
+    using result_type = R;
+
+    template <std::size_t i>
+    struct arg
+    {
+        using type = typename std::tuple_element<i, std::tuple<Args...>>::type ;
+    };
+};
+
 
 template<typename ... Ts>
-vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs)
-//vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &out_vars)
+//vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs)
+vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &out_vars)
 {
     vertex_shader<Ts...> vs_out;
 
@@ -87,15 +116,27 @@ vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const 
     int n_inparams = 0;
 
 
-    std::string              expr_str =   get_glsl(pos_out_expr.expr_info_,
-                                                   vs_out.uniforms_, vs_out.attributes_, inparams,
-                                                   vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams);
+    //std::string              expr_str =   get_glsl(pos_out_expr.expr_info_,
+    //                                               vs_out.uniforms_, vs_out.attributes_, inparams,
+    //                                               vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams);
 
-    std::vector<std::string> out_strs = { get_glsl(out_exprs.expr_info_,
+    /*std::vector<std::string> out_strs = { get_glsl(out_exprs.expr_info_,
                                                    vs_out.uniforms_, vs_out.attributes_, inparams,
-                                                   vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams)... };
+                                                   vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams)... };*/
 
-    //const std::string &expr_str = out_strs[0];
+    //map_tuple_func<get_expr_info>::tuple<expr<vec4_t>, expr<Ts>...>::onto(out_vars);
+
+    std::vector<expr_info_t> out_expr_info = map_tuple_func<get_expr_info>::tuple<expr<vec4_t>, expr<Ts>...>::onto(out_vars);
+
+    std::vector<std::string> out_strs;
+    for (const auto &expr_info : out_expr_info)
+    {
+        out_strs.emplace_back(get_glsl(expr_info,
+                                       vs_out.uniforms_, vs_out.attributes_, inparams,
+                                       vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams));
+    }
+
+    const std::string &expr_str = out_strs[0];
 
     std::vector<val_type> out_val_types = { vec4_t::valtype, Ts::valtype... };
 
@@ -248,22 +289,6 @@ public:
 
 };
 
-template<typename T>
-struct function_traits;
-
-template<typename R, typename ...Args>
-struct function_traits<std::function<R(Args...)>>
-{
-    static const std::size_t n_args = sizeof...(Args);
-
-    using result_type = R;
-
-    template <std::size_t i>
-    struct arg
-    {
-        using type = typename std::tuple_element<i, std::tuple<Args...>>::type ;
-    };
-};
 
 
 template<typename ... IOTypes>
@@ -322,6 +347,8 @@ static shader_program create_from_functions(
 }
 
 
+
+
 template<typename ShaderImpl, typename GeometryType, typename MaterialType, typename VarsInOut, typename ExtraUniforms>
 class shader;
 
@@ -338,7 +365,9 @@ public:
 
         ShaderImpl &shader_impl = static_cast<ShaderImpl&>(*this);
 
-        int n[sizeof...(IOTypes)];
+        out<expr<vec4_t>, expr<IOTypes>...> vs_out = shader_impl.vertexShader(geometry, material, extraunis);
+
+        vertex_shader<IOTypes...> vs = make_vertex_shader(vs_out);
 
     }
 };

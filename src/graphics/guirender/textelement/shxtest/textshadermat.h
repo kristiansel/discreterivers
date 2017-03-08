@@ -41,9 +41,7 @@ using ExtraUniforms = shx::uniforms<
 >;
 
 using VarsInOut = shx::iovars<
-    shx::vec2_t,
-    shx::vec3_t,
-    shx::vec4_t
+    shx::vec2_t
 >;
 
 

@@ -4,7 +4,6 @@
 #include "../common/macro/macrodebugassert.h"
 #include "../common/macro/macroprofile.h"
 #include "../common/procedural/noise3d.h"
-#include "../common/collision/projection.h"
 #include "../common/mathext.h"
 #include "../common/stdext.h"
 

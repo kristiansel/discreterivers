@@ -33,7 +33,7 @@ struct NewGameMenuState : public GUIStateBase
     bool planet_generated;
     bool generating_planet;
 
-    static const int planet_seed_default = 634623;
+    static const int planet_seed_default = 1345;
 
     NewGameMenuState() :
         planet_shape(PlanetShape::Sphere),
