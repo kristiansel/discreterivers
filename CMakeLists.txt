@@ -1,70 +1,62 @@
-project(discrete_rivers)
+project(discreterivers)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 cmake_minimum_required(VERSION 2.8)
 
-# Find SDL2
-# find_package(SDL2 REQUIRED)
-
-# if(NOT SDL2_FOUND)
-#         message(SEND_ERROR "Failed to find SDL2.")
-# endif()
-
 set(HAVE_LIBUDEV_H 0)
 add_subdirectory(dep/sdl2)
 
+add_subdirectory(dep/freetype)
+
 # Find SDL2_image
 find_package(SDL2_image REQUIRED)
-
 if(NOT SDL2_IMAGE_FOUND)
         message(SEND_ERROR "Failed to find SDL2_image.")
 endif()
 
-# add_subdirectory(dep/sdl2_image)
-
 # Find Zlib
 find_package(ZLIB REQUIRED)
-
 if(NOT ZLIB_FOUND)
         message(SEND_ERROR "Failed to find ZLIB.")
 endif()
 
-# Find FreeType
-find_package(Freetype REQUIRED)
-
-if(NOT FREETYPE_FOUND)
-        message(SEND_ERROR "Failed to find Freetype.")
-endif()
-
 # Find libPNG
 find_package(PNG REQUIRED)
-
 if(NOT PNG_FOUND)
         message(SEND_ERROR "Failed to find libPNG.")
 endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
-
 if(NOT OPENGL_FOUND)
         message(SEND_ERROR "Failed to find OpenGL.")
 endif()
 
 # Find GLEW
 find_package(GLEW REQUIRED)
-
 if(NOT GLEW_FOUND)
         message(SEND_ERROR "Failed to find GLEW.")
 endif()
 
+option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+option(ASSIMP_BUILD_SAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(dep/assimp)
+
+option(BUILD_BULLET2_DEMOS OFF)
+option(BUILD_CPU_DEMOS OFF)
+option(BUILD_EXTRAS OFF)
+option(BUILD_OPENGL3_DEMOS OFF)
+option(BUILD_UNIT_TESTS OFF)
+add_subdirectory(dep/bullet)
+
 include_directories(
-    #${SDL2_INCLUDE_DIRS}
     dep/sdl2/include
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${GL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
-    ${FREETYPE_INCLUDE_DIRS}
+    dep/freetype/include
 )
 
 # Create compilation database (for code completion tools)
@@ -75,14 +67,15 @@ file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
-    #${SDL2_LIBRARY}
     SDL2main SDL2
     ${SDL2_IMAGE_LIBRARY}
     ${ZLIB_LIBRARIES}
     ${PNG_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
+    freetype
+    # assimp
+    # BulletDynamics BulletCollision LinearMath
 )
 
 #copy resource files into build directory
@@ -94,3 +87,4 @@ add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
 # message(STATUS "OPENGL_LIBRARIES: " ${OPENGL_LIBRARIES})
 # message(STATUS "GLEW_LIBRARIES: " ${GLEW_LIBRARIES})
 # message(STATUS "FREETYPE_INCLUDE_DIRS: " ${FREETYPE_INCLUDE_DIRS})
+# message(STATUS "FREETYPE_LIBRARIES: " ${FREETYPE_LIBRARIES})

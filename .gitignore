@@ -42,3 +42,6 @@ build/
 
 # qtcreator files
 CMakeLists.txt.user*
+
+# deps
+dep/*/*
