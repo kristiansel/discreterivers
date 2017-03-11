@@ -76,6 +76,10 @@ struct OptionsEvent {};
 
 struct ChooseOriginEvent {};
 
+struct CharCreateEvent {};
+
+struct StartGameEvent {};
+
 struct FPSUpdateEvent
 {
     float fps;

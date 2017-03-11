@@ -76,22 +76,10 @@ void OpenGLRenderer::resize(int w, int h)
 inline void OpenGLRenderer::drawScene(const Camera &camera, const SceneNode &scene_root) const
 {
     glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
     // switch shader, (might be done later at material stage...)
     glUseProgram (mMainShader.getProgramID());
-
-    // prepare lights
-    /*mLightObjectsVector.clear();
-    for (const auto &scene_node : mSceneRoot.mChildren)
-    {
-        for (const auto &light : scene_node.getLights())
-        {
-            vmath::Vector4 light_world_pos = scene_node.transform.getTransformMatrix() * light.mTransform.position;
-            mLightObjectsVector.emplace_back(
-
-                LightObject{light_world_pos, light.mColor}
-            );
-        }
-    }*/
 
     mMainShader.clearDrawObjects(); // could/does this need to be optimized?
     mMainShader.clearLightObjects();
@@ -137,7 +125,7 @@ inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_node, cons
 
 void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) const
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     // update mutable global uniforms.
     // blabla... update etc...

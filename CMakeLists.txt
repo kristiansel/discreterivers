@@ -5,11 +5,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 cmake_minimum_required(VERSION 2.8)
 
 # Find SDL2
-find_package(SDL2 REQUIRED)
+# find_package(SDL2 REQUIRED)
 
-if(NOT SDL2_FOUND)
-        message(SEND_ERROR "Failed to find SDL2.")
-endif()
+# if(NOT SDL2_FOUND)
+#         message(SEND_ERROR "Failed to find SDL2.")
+# endif()
+
+set(HAVE_LIBUDEV_H 0)
+add_subdirectory(dep/sdl2)
 
 # Find SDL2_image
 find_package(SDL2_image REQUIRED)
@@ -17,6 +20,8 @@ find_package(SDL2_image REQUIRED)
 if(NOT SDL2_IMAGE_FOUND)
         message(SEND_ERROR "Failed to find SDL2_image.")
 endif()
+
+# add_subdirectory(dep/sdl2_image)
 
 # Find Zlib
 find_package(ZLIB REQUIRED)
@@ -54,7 +59,8 @@ if(NOT GLEW_FOUND)
 endif()
 
 include_directories(
-    ${SDL2_INCLUDE_DIRS}
+    #${SDL2_INCLUDE_DIRS}
+    dep/sdl2/include
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${GL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
@@ -69,7 +75,8 @@ file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
-    ${SDL2_LIBRARY}
+    #${SDL2_LIBRARY}
+    SDL2main SDL2
     ${SDL2_IMAGE_LIBRARY}
     ${ZLIB_LIBRARIES}
     ${PNG_LIBRARIES}

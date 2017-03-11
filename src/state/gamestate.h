@@ -4,10 +4,9 @@
 #include <list>
 #include "../common/pointer.h"
 #include "macrostate.h"
+#include "microstate.h"
 
 namespace state {
-
-struct MicroState {};
 
 class GameState
 {
@@ -22,6 +21,8 @@ class GameState
 
 public:
     GameState();
+
+    Ptr::ReadPtr<MacroState> readMacroState() { return mMacroStatePtr.getReadPtr(); }
 };
 
 }

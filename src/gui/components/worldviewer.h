@@ -18,10 +18,10 @@ struct WorldViewerState : public gfx::gui::GUIStateBase
 };
 
 
-inline gfx::gui::GUINodeHandle createWorldViewer(gfx::gui::GUINodeHandle &parent,
-                                          const gfx::gui::GUIFont &font,
-                                          gfx::gui::GUITransform::Position &&pos,
-                                          gfx::gui::GUITransform::Size &&size)
+inline gfx::gui::GUINodeHandle createWorldViewer( gfx::gui::GUINodeHandle &parent,
+                                                  const gfx::gui::GUIFont &font,
+                                                  gfx::gui::GUITransform::Position &&pos,
+                                                  gfx::gui::GUITransform::Size &&size)
 {
     //TODO: Register a callback here such that:
     //  When this gui node is mounted/visible

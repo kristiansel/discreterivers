@@ -22,6 +22,7 @@ void createGUI(GUI &gui)
 
     // deeper menus
     createChooseOriginMenu(gui, gui_root_node);
+    createCharCreateMenu(gui, gui_root_node);
 
     // extra (goes in the bottom to be on top in the gui)
     createProfilingPane(gui, gui_root_node);

@@ -357,8 +357,11 @@ using out = std::tuple<Ts...>;
 template<typename ...Ts>
 out<Ts...> inline make_out(Ts... args) { return std::make_tuple(args...); }
 
-// template<typename ...Ts>
-class in {};
+template<typename ...Ts>
+using in = std::tuple<Ts...>;
+
+template<typename ...Ts>
+in<Ts...> inline make_in(Ts... args) { return std::make_tuple(args...); }
 
 
 template<template<typename> typename ExprType, typename ...Ts>

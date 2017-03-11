@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     }
 
     // get main screen resolution and dpi
-    int maindisp_width, maindisp_height, maindisp_dpi;
+    int maindisp_width, maindisp_height/*, maindisp_dpi*/;
     if (SDL_GetNumVideoDisplays() > 0)
     {
         int disp_index = 0;
@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
         }
         else
         {
-            float ddpi, hdpi, vdpi;
+            // SDL_GetDisplayDPI is not supported by the old version of SDL that is in use..
+            /*float ddpi, hdpi, vdpi;
             if(SDL_GetDisplayDPI(disp_index, &ddpi, &hdpi, &vdpi) != 0)
             {
                 std::cerr << "Could not get display dpi for video display " << disp_index << ": " << SDL_GetError() << std::endl;
@@ -64,10 +65,10 @@ int main(int argc, char *argv[])
             }
             else
             {
-                maindisp_width = disp_mode.w;
-                maindisp_height = disp_mode.h;
                 maindisp_dpi = ddpi; // implicitly rounded
-            }
+            }*/
+            maindisp_width = disp_mode.w;
+            maindisp_height = disp_mode.h;
         }
     }
     else

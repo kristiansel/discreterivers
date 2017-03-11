@@ -54,8 +54,11 @@ class fragment_shader
 {
     friend class shader_program;
 
+    /*template<typename ... Ts>
+    friend fragment_shader<Ts...> make_fragment_shader(const expr<vec4_t> &col_out_expr, const expr<Ts>&... in_exprs);*/
+
     template<typename ... Ts>
-    friend fragment_shader<Ts...> make_fragment_shader(const expr<vec4_t> &col_out_expr, const expr<Ts>&... in_exprs);
+    friend fragment_shader<Ts...> make_fragment_shader(const out<expr<vec4_t>> &col_out, const iovars<expr<Ts>...> &in_vars);
 
     GLint fragment_shader_id_;
 
@@ -107,24 +110,12 @@ struct function_traits<std::function<R(Args...)>>
 
 
 template<typename ... Ts>
-//vertex_shader<Ts...> make_vertex_shader(const expr<vec4_t> &pos_out_expr, const expr<Ts>&... out_exprs)
 vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &out_vars)
 {
     vertex_shader<Ts...> vs_out;
 
     std::map<int, term_info> inparams;
     int n_inparams = 0;
-
-
-    //std::string              expr_str =   get_glsl(pos_out_expr.expr_info_,
-    //                                               vs_out.uniforms_, vs_out.attributes_, inparams,
-    //                                               vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams);
-
-    /*std::vector<std::string> out_strs = { get_glsl(out_exprs.expr_info_,
-                                                   vs_out.uniforms_, vs_out.attributes_, inparams,
-                                                   vs_out.n_uniforms_, vs_out.n_attributes_, n_inparams)... };*/
-
-    //map_tuple_func<get_expr_info>::tuple<expr<vec4_t>, expr<Ts>...>::onto(out_vars);
 
     std::vector<expr_info_t> out_expr_info = map_tuple_func<get_expr_info>::tuple<expr<vec4_t>, expr<Ts>...>::onto(out_vars);
 
@@ -194,14 +185,25 @@ vertex_shader<Ts...> make_vertex_shader(const out<expr<vec4_t>, expr<Ts>...> &ou
     return vs_out;
 }
 
-
 template<typename ... Ts>
-fragment_shader<Ts...> make_fragment_shader(const expr<vec4_t> &col_out_expr, const expr<Ts>&... in_exprs)
+//fragment_shader<Ts...> make_fragment_shader(const expr<vec4_t> &col_out_expr, const expr<Ts>&... in_exprs)
+fragment_shader<Ts...> make_fragment_shader(const out<expr<vec4_t>> &col_out, const in<expr<Ts>...> &in_vars)
 {
     fragment_shader<Ts...> fs_out;
+    expr<vec4_t> &col_out_expr = std::get<0>(col_out);
 
-    std::vector<int> in_ids = { in_exprs.expr_info_.id_... };
-    std::vector<val_type> in_val_types = { Ts::valtype... };
+    std::vector<expr_info_t> in_expr_info = map_tuple_func<get_expr_info>::tuple<expr<Ts>...>::onto(in_vars);
+
+    std::vector<int> in_ids;
+    std::vector<val_type> in_val_types;
+    for (const auto &expr_info : in_expr_info)
+    {
+        in_ids.emplace_back(expr_info.id_);
+        in_val_types.emplace_back(expr_info.vt_);
+    }
+
+    //std::vector<int> in_ids = { in_exprs.expr_info_.id_... };
+    //std::vector<val_type> in_val_types = { Ts::valtype... };
 
     // set inparams and n in params
     fs_out.n_inparams_ = in_ids.size();
@@ -366,8 +368,13 @@ public:
         ShaderImpl &shader_impl = static_cast<ShaderImpl&>(*this);
 
         out<expr<vec4_t>, expr<IOTypes>...> vs_out = shader_impl.vertexShader(geometry, material, extraunis);
-
         vertex_shader<IOTypes...> vs = make_vertex_shader(vs_out);
+
+        out<expr<vec4_t>> fs_out = shader_impl.fragmentShader(varsinout, material, extraunis);
+
+
+
+        //fragment_shader<IOTypes...> fs = make_fragment_shader(fs_out, vs_out.1-end?);
 
     }
 };

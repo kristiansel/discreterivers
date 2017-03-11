@@ -1,5 +1,5 @@
-#ifndef ChooseOriginMENU_H
-#define ChooseOriginMENU_H
+#ifndef CHOOSEORIGINMENU_H
+#define CHOOSEORIGINMENU_H
 
 #include <functional>
 
@@ -8,12 +8,8 @@
 #include "gui.h"
 #include "guistyling.h"
 #include "components/createbutton.h"
-#include "components/createtoggle.h"
 #include "components/mapviewer.h"
-#include "components/textinput.h"
 #include "../events/immediateevents.h"
-#include "../events/queuedevents.h"
-#include "../system/async.h"
 
 namespace gui {
 
@@ -48,6 +44,10 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
         [choose_origin_bg_node] (const events::ChooseOriginEvent &evt) { choose_origin_bg_node->show(); }
     );
 
+    events::Immediate::add_callback<events::CharCreateEvent>(
+        [choose_origin_bg_node] (const events::CharCreateEvent &evt) { choose_origin_bg_node->hide(); }
+    );
+
     GUINodeHandle title_node = choose_origin_bg_node->addGUINode(
         GUITransform( {HorzPos(10.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                        VertPos(0.0f, Units::Absolute, VertAnchor::Top)}, {0.15f, 0.10f} ));
@@ -66,10 +66,7 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  90.0f,
-                 [state_handle]()  // on click
-                 {
-                     // wat
-                 }/*,
+                 [](){ events::Immediate::broadcast(events::CharCreateEvent()); }/*,
                  [state_handle]()  // is active
                  {
                      // wat
@@ -87,4 +84,4 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
 
 } // namespace gui
 
-#endif // ChooseOriginMENU_H
+#endif // CHOOSEORIGINMENU_H

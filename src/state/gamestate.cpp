@@ -29,6 +29,13 @@ GameState::GameState() :
                         });
         }
     );
+
+    // register event callbacks
+    events::Immediate::add_callback<events::StartGameEvent>(
+        [this] (const events::StartGameEvent &evt) {
+            this->mMicroStatePtr = Ptr::OwningPtr<MicroState> ( new MicroState() );
+        }
+    );
 }
 
 }

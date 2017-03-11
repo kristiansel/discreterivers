@@ -20,16 +20,16 @@ namespace engine {
 class Engine
 {
     // big members
-    state::GameState    mState;
-    gfx::OpenGLRenderer mRenderer;  // must be initialized before GUI!
-    gui::GUI            mGUI;       // needs valid opengl context and glew init
-
+    state::GameState    mGameState;
+    gfx::OpenGLRenderer mRenderer;              // must be initialized before GUI!
+    gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
     // to be moved
-    gfx::Camera camera; // init order important!
-    mech::CameraController mCameraController;
-    bool mGUICapturedMouse;
+    gfx::Camera             camera;              // init order important!
+    //gfx::SceneNode          mGFXSceneRoot;       // main game scene
+    mech::CameraController  mCameraController;   // must be init after camera
 
+    bool mGUICapturedMouse;
     MouseState mMouseState; // should be in some sort of input handler...
 
     // immovable, non-copyable, non-default-constructible
@@ -55,6 +55,10 @@ public:
     // getters
     inline gui::GUI &getGui() { return mGUI; }
     inline gfx::OpenGLRenderer &getRenderer() { return mRenderer; }
+
+private:
+    // helper methods...
+    void registerEngineCallbacks();
 
 };
 

@@ -1,9 +1,14 @@
 #include "engine.h"
 
+
+#include "../createscene.h"
+#include "../common/macro/macrodebuglog.h"
+
+
 namespace engine {
 
 Engine::Engine(int w, int h, float scale_factor) :
-    mState(),
+    mGameState(),
     mRenderer(w, h, scale_factor),
     mGUI(w, h, scale_factor),
 
@@ -17,6 +22,8 @@ Engine::Engine(int w, int h, float scale_factor) :
 
     // make sure to resize everything
     // mGUI.resize(w, h);
+
+    registerEngineCallbacks();
 
     // to be moved
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
@@ -173,6 +180,24 @@ void Engine::updateUIScaleFactor(float scale_factor)
 {
     mRenderer.updateUIScaleFactor(scale_factor);
     mGUI.updateUIScaleFactor(scale_factor);
+}
+
+void Engine::registerEngineCallbacks()
+{
+    DEBUG_LOG( "registering engine callbacks" );
+
+    // load the world into the graphical scene when starting a new game
+    events::Immediate::add_callback<events::StartGameEvent>(
+        [this] (const events::StartGameEvent &evt) {
+            Ptr::ReadPtr<MacroState> scene_data = this->mGameState.readMacroState();
+
+            // add stuff to scene
+            gfx::SceneNodeHandle world_node = mRenderer.getSceneRoot().addSceneNode();
+            createScene(world_node, scene_data);
+
+            gfx::SceneNodeHandle sun_node = mRenderer.getSceneRoot().addSceneNode();
+            sun_node->addLight(vmath::Vector4(10.0f, 10.0f, 10.0f, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+    });
 }
 
 
