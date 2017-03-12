@@ -2,8 +2,8 @@
 #define TEXTURE_H
 
 #include "gfxcommon.h"
-#include "SDL_image.h"
 #include "../common/typetag.h"
+#include "../common/image/image.h"
 #include "../common/gfx_primitives.h"
 #include "../common/resmanager/refcounted.h"
 
@@ -172,8 +172,7 @@ inline void Texture::loadTextureFromFile(const char * filename)
 {
     std::cout << "creating texture " << filename << std::endl;
 
-    SDL_Surface *image;
-    image = IMG_Load(filename);
+    Ptr::OwningPtr<IMG::Image> image = IMG::loadImage(filename);
 
     if(image)
     {
@@ -183,19 +182,16 @@ inline void Texture::loadTextureFromFile(const char * filename)
         //std::cout << "width: " << image->w << std::endl;
         //std::cout << "pitch: " << image->pitch << std::endl;
 
-        loadTextureFromPixels(image->pixels, image->w, image->h, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
+        loadTextureFromPixels(image->pixels, image->width, image->height, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
     }
     else
     {
         // image failed to load
-        std::cerr << "IMG_Load: " << IMG_GetError() << std::endl;
+        std::cerr << "IMG::loadImage: " << IMG::getError() << std::endl;
 
         // load backup texture
         loadDefaultTexture();
     }
-
-    // free the loaded image (if loaded, if not, should be safe to free null)
-    SDL_FreeSurface(image);
 }
 
 

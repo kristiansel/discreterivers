@@ -37,7 +37,7 @@ public:
     struct GlyphDrawInfo {
         int bitmap_left;
         int bitmap_top;
-        struct { unsigned int width, rows; } bitmap;
+        struct { int width, rows; } bitmap;
         struct { long x, y; } advance;
     };
 
