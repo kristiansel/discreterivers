@@ -1,5 +1,6 @@
 #include "watersystem.h"
 #include "../common/graph_tools.h"
+#include "../common/macro/macrodebugassert.h"
 #include <functional>
 
 using namespace gfx;
@@ -335,7 +336,7 @@ WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(vector<Wa
                 point_index i_p_unmapped = (this_lake_triangles)[i][j];
                 if (water_height[i_p_unmapped].exists()) lake_height = water_height[i_p_unmapped].get();
             }
-            assert(lake_height > 0.0f);
+            DEBUG_ASSERT(lake_height > 0.0f);
 
             for (int j = 0; j<3; j++)
             {

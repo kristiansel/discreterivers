@@ -3,6 +3,7 @@
 
 #include "../../common/gfx_primitives.h"
 #include "../../common/mathext.h"
+#include "../../common/macro/macrodebugassert.h"
 
 namespace AltPlanet {
 
@@ -80,7 +81,7 @@ namespace Climate {
 
     inline std::vector<ClimateCoords> getClimateCoords(const std::vector<float> &irradiance, const std::vector<float> &humidity)
     {
-        assert((irradiance.size()==humidity.size()));
+        DEBUG_ASSERT(irradiance.size()==humidity.size());
         // gief `zip` plx
         std::vector<gfx::TexCoords> out(irradiance.size());
         for (int i=0; i<irradiance.size(); i++) {

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include "../common/gfx_primitives.h"
+#include "../common/macro/macrodebugassert.h"
 
 namespace AltPlanet {
 
@@ -78,7 +79,7 @@ inline std::vector<std::vector<int>> createTriToTriAdjacency( const std::vector<
         auto last = std::unique(thirteen_adj.begin(), thirteen_adj.end());
         thirteen_adj.erase(last, thirteen_adj.end());
 
-        // assert(thirteen_adj.size()==13); // can't assert this because of pentagonal points
+        // DEBUG_ASSERT(thirteen_adj.size()==13); // can't assert this because of pentagonal points
 
         // filter list on two common points
         for (const int i_t_adj: thirteen_adj)
@@ -100,7 +101,7 @@ inline std::vector<std::vector<int>> createTriToTriAdjacency( const std::vector<
             }
         }
 
-        assert(tri_tri_adjacency[i].size()==3);
+        DEBUG_ASSERT(tri_tri_adjacency[i].size()==3);
     }
 
     return tri_tri_adjacency;

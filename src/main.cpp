@@ -77,10 +77,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    //float scale_factor = (float)(maindisp_height)/(float)(512);
-    //float scale_factor = (float)(maindisp_height)/(float)(768);
     float scale_factor = (float)(maindisp_height)/(float)(1024);
-    //float scale_factor = (float)(maindisp_height)/(float)(2024);
+
     int width = scale_factor * 1400;
     int height = scale_factor * 800;
 

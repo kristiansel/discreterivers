@@ -46,8 +46,6 @@ inline gfx::gui::GUINodeHandle createMapViewer(gfx::gui::GUINodeHandle &parent,
 
     gfx::gui::GUIStateHandle<MapViewerState> state_handle = map_scene_node->setState(MapViewerState());
 
-
-    //gfx::Camera camera(gfx::PerspectiveProjection(1.0f, M_PI_4, 0.1f, 100.0f));
     gfx::Camera camera(gfx::OrthographicProjection(1.0f, 0.5f, -100.0f, 100.0f));
     camera.mTransform.position = vmath::Vector3(0.5f, 0.5f, 0.0f);
     gfx::gui::GUIElementHandle scene_element = map_scene_node->addElement( gfx::gui::SceneElement(camera));

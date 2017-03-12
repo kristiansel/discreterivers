@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <functional>
 #include "optional.h"
+#include "macro/macrodebugassert.h"
 
 namespace graphtools
 {
@@ -52,7 +53,7 @@ public:
 
         iterator& operator++()
         {
-            assert((!open_points_queue.empty()));
+            DEBUG_ASSERT((!open_points_queue.empty()));
 
             // actual increment takes place here
 //            if (!open_points_queue.empty())

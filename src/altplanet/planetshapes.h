@@ -8,8 +8,7 @@
 #include "../common/gfx_primitives.h"
 
 #include "../common/orientedangle.h"
-
-#define M_PI 3.14159265359
+#include "../common/mathext.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -178,8 +177,8 @@ public:
         for(int i = 0; i<texco_out.size(); i++)
         {
             auto d = vmath::normalize(points[i]);
-            float u = 0.5+atan2(d[2], d[0])/(2.0f*M_PI);
-            float v = 0.5-asin(d[1])/M_PI;
+            float u = 0.5+atan2(d[2], d[0])/(2.0f*DR_M_PI);
+            float v = 0.5-asin(d[1])/DR_M_PI;
             //texco_out[i] = {2.0f*u, v};
             texco_out[i] = {u, v};
         }
@@ -233,9 +232,9 @@ public:
             float minor_angle = mathext::orientedAngle(circle_point, circle_to_point, circle_tangent);
             float major_angle = mathext::orientedAngle(circle_point, vmath::Vector3(1.0f, 0.0f, 0.0f), vmath::Vector3(0.0f, 1.0f, 0.0f));
 
-            texco_out[i] = {0.5f+major_angle/(float)(2.0*M_PI), 0.5f+minor_angle/(float)(2.0*M_PI)}; // 0,1
-            //texco_out[i] = {2.0f + major_angle/(float)(M_PI), 0.5f+minor_angle/(float)(4.0*M_PI)}; // x scaled
-            //texco_out[i] = { major_angle/(float)(2.0*M_PI), minor_angle/(float)(2.0*M_PI) }; // normalized to 0 to 1
+            texco_out[i] = {0.5f+major_angle/(float)(2.0*DR_M_PI), 0.5f+minor_angle/(float)(2.0*DR_M_PI)}; // 0,1
+            //texco_out[i] = {2.0f + major_angle/(float)(DR_M_PI), 0.5f+minor_angle/(float)(4.0*DR_M_PI)}; // x scaled
+            //texco_out[i] = { major_angle/(float)(2.0*DR_M_PI), minor_angle/(float)(2.0*DR_M_PI) }; // normalized to 0 to 1
         }
         return texco_out;
     }

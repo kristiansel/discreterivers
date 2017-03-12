@@ -37,7 +37,7 @@ void SpaceHash3D::rehash(const std::vector<vmath::Vector3> &points)
     mMax = (1.0f+margin_fraction)*mMax;
 
     vmath::Vector3 side_lengths = mMax-mMin;
-    assert((side_lengths[0]>0.0f && side_lengths[1]>0.0f && side_lengths[2]>0.0f ));
+    DEBUG_ASSERT((side_lengths[0]>0.0f && side_lengths[1]>0.0f && side_lengths[2]>0.0f ));
 
     float volume = side_lengths[0]*side_lengths[1]*side_lengths[2];
     mPointCubeVolDensity = mPoints.size()/volume;

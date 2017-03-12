@@ -33,7 +33,7 @@ public:
             case (gl_pixel_format::red):     return GL_RED;
             case (gl_pixel_format::rgb):     return GL_RGB;
             case (gl_pixel_format::rgba):    return GL_RGBA;
-            default: assert((false&&"invalid texture pixel format spec"));
+            default: DEBUG_ASSERT((false&&"invalid texture pixel format spec"));
         }
     }
 
@@ -109,17 +109,7 @@ inline Texture::Texture(const vmath::Vector4 &color)
     int w = 2;
     int h = 2;
 
-    /*float pixels[] = {
-        1.0f, 0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
-    }; // this doesn't work as expected even though texture coordinates are correct..
-
-    int w = 2;
-    int h = 2;*/
-
     loadTextureFromPixels(pixels, w, h, gl_type(GL_FLOAT), gl_texture_filter::linear);
-
-    //loadTextureFromFile("planet_terrain.jpg");
 }
 
 
@@ -178,9 +168,6 @@ inline void Texture::loadTextureFromFile(const char * filename)
     {
         // report success
         std::cout << filename << " successfully loaded" << std::endl;
-        //std::cout << "height: " << image->h << std::endl;
-        //std::cout << "width: " << image->w << std::endl;
-        //std::cout << "pitch: " << image->pitch << std::endl;
 
         loadTextureFromPixels(image->pixels, image->width, image->height, gl_type(GL_UNSIGNED_BYTE), gl_texture_filter::linear);
     }

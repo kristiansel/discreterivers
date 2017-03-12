@@ -3,6 +3,7 @@
 
 #define _VECTORMATH_DEBUG
 #include "../dep/vecmath/vectormath_aos.h"
+#include "../common/macro/macrodebugassert.h"
 
 namespace vmath = Vectormath::Aos;
 
@@ -110,7 +111,7 @@ inline vmath::Vector3 triplePlaneIntersection(vmath::Vector3 n1, vmath::Vector3 
                        vmath::dot(p3,n3)*vmath::cross(n1, n2);
 
     float det_n = vmath::determinant(n_mat);
-    assert((det_n!=0.0f));
+    DEBUG_ASSERT((det_n!=0.0f));
     return b / det_n;
 }
 

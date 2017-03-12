@@ -4,6 +4,10 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include "macro/macrodebugassert.h"
+
+#define DR_M_PI        3.14159265358979323846
+#define DR_M_PI_4      0.78539816339744830962
 
 namespace MathExt
 {
@@ -32,7 +36,7 @@ inline T clamp(const T& in, const T& min, const T& max)
 
 inline void normalizeFloatVec(std::vector<float> &float_vec, float to_max = 1.0f, float to_min = 0.0f)
 {
-    assert((to_max>to_min));
+    DEBUG_ASSERT((to_max>to_min));
 
     float v_max = std::numeric_limits<float>::min();
     float v_min = std::numeric_limits<float>::max();

@@ -1,8 +1,7 @@
 #include "irradiance.h"
 
 #include "../../common/mathext.h"
-
-#define M_PI 3.14159265359
+#include "../../common/macro/macrodebugassert.h"
 
 namespace AltPlanet {
 
@@ -21,8 +20,8 @@ std::vector<float> irradianceYearMean(const std::vector<vmath::Vector3> &points,
                                       const std::vector<gfx::Triangle> &triangles,
                                       float planet_tilt_rad)
 {
-    assert(points.size()>0);
-    assert(triangles.size()>0);
+    DEBUG_ASSERT(points.size()>0);
+    DEBUG_ASSERT(triangles.size()>0);
     // also triangles should only have indices in the valid range of the points vector size
     // planet tilt can be anything as radians wrap nicely both in positive and negative direction
 
@@ -33,7 +32,7 @@ std::vector<float> irradianceYearMean(const std::vector<vmath::Vector3> &points,
 
     for (int i_sun = 0; i_sun<N_SUN_ROTATION; i_sun++)
     {
-        float sun_angle = static_cast<float>(i_sun)/(static_cast<float>(N_SUN_ROTATION))*2.0f*M_PI;
+        float sun_angle = static_cast<float>(i_sun)/(static_cast<float>(N_SUN_ROTATION))*2.0f*DR_M_PI;
 
         // calculate direction to sun
         vmath::Quat sun_rotation = vmath::Quat::rotation(sun_angle, vmath::Vector3(0.0, 1.0, 0.0));
@@ -43,7 +42,7 @@ std::vector<float> irradianceYearMean(const std::vector<vmath::Vector3> &points,
 
         for (int i_self = 0; i_self<N_SELF_ROTATION; i_self++)
         {
-            float self_angle = static_cast<float>(i_self)/(static_cast<float>(N_SELF_ROTATION))*2.0f*M_PI;
+            float self_angle = static_cast<float>(i_self)/(static_cast<float>(N_SELF_ROTATION))*2.0f*DR_M_PI;
 
             // with tilt and self rotation, calculate normal rotation matrix
             vmath::Quat self_rotation = vmath::Quat::rotation(self_angle, vmath::Vector3(0.0, 1.0, 0.0));

@@ -3,8 +3,7 @@
 
 #include "../createscene.h"
 #include "../common/macro/macrodebuglog.h"
-
-#define M_PI_4 0.78539816339
+#include "../common/mathext.h"
 
 namespace engine {
 
@@ -14,7 +13,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    camera(gfx::PerspectiveProjection((float)(w)/(float)(h), M_PI_4, 0.1f, 100.0f)),
+    camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.1f, 100.0f)),
     mCameraController(&camera),
     mGUICapturedMouse(false)
 

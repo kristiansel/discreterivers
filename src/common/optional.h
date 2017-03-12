@@ -1,6 +1,8 @@
 #ifndef OPTIONAL_H
 #define OPTIONAL_H
 
+#include "macro/macrodebugassert.h"
+
 template<typename type>
 class optional
 {
@@ -11,7 +13,7 @@ public:
     static optional none() {return optional();}
 
     bool exists() const {return mExists;}
-    type get() const {assert(mExists); return mVal;}
+    type get() const { DEBUG_ASSERT(mExists); return mVal; }
 private:
     bool mExists;
 

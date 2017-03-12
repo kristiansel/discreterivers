@@ -76,24 +76,6 @@ inline Camera::Camera(const Projection &projection, const Transform &transform) 
 
 }
 
-//inline Camera::Camera(float aspect_ratio)
-//{
-//    // set up camera
-//    // camera
-//    // projection matrix
-//    updateAspect(aspect_ratio);
-
-////    float half_height = 3.5f;
-////    mProjectionMatrix = vmath::Matrix4::orthographic(
-////        -aspect_ratio*half_height, aspect_ratio*half_height, -half_height, half_height, 0.1f, 100.0f
-////    );
-
-
-
-//    /*vmath::Matrix4 camera_matrix = vmath::Matrix4::translation(vmath::Vector3(0.0f, 0.0f, 10.0f));
-//    mCamMatrixInverse = vmath::inverse(camera_matrix);*/
-//}
-
 inline void Camera::updateAspect(float aspect_ratio)
 {
     switch (mProjection.get_type())
@@ -110,16 +92,6 @@ inline void Camera::updateAspect(float aspect_ratio)
         break;
     }
 }
-
-//inline void Camera::updateAspect(float aspect_ratio)
-//{
-//    mProjectionMatrix = vmath::Matrix4::perspective(
-//        M_PI_4,                         // field of view (radians)
-//        aspect_ratio,                   // aspect ratio
-//        0.1f,                           // znear
-//        100.0f                          // zfar
-//    );
-//}
 
 inline vmath::Matrix4 Camera::getProjectionMatrix() const
 {
