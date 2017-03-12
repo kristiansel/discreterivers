@@ -4,6 +4,7 @@
 #include "../createscene.h"
 #include "../common/macro/macrodebuglog.h"
 
+#define M_PI_4 0.78539816339
 
 namespace engine {
 

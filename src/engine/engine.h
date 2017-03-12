@@ -1,7 +1,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../gui/gui.h"
 #include "../graphics/openglrenderer.h"
 #include "../events/immediateevents.h"
