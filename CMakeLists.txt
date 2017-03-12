@@ -7,6 +7,10 @@ cmake_minimum_required(VERSION 2.8)
 set(HAVE_LIBUDEV_H 0)
 add_subdirectory(dep/sdl2)
 
+if(WIN32)
+	set(MINGW32_LIBRARIES mingw32)
+endif()
+
 add_subdirectory(dep/freetype)
 
 # Find OpenGL
@@ -16,9 +20,19 @@ if(NOT OPENGL_FOUND)
 endif()
 
 # Find GLEW
+if(WIN32)
+	set(CMAKE_PREFIX_PATH "C:/Users/krist/prog/libraries/MinGW-x64/glew-2.0.0/include")
+	set(CMAKE_LIBRARY_PATH "C:/Users/krist/prog/libraries/MinGW-x64/glew-2.0.0/bin/Release/x64")
+endif()
+
+
 find_package(GLEW REQUIRED)
 if(NOT GLEW_FOUND)
-        message(SEND_ERROR "Failed to find GLEW.")
+	message(SEND_ERROR "Failed to find GLEW.")
+endif()
+
+if(WIN32)
+	# add_definitions(-DGLEW_STATIC)
 endif()
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
@@ -48,6 +62,7 @@ file(GLOB_RECURSE SRCS src/*.cpp src/*.h src/*.c src/*.hpp)
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
+	${MINGW32_LIBRARIES}
     SDL2main SDL2
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
@@ -63,6 +78,8 @@ add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
 
 # message(STATUS "SDL2_LIBRARY: " ${SDL2_LIBRARY})
 # message(STATUS "OPENGL_LIBRARIES: " ${OPENGL_LIBRARIES})
-# message(STATUS "GLEW_LIBRARIES: " ${GLEW_LIBRARIES})
+message(STATUS "GLEW_LIBRARIES: " ${GLEW_LIBRARIES})
+message(STATUS "GLEW_INCLUDE_DIRS}: " ${GLEW_INCLUDE_DIRS})
+message(STATUS "MINGW32_LIBRARIES}: " ${MINGW32_LIBRARIES})
 # message(STATUS "FREETYPE_INCLUDE_DIRS: " ${FREETYPE_INCLUDE_DIRS})
 # message(STATUS "FREETYPE_LIBRARIES: " ${FREETYPE_LIBRARIES})

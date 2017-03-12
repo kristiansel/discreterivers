@@ -2,7 +2,7 @@
 #define GUIEVENT_H
 
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../../common/either.h"
 
 namespace gfx {

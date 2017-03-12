@@ -10,6 +10,8 @@
 #include "../../system/async.h"
 #include "../../mechanics/rotatorcontroller.h"
 
+#define M_PI_4 0.78539816339
+
 namespace gui {
 
 struct WorldViewerState : public gfx::gui::GUIStateBase

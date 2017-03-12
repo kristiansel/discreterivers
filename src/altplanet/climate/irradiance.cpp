@@ -2,6 +2,8 @@
 
 #include "../../common/mathext.h"
 
+#define M_PI 3.14159265359
+
 namespace AltPlanet {
 
 namespace Irradiance {

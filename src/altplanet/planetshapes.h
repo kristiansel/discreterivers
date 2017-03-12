@@ -9,6 +9,8 @@
 
 #include "../common/orientedangle.h"
 
+#define M_PI 3.14159265359
+
 namespace vmath = Vectormath::Aos;
 
 namespace AltPlanet
