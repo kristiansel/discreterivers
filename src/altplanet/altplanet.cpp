@@ -3,6 +3,7 @@
 #include "incrtriangulate.hpp"
 #include "../common/macro/macrodebugassert.h"
 #include "../common/macro/macroprofile.h"
+#include "../common/macro/macrodebuglog.h"
 #include "../common/procedural/noise3d.h"
 #include "../common/mathext.h"
 #include "../common/stdext.h"
@@ -398,7 +399,8 @@ namespace AltPlanet
     void perturbHeightNoise3D(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape)
     {
         Shape::AABB aabb = planet_shape.getAABB();
-        float smallest_noise_scale = 0.2f; // TODO: meters....
+        //DEBUG_LOG("planet aabb: " << aabb.height << ", " << aabb.width)
+        float smallest_noise_scale = aabb.width/50.0f; // TODO: meters....
         Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale, 198327);
 
         for (auto &point : points)
