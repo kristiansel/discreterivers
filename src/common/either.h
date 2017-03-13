@@ -136,7 +136,7 @@ private:
         either_lifetime_helper<Types...>::destroy(type_index_, &data_);
         type_index_ = invalid_value;
         either_lifetime_helper<Types...>::copy(rhs.type_index_, &rhs.data_, &data_);
-        type_index_ = rhs.type_index;
+        type_index_ = rhs.type_index_;
     }
 
     inline void move_assign(either<Types...>&& rhs)
@@ -144,7 +144,7 @@ private:
         either_lifetime_helper<Types...>::destroy(type_index_, &data_);
         type_index_ = invalid_value;
         either_lifetime_helper<Types...>::move(rhs.type_index_, &rhs.data_, &data_);
-        type_index_ = rhs.type_index;
+        type_index_ = rhs.type_index_;
     }
 
 public:

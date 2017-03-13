@@ -401,6 +401,7 @@ namespace AltPlanet
         Shape::AABB aabb = planet_shape.getAABB();
         //DEBUG_LOG("planet aabb: " << aabb.height << ", " << aabb.width)
         float smallest_noise_scale = aabb.width/50.0f; // TODO: meters....
+        //float smallest_noise_scale = 0.2f; // TODO: meters....
         Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale, 198327);
 
         for (auto &point : points)
@@ -408,6 +409,7 @@ namespace AltPlanet
             float noise_sample = 0.1f*noise3d.sample(point);
             planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
         }
+        //DEBUG_LOG("max perturbation = ")
     }
 
     void removePointsTooClose(std::vector<vmath::Vector3> &points, SpaceHash3D &spacehash, float min_distance)
@@ -464,20 +466,29 @@ namespace AltPlanet
         std::cout << "filtered out " << total_points_filtered << " degenerate points" << std::endl;
     }
 
-    void createOrLoadPlanetGeom(PlanetGeometry &alt_planet_geometry, AltPlanet::Shape::BaseShape *&planet_shape_ptr, PlanetShape shape)
+// the pregenerated grid shapes used certain input parameters
+#define ALT_PLANET_FILE_SPHERE_RAD 3.0f
+#define ALT_PLANET_FILE_TORUS_MAJOR_RAD 3.0f
+#define ALT_PLANET_FILE_TORUS_MINOR_RAD 1.0f
+
+    void createOrLoadPlanetGeom(PlanetGeometry &alt_planet_geometry, AltPlanet::Shape::BaseShape *&planet_shape_ptr,
+                                PlanetShape shape, float planet_scale_factor)
     {
         std::string planet_filename;
         switch(shape)
         {
         case(PlanetShape::Sphere):
         {
-            planet_shape_ptr = new AltPlanet::Shape::Sphere(3.0f);
+            float radius = ALT_PLANET_FILE_SPHERE_RAD * planet_scale_factor;
+            planet_shape_ptr = new AltPlanet::Shape::Sphere(radius);
             planet_filename = "res/meshes/sphere_planet.dat";
         }
         break;
         case(PlanetShape::Torus):
         {
-            planet_shape_ptr = new AltPlanet::Shape::Torus(3.0f, 1.0f);
+            float major_radius = ALT_PLANET_FILE_TORUS_MAJOR_RAD * planet_scale_factor;
+            float minor_radius = ALT_PLANET_FILE_TORUS_MINOR_RAD * planet_scale_factor;
+            planet_shape_ptr = new AltPlanet::Shape::Torus(major_radius, minor_radius);
             planet_filename = "res/meshes/torus_planet.dat";
         }
         break;
@@ -495,6 +506,12 @@ namespace AltPlanet
                 std::cout << "loading planet file: " << planet_filename << std::endl;
                 Serial::StreamType resin = Serial::read_from_file(planet_filename);
                 alt_planet_geometry = Serial::deserialize<AltPlanet::PlanetGeometry>(resin);
+
+                // scale planet points relative to the size they were generated as...
+                for (auto &pt : alt_planet_geometry.points)
+                {
+                    pt = vmath::Matrix3::scale(planet_scale_factor * vmath::Vector3(1.0)) * pt;
+                }
             } catch (...) {
                 loading_went_bad = true;
                 std::cout << "something went wrong while trying to load " << planet_filename << std::endl;
@@ -522,7 +539,6 @@ namespace AltPlanet
             }
         }
     }
-
 
     void reproject(std::vector<vmath::Vector3> &points, const Shape::BaseShape &planet_shape)
     {

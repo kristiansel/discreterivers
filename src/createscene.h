@@ -12,7 +12,7 @@ using PlanetSize = events::GenerateWorldEvent::PlanetSize;
 
 Ptr::OwningPtr<MacroState> createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector, int planet_seed);
 
-void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> scene_data);
+void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> scene_data, float &cam_view_distance);
 
 void createMap(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> scene_data);
 

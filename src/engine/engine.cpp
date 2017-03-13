@@ -1,6 +1,5 @@
 #include "engine.h"
 
-
 #include "../createscene.h"
 #include "../common/macro/macrodebuglog.h"
 #include "../common/mathext.h"
@@ -13,8 +12,8 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.1f, 100.0f)),
-    mCameraController(&camera),
+    mCamera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 1.0f, 5000.0f)),
+    mCameraController(&mCamera),
     mGUICapturedMouse(false)
 
 {
@@ -26,7 +25,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     registerEngineCallbacks();
 
     // to be moved
-    camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
+    mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 }
 
 
@@ -186,6 +185,12 @@ void Engine::registerEngineCallbacks()
 {
     DEBUG_LOG( "registering engine callbacks" );
 
+    // clear all on start new game...
+    events::Immediate::add_callback<events::NewGameEvent>(
+        [this] (const events::NewGameEvent &evt) {
+            mRenderer.getSceneRoot().clearAll();
+    });
+
     // load the world into the graphical scene when starting a new game
     events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
@@ -193,11 +198,14 @@ void Engine::registerEngineCallbacks()
 
             // add stuff to scene
             gfx::SceneNodeHandle world_node = mRenderer.getSceneRoot().addSceneNode();
-            createScene(world_node, scene_data);
+            float cam_view_distance;
+            createScene(world_node, scene_data, cam_view_distance);
+            mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, cam_view_distance);
 
             gfx::SceneNodeHandle sun_node = mRenderer.getSceneRoot().addSceneNode();
-            sun_node->addLight(vmath::Vector4(10.0f, 10.0f, 10.0f, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+            sun_node->addLight(vmath::Vector4(cam_view_distance, cam_view_distance, cam_view_distance, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
     });
+
 }
 
 

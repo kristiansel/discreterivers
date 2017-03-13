@@ -13,7 +13,7 @@ std::vector<float> humidityYearMean(const std::vector<vmath::Vector3> &points,
     std::vector<float> out(points.size());
 
     Shape::AABB aabb = planet_shape.getAABB();
-    float smallest_noise_scale = 1.0f; // TODO: meters....
+    float smallest_noise_scale = aabb.width/10.0f;
     Noise3D noise3d(aabb.width*1.1f, aabb.height*1.1f, smallest_noise_scale, 58234);
 
     for (int i=0; i<out.size(); i++)

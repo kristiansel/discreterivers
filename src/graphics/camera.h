@@ -60,6 +60,8 @@ struct Camera
 
     inline vmath::Matrix4 getCamMatrixInverse() const { return vmath::inverse(mTransform.getTransformMatrix()); }
 
+    inline void setProjection(const Projection &projection) { mProjection = projection; }
+
     inline void updateAspect(float aspect_ratio);
 
     inline vmath::Matrix4 getProjectionMatrix() const;

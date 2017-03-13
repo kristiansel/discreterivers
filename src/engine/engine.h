@@ -25,7 +25,7 @@ class Engine
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
     // to be moved
-    gfx::Camera             camera;              // init order important!
+    gfx::Camera             mCamera;              // init order important!
     //gfx::SceneNode          mGFXSceneRoot;       // main game scene
     mech::CameraController  mCameraController;   // must be init after camera
 
@@ -76,7 +76,7 @@ inline void Engine::resize(int w, int h)
 
 inline void Engine::draw()
 {
-    mRenderer.draw(camera, mGUI.getGUIRoot());
+    mRenderer.draw(mCamera, mGUI.getGUIRoot());
 }
 
 

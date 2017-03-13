@@ -2,11 +2,11 @@
 #define PLANETGEOMETRY_H
 
 #include "../common/gfx_primitives.h"
+#include "../common/macro/macroserialize.h"
+#include "../common/serialize.h"
 #include <vector>
 
-
 namespace AltPlanet {
-
 
 struct PlanetGeometry
 {
@@ -14,9 +14,9 @@ struct PlanetGeometry
     std::vector<gfx::Triangle> triangles;
 };
 
-
 }
 
+IMPL_SERIALIZABLE(AltPlanet::PlanetGeometry, points, triangles)
 
 #endif // PLANETGEOMETRY_H
 

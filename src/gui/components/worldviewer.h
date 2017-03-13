@@ -45,7 +45,7 @@ inline gfx::gui::GUINodeHandle createWorldViewer( gfx::gui::GUINodeHandle &paren
     //loading_msg_node->addElement( gfx::gui::TextElement( "Generating world...", font ) );
     textLabel(loading_msg_node, "Generating world...", font);
 
-    gfx::Camera camera(gfx::PerspectiveProjection(1.0f, DR_M_PI_4, 0.1f, 100.0f));
+    gfx::Camera camera(gfx::PerspectiveProjection(1.0f, DR_M_PI_4, 100.0f, 10000.0f));
     camera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0f);
     gfx::gui::GUIElementHandle scene_element = world_scene_node->addElement( gfx::gui::SceneElement(camera));
     gfx::SceneNode &scene_root = scene_element->get<gfx::gui::SceneElement>().getSceneRoot();
@@ -91,11 +91,15 @@ inline gfx::gui::GUINodeHandle createWorldViewer( gfx::gui::GUINodeHandle &paren
     });
 
     events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
-        [world_node, loading_msg_node, state_handle] (const events::FinishGenerateWorldEvent &evt) {
+        [world_node, loading_msg_node, state_handle, scene_element] (const events::FinishGenerateWorldEvent &evt) {
             Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
 
             // add stuff to scene
-            createScene(world_node, scene_data);
+            float cam_view_distance;
+            createScene(world_node, scene_data, cam_view_distance);
+
+            gfx::Camera &cam = scene_element->get<gfx::gui::SceneElement>().getCamera();
+            cam.mTransform.position = vmath::Vector3(0.0, 0.0, cam_view_distance);
 
             // update gui
             gfx::gui::GUIStateWriter<WorldViewerState> sw = state_handle.getStateWriter();
