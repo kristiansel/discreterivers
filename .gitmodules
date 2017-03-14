@@ -4,9 +4,3 @@
 [submodule "dep/freetype"]
 	path = dep/freetype
 	url = https://github.com/HeliumProject/FreeType.git
-[submodule "dep/assimp"]
-	path = dep/assimp
-	url = https://github.com/assimp/assimp.git
-[submodule "dep/bullet"]
-	path = dep/bullet
-	url = https://github.com/bulletphysics/bullet3.git
