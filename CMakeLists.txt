@@ -2,6 +2,9 @@ project(discreterivers)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
+message(STATUS "CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
+
 cmake_minimum_required(VERSION 2.8)
 
 # Find SDL2
@@ -10,10 +13,6 @@ if(NOT SDL2_FOUND)
         message(SEND_ERROR "Failed to find SDL2.")
 endif()
 
-find_package(FREETYPE REQUIRED)
-if(NOT FREETYPE_FOUND)
-        message(SEND_ERROR "Failed to find FREETYPE.")
-endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -35,10 +34,17 @@ if(NOT ASSIMP_FOUND)
         message(SEND_ERROR "Failed to find Assimp.")
 endif()
 
-find_package(BULLET REQUIRED)
+find_package(Freetype REQUIRED)
+if(NOT FREETYPE_FOUND)
+        message(SEND_ERROR "Failed to find FREETYPE.")
+endif()
+
+
+find_package(Bullet REQUIRED)
 if(NOT BULLET_FOUND)
         message(SEND_ERROR "Failed to find Bullet.")
 endif()
+
 
 include_directories(
     ${SDL2_INCLUDE_DIR}
