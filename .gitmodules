@@ -1,6 +1,0 @@
-[submodule "dep/sdl2"]
-	path = dep/sdl2
-	url = https://github.com/davidsiaw/SDL2.git
-[submodule "dep/freetype"]
-	path = dep/freetype
-	url = https://github.com/HeliumProject/FreeType.git
