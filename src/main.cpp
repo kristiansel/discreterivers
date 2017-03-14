@@ -43,6 +43,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    SDL_version compiled;
+    SDL_version linked;
+
+    SDL_VERSION(&compiled);
+    SDL_GetVersion(&linked);
+    printf("We compiled against SDL version %d.%d.%d ...\n",
+           compiled.major, compiled.minor, compiled.patch);
+    printf("But we are linking against SDL version %d.%d.%d.\n",
+           linked.major, linked.minor, linked.patch);
+
     // get main screen resolution and dpi
     int maindisp_width, maindisp_height/*, maindisp_dpi*/;
     if (SDL_GetNumVideoDisplays() > 0)
@@ -83,7 +93,10 @@ int main(int argc, char *argv[])
     int height = scale_factor * 800;
 
     // initialize and create window
-    Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE;
+    // note the high dpi flag does not seem to do anything...
+    // see https://forums.libsdl.org/viewtopic.php?t=9283&sid=172ecee483f7d84f668077d9104c01b8
+    // for alternative
+    Uint32 flags = SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI;
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // hint
