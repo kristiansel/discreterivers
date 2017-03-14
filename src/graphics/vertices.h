@@ -13,7 +13,7 @@ class Vertices : public Resource::RefCounted<Vertices>
 {
 public:
     inline explicit Vertices(const std::vector<vmath::Vector4> &position_data,
-                      const std::vector<vmath::Vector4> &normal_data);
+                             const std::vector<vmath::Vector4> &normal_data);
 
     inline explicit Vertices(const std::vector<vmath::Vector4> &position_data,
                       const std::vector<vmath::Vector4> &normal_data,

@@ -4,6 +4,8 @@
 #include "../common/macro/macrodebuglog.h"
 #include "../common/mathext.h"
 
+#include "../common/procedural/boxgeometry.h"
+
 namespace engine {
 
 Engine::Engine(int w, int h, float scale_factor) :
@@ -188,6 +190,7 @@ void Engine::registerEngineCallbacks()
     // clear all on start new game...
     events::Immediate::add_callback<events::NewGameEvent>(
         [this] (const events::NewGameEvent &evt) {
+            // should just have to nuke the game state...?
             mRenderer.getSceneRoot().clearAll();
     });
 
@@ -204,6 +207,15 @@ void Engine::registerEngineCallbacks()
 
             gfx::SceneNodeHandle sun_node = mRenderer.getSceneRoot().addSceneNode();
             sun_node->addLight(vmath::Vector4(cam_view_distance, cam_view_distance, cam_view_distance, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+
+            // add a box geometry..
+            Procedural::Geometry box = Procedural::boxGeometry(1.0f, 1.0f, 1.0f);
+            gfx::SceneNodeHandle player_node = mRenderer.getSceneRoot().addSceneNode();
+            player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
+                                                      gfx::Primitives(box.triangles)),
+                                        gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
+            player_node->transform.position = vmath::Vector3(0.0, 0.0, cam_view_distance-6.0f);
+            // end func
     });
 
 }
