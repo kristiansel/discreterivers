@@ -1,10 +1,11 @@
 #include "engine.h"
 
 #include "../createscene.h"
-#include "../common/macro/macrodebuglog.h"
 #include "../common/mathext.h"
+#include "../common/macro/macrodebuglog.h"
 
 #include "../common/procedural/boxgeometry.h"
+#include "../common/procedural/planegeometry.h"
 
 namespace engine {
 
@@ -209,12 +210,29 @@ void Engine::registerEngineCallbacks()
             sun_node->addLight(vmath::Vector4(cam_view_distance, cam_view_distance, cam_view_distance, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
 
             // add a box geometry..
-            Procedural::Geometry box = Procedural::boxGeometry(1.0f, 1.0f, 1.0f);
+            Procedural::Geometry box = Procedural::boxPlanes(1.0f, 1.0f, 1.0f);
             gfx::SceneNodeHandle player_node = mRenderer.getSceneRoot().addSceneNode();
             player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
                                                       gfx::Primitives(box.triangles)),
                                         gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
             player_node->transform.position = vmath::Vector3(0.0, 0.0, cam_view_distance-6.0f);
+
+            // add a plane geometry..
+            Procedural::Geometry plane = Procedural::plane(1.0f, 1.0f);
+            gfx::SceneNodeHandle plane_node = mRenderer.getSceneRoot().addSceneNode();
+            plane_node->addSceneObject(gfx::Geometry(gfx::Vertices(plane.points, plane.normals),
+                                                      gfx::Primitives(plane.triangles)),
+                                        gfx::Material(vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
+            plane_node->transform.position = vmath::Vector3(0.0, -2.0f, cam_view_distance-4.0f);
+
+            // add a double plane geometry..
+            Procedural::Geometry dplane = Procedural::doublePlane(1.0f, 1.0f);
+            gfx::SceneNodeHandle dplane_node = mRenderer.getSceneRoot().addSceneNode();
+            dplane_node->addSceneObject(gfx::Geometry(gfx::Vertices(dplane.points, dplane.normals),
+                                                      gfx::Primitives(dplane.triangles)),
+                                        gfx::Material(vmath::Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
+            dplane_node->transform.position = vmath::Vector3(0.0, -2.0f, cam_view_distance-2.0f);
+
             // end func
     });
 

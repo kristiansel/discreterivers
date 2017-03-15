@@ -244,13 +244,13 @@ void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> s
 
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_object(scene_data->alt_ocean_points, scene_data->alt_ocean_triangles,
-                                                             vmath::Vector4(0.2f, 0.2f, 0.8f, 1.0f), planet_scene_node);
+                                                             vmath::Vector4(0.05f, 0.133f, 0.30f, 1.0f), planet_scene_node);
 
     std::cout << "alt_ocean_so" << std::endl;
 
     // Add planet lakes scene object
     gfx::SceneObjectHandle alt_lakes_so = add_trivial_object(scene_data->alt_lake_points, scene_data->alt_lake_triangles,
-                                                             vmath::Vector4(0.6f, 0.6f, 0.9f, 1.0f), planet_scene_node);
+                                                             vmath::Vector4(0.05f, 0.133f, 0.30f, 1.0f), planet_scene_node);
 
     std::cout << "alt_lakes_so" << std::endl;
 
@@ -262,7 +262,7 @@ void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> s
         gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
         gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-        vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
+        vmath::Vector4 color(0.05f, 0.133f, 0.30f, 1.0f);
         float z_offset = +0.005;
         gfx::Material material = gfx::Material(color, z_offset);
 

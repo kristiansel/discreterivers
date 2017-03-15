@@ -1,20 +1,12 @@
 #ifndef BOXGEOMETRY_H
 #define BOXGEOMETRY_H
 
-#include <vector>
-#include "../gfx_primitives.h"
+#include "geometry.h"
 
 namespace Procedural
 {
 
-struct Geometry
-{
-    std::vector<vmath::Vector4> points;
-    std::vector<gfx::Triangle> triangles;
-    std::vector<vmath::Vector4> normals;
-};
-
-inline Geometry boxGeometry(float w, float h, float d)
+inline Geometry box(float w, float h, float d)
 {
     Geometry out =
     {
@@ -33,6 +25,7 @@ inline Geometry boxGeometry(float w, float h, float d)
     return out;
 
 }
+
 
 } // Procedural
 
