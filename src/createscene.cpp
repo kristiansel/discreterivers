@@ -141,6 +141,8 @@ Ptr::OwningPtr<MacroState> createPlanetData(PlanetShape planet_shape_selector, P
             alt_planet_texcoords,
             clim_mat_texco,
 
+            water_geometry.landWaterTypes,
+
             planet_shape_ptr
         }
     );
@@ -262,7 +264,7 @@ void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> s
         gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
         gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
-        vmath::Vector4 color(0.05f, 0.133f, 0.30f, 1.0f);
+        vmath::Vector4 color(0.1f, 0.26f, 0.60f, 1.0f);
         float z_offset = +0.005;
         gfx::Material material = gfx::Material(color, z_offset);
 
@@ -408,11 +410,11 @@ void createMapNodeWithOffset(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<M
 
     // Add planet ocean scene object
     gfx::SceneObjectHandle alt_ocean_so = add_trivial_map_object(scene_data->alt_ocean_points, scene_data->alt_ocean_triangles,
-                                                vmath::Vector4(0.2f, 0.2f, 0.8f, 1.0f), map_scene_node, scene_data->planet_base_shape,
+                                                vmath::Vector4(0.05f, 0.133f, 0.30f, 1.0f), map_scene_node, scene_data->planet_base_shape,
                                                 u_cycle, v_cycle, h_min, h_max);
     // Add planet lakes scene object
     gfx::SceneObjectHandle alt_lakes_so = add_trivial_map_object(scene_data->alt_lake_points, scene_data->alt_lake_triangles,
-                                                vmath::Vector4(0.6f, 0.6f, 0.9f, 1.0f), map_scene_node, scene_data->planet_base_shape,
+                                                vmath::Vector4(0.05f, 0.133f, 0.30f, 1.0f), map_scene_node, scene_data->planet_base_shape,
                                                 u_cycle, v_cycle, h_min, h_max);
 
     // Add planet rivers scene object
@@ -423,7 +425,7 @@ void createMapNodeWithOffset(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<M
         gfx::Primitives primitives = gfx::Primitives(rivers_primitives_data);
         gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);
 
-        vmath::Vector4 color(0.6f, 0.6f, 0.9f, 1.0f);
+        vmath::Vector4 color(0.1f, 0.26f, 0.60f, 1.0f);
         float z_offset = +0.005;
         gfx::Material material = gfx::Material(color, z_offset);
 

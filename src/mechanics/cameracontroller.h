@@ -36,6 +36,8 @@ public:
         ToggleOrtho   = 0b00000001,
     };
 
+    void setUpDir(const vmath::Vector3 &up_dir) { mUpDir = up_dir; }
+
 private:
     // props
     Ptr::WritePtr<gfx::Camera> mCameraPtr;
@@ -45,13 +47,16 @@ private:
     float           mMouseTurnSpeed;
     MoveSignalFlags mSignalFlags;
     TurnSignals     mTurnSignals;
+    vmath::Vector3  mUpDir;
 
     // non-default-constructible
     CameraController() = delete;
 
 public:
-    CameraController(Ptr::WritePtr<gfx::Camera> camera_ptr, float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
+    CameraController(Ptr::WritePtr<gfx::Camera> camera_ptr, const vmath::Vector3 &up_dir = vmath::Vector3(0.0f, 1.0f, 0.0f),
+                     float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
         mCameraPtr(camera_ptr),
+        mUpDir(up_dir),
         mSpeed(speed),
         mMouseTurnSpeed(mouse_turn_speed)
     {
@@ -119,8 +124,8 @@ inline void CameraController::update()
     }
 
     mCameraPtr->mTransform.rotation =
-            vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[0], vmath::Vector3(0.0f, 1.0f, 0.0f))*
-            vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[1], mCameraPtr->mTransform.getRightDir())*
+            vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[0], mUpDir ) *
+            vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[1], mCameraPtr->mTransform.getRightDir()) *
             mCameraPtr->mTransform.rotation;
 
 }

@@ -4,6 +4,8 @@
 #include "../common/gfx_primitives.h"
 #include "../altplanet/planetshapes.h"
 
+#include "../altplanet/watersystem.h"
+
 //namespace state {
 
 //namespace macro {
@@ -22,6 +24,8 @@ public:
 
     std::vector<gfx::TexCoords> alt_planet_texcoords;
     std::vector<gfx::TexCoords> clim_mat_texco;
+
+    std::vector<AltPlanet::LandWaterType> land_water_types;
 
     const AltPlanet::Shape::BaseShape * planet_base_shape;
 

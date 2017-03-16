@@ -52,6 +52,9 @@ WaterSystem::WaterGeometry WaterSystem::generateWaterSystem(const AltPlanet::Pla
     freshwater = generateFreshwater(&ocean_result.landWaterTypes, triangles, points, point_to_point_adjacency,
                                     point_tri_adjacency, num_river_springs, planet_shape);
 
+    // copy the landWaterTypes into return
+    water_geometry.landWaterTypes = ocean_result.landWaterTypes;
+
     return water_geometry;
 
 }
@@ -72,7 +75,6 @@ WaterSystem::GenOceanResult WaterSystem::generateOcean(const vector<Triangle> &t
     vector<Triangle> &ocean_triangles = result_out.ocean.triangles;
     vector<LandWaterType>  &point_land_water_types = result_out.landWaterTypes;
     float &sealevel_radius = result_out.seaLevel;
-    // TODO: Generalize to a potential function not equal to sphere radius, but one reflecting the planet in question (in progress)
 
     // sanitize input
     if (ocean_fraction < min_ocean_fraction|| ocean_fraction >= max_ocean_fraction)
@@ -199,7 +201,7 @@ void push_back_if_unique(vector<T> &v, const T &e)
 }
 
 
-WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(vector<WaterSystem::LandWaterType>  * const point_land_water_types,
+WaterSystem::WaterGeometry::Freshwater WaterSystem::generateFreshwater(vector<LandWaterType>  * const point_land_water_types,
                                                                        const vector<Triangle> &triangles,
                                                                        const vector<Vector3> &points,
                                                                        const vector<vector<int>> &point_to_point_adjacency,

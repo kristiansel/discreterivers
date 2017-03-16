@@ -151,12 +151,12 @@ inline void Shader::drawDrawObject(const DrawObject &draw_object, const Camera &
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     }
 
-    checkOpenGLErrors("Before draw elements");
+    //checkOpenGLErrors("Before draw elements");
     //                                                  | num indices | type of index | wtf is this for?
     glDrawElements(PRIMITIVE_GL_CODE(geometry_data.primitives.mPrimitiveType),
                    geometry_data.primitives.mNumIndices, GL_UNSIGNED_INT, (void*)0 );
 
-    checkOpenGLErrors("After draw elements");
+    //checkOpenGLErrors("After draw elements");
 }
 
 inline void Shader::drawLights(const Camera &camera) const

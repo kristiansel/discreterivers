@@ -13,9 +13,19 @@
 namespace AltPlanet
 {
 
+enum class LandWaterType
+{
+    Sea,
+    River,
+    Lake,
+    Land
+};
+
+
 class WaterSystem final // where is C#'s static class or private namespace when you need it???
 {
 public:
+
 
     struct WaterGeometry
     {
@@ -34,6 +44,8 @@ public:
                 std::vector<gfx::Line> lines;
             } rivers;
         } freshwater;
+
+        std::vector<LandWaterType>  landWaterTypes;
     };
 
     static WaterGeometry generateWaterSystem(const AltPlanet::PlanetGeometry &planet_geometry,
@@ -59,13 +71,7 @@ private:
         std::vector<std::vector<point_index>> &pointPointAdjacency;
     };
 
-    enum class LandWaterType
-    {
-        Sea,
-        River,
-        Lake,
-        Land
-    };
+
 
     struct GenOceanResult {
         WaterGeometry::Ocean ocean;

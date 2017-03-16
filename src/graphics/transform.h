@@ -14,6 +14,14 @@ struct Transform
     vmath::Quat rotation;
     vmath::Vector3 scale;
 
+    void lookAt(const vmath::Vector3 &from_pos, const vmath::Vector3 &to_pos, const vmath::Vector3 &up_vector)
+    {
+        vmath::Matrix4 look_at = vmath::inverse(vmath::Matrix4::lookAt({from_pos[0], from_pos[1], from_pos[2]},
+                                                        {to_pos[0]  , to_pos[1]  , to_pos[2]  }, up_vector));
+        position = look_at.getTranslation();
+        rotation = vmath::Quat(look_at.getUpper3x3());
+    }
+
     inline vmath::Matrix4 getTransformMatrix() const
     {
         return vmath::Matrix4::translation(position) * vmath::Matrix4::rotation(rotation) * vmath::Matrix4::scale(scale);

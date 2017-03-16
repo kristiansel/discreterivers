@@ -198,40 +198,65 @@ void Engine::registerEngineCallbacks()
     // load the world into the graphical scene when starting a new game
     events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
-            Ptr::ReadPtr<MacroState> scene_data = this->mGameState.readMacroState();
+            Ptr::ReadPtr<MacroState> scene_data = mGameState.readMacroState();
 
             // add stuff to scene
             gfx::SceneNodeHandle world_node = mRenderer.getSceneRoot().addSceneNode();
             float cam_view_distance;
             createScene(world_node, scene_data, cam_view_distance);
-            mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, cam_view_distance);
 
+            // find a point on land...
+            int i_point = rand()%scene_data->alt_planet_points.size();
+            while (scene_data->land_water_types[i_point] != AltPlanet::LandWaterType::Land)
+            {
+                i_point = rand()%scene_data->alt_planet_points.size();
+            }
+            vmath::Vector3 land_point = scene_data->alt_planet_points[i_point];
+
+            // go 15 meters above that point
+            vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(land_point));
+            vmath::Vector3 point_above = land_point + 2.0f * local_up;
+
+            // use that point as basis for our 'MicroScene'
+            gfx::SceneNodeHandle micro_node = mRenderer.getSceneRoot().addSceneNode();
+            micro_node->transform.position = point_above;
+
+            // set the sun light to be on this side of the planet
+            vmath::Vector3 sun_pos = land_point + 50000.0f * local_up;
             gfx::SceneNodeHandle sun_node = mRenderer.getSceneRoot().addSceneNode();
-            sun_node->addLight(vmath::Vector4(cam_view_distance, cam_view_distance, cam_view_distance, 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+            sun_node->addLight(vmath::Vector4(sun_pos[0], sun_pos[1], sun_pos[2], 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
+
+            DEBUG_LOG("local_up: " << local_up[0] << ", " << local_up[1] << ", " << local_up[2]);
+            DEBUG_LOG("point_above: " << point_above[0] << ", " << point_above[1] << ", " << point_above[2]);
 
             // add a box geometry..
             Procedural::Geometry box = Procedural::boxPlanes(1.0f, 1.0f, 1.0f);
-            gfx::SceneNodeHandle player_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle player_node = micro_node->addSceneNode();
             player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
                                                       gfx::Primitives(box.triangles)),
                                         gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
-            player_node->transform.position = vmath::Vector3(0.0, 0.0, cam_view_distance-6.0f);
+            vmath::Vector3 box_relative_pos = vmath::Vector3(0.0, 0.0, -6.0f);
+            player_node->transform.position = box_relative_pos;
 
             // add a plane geometry..
             Procedural::Geometry plane = Procedural::plane(1.0f, 1.0f);
-            gfx::SceneNodeHandle plane_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle plane_node = micro_node->addSceneNode();
             plane_node->addSceneObject(gfx::Geometry(gfx::Vertices(plane.points, plane.normals),
-                                                      gfx::Primitives(plane.triangles)),
-                                        gfx::Material(vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
-            plane_node->transform.position = vmath::Vector3(0.0, -2.0f, cam_view_distance-4.0f);
+                                                     gfx::Primitives(plane.triangles)),
+                                       gfx::Material(vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
+            plane_node->transform.position = vmath::Vector3(0.0, -2.0f, -4.0f);
 
             // add a double plane geometry..
             Procedural::Geometry dplane = Procedural::doublePlane(1.0f, 1.0f);
-            gfx::SceneNodeHandle dplane_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle dplane_node = micro_node->addSceneNode();
             dplane_node->addSceneObject(gfx::Geometry(gfx::Vertices(dplane.points, dplane.normals),
                                                       gfx::Primitives(dplane.triangles)),
                                         gfx::Material(vmath::Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
-            dplane_node->transform.position = vmath::Vector3(0.0, -2.0f, cam_view_distance-2.0f);
+            dplane_node->transform.position = vmath::Vector3(0.0, -2.0f, 2.0f);
+
+            // set the camera to look at the box
+            mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);
+            mCameraController.setUpDir(local_up);
 
             // end func
     });
