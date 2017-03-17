@@ -28,6 +28,9 @@ public:
         GLint mv;
         GLint p;
         GLint z_offset;
+        GLint z_near;
+        GLint z_far;
+        GLint C;
         GLint tex;
         GLint color;
         GLint num_lights;
@@ -64,6 +67,7 @@ public:
     inline void drawDrawObjects( const Camera &camera ) const
     {
         drawLights(camera);
+        setCamUniforms(camera);
 
         // actually draw the batched draw objects
         for (const auto &draw_object : mDrawObjectsVector)
@@ -103,6 +107,7 @@ private:
     };
 
     inline void drawDrawObject(const DrawObject &draw_object, const Camera &camera) const;
+    inline void setCamUniforms(const Camera &camera) const;
 
     GLuint mShaderProgramID;
 
@@ -176,6 +181,14 @@ inline void Shader::drawLights(const Camera &camera) const
     glUniform1i(mUniforms.num_lights, (GLint)num_lights);
     glUniform4fv(mUniforms.light_position_array, num_lights, (const GLfloat*)&light_position_array);
     glUniform4fv(mUniforms.light_color_array, num_lights, (const GLfloat*)&light_color_array);
+}
+
+inline void Shader::setCamUniforms(const Camera &camera) const
+{
+    glUniform1f(mUniforms.z_near, camera.getZNear());
+    glUniform1f(mUniforms.z_far, camera.getZFar());
+    float C = 0.01f;
+    glUniform1f(mUniforms.C, C);
 }
 
 

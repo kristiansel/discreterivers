@@ -58,7 +58,10 @@ void createCharCreateMenu(GUI &gui, GUINode &char_create_menu_root)
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  90.0f,
-                 [](){ events::Immediate::broadcast(events::StartGameEvent()); }/*,
+                 [](){
+                     //events::Immediate::broadcast(events::CreateCharacter(/* background, location, stats etc...*/))
+                     events::Immediate::broadcast(events::StartGameEvent());
+                 }/*,
                  [state_handle]()  // is active
                  {
                      // wat

@@ -400,13 +400,16 @@ namespace AltPlanet
     {
         Shape::AABB aabb = planet_shape.getAABB();
         //DEBUG_LOG("planet aabb: " << aabb.height << ", " << aabb.width)
-        float smallest_noise_scale = aabb.width/20.0f; // TODO: meters....
+        //float smallest_noise_scale = aabb.width/20.0f; // TODO: meters....
+        float smallest_noise_scale = 300.0f; // meters
         //float smallest_noise_scale = 0.2f; // TODO: meters....
+        float size_factor = aabb.width/smallest_noise_scale;
+        DEBUG_LOG("size_factor" << size_factor);
         Noise3D noise3d(aabb.width, aabb.height, smallest_noise_scale, 198327);
 
         for (auto &point : points)
         {
-            float noise_sample = 0.1f*noise3d.sample(point);
+            float noise_sample = size_factor/24.0f * 0.1f*noise3d.sample(point);
             planet_shape.scalePointHeight(point, std::max(1.0f+noise_sample, 0.5f));
         }
         //DEBUG_LOG("max perturbation = ")

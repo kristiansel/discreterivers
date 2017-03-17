@@ -20,6 +20,10 @@ Shader::Shader()
     "uniform mat4 p;"
     "uniform float z_offset;"
 
+    "uniform float z_near = 1.0;"
+    "uniform float z_far = 5000.0;"
+    "uniform float C = 0.01;"
+
     "void main() {"
     "  tex_coords = vertex_tex_coords;"
     "  position = mv * vec4(vertex_position.xyz, 1.0);"
@@ -27,6 +31,8 @@ Shader::Shader()
     "  vec4 n4 = mv * vec4(vertex_normal.xyz, 0.0);"
     "  normal = normalize(n4.xyz);"
     "  gl_Position = p * (position + vec4(0, 0, z_offset, 0));"
+    "  float w = gl_Position.w;"
+    "  gl_Position.z = (2.0*log(C*w + 1) / log(C*z_far + 1) - 1) * w;"
     "}";
 
     const char * fragment_shader_src =
@@ -69,6 +75,9 @@ Shader::Shader()
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
     mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
     mUniforms.z_offset = glGetUniformLocation(mShaderProgramID, "z_offset") ;
+    mUniforms.z_near = glGetUniformLocation(mShaderProgramID, "z_near") ;
+    mUniforms.z_far = glGetUniformLocation(mShaderProgramID, "z_far") ;
+    mUniforms.C = glGetUniformLocation(mShaderProgramID, "C") ;
     mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
     mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
     mUniforms.num_lights = glGetUniformLocation(mShaderProgramID, "num_lights") ;

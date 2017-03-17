@@ -15,7 +15,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    mCamera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 1.0f, 5000.0f)),
+    mCamera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
     mCameraController(&mCamera),
     mGUICapturedMouse(false)
 
@@ -238,21 +238,6 @@ void Engine::registerEngineCallbacks()
             vmath::Vector3 box_relative_pos = vmath::Vector3(0.0, 0.0, -6.0f);
             player_node->transform.position = box_relative_pos;
 
-            // add a plane geometry..
-            Procedural::Geometry plane = Procedural::plane(1.0f, 1.0f);
-            gfx::SceneNodeHandle plane_node = micro_node->addSceneNode();
-            plane_node->addSceneObject(gfx::Geometry(gfx::Vertices(plane.points, plane.normals),
-                                                     gfx::Primitives(plane.triangles)),
-                                       gfx::Material(vmath::Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
-            plane_node->transform.position = vmath::Vector3(0.0, -2.0f, -4.0f);
-
-            // add a double plane geometry..
-            Procedural::Geometry dplane = Procedural::doublePlane(1.0f, 1.0f);
-            gfx::SceneNodeHandle dplane_node = micro_node->addSceneNode();
-            dplane_node->addSceneObject(gfx::Geometry(gfx::Vertices(dplane.points, dplane.normals),
-                                                      gfx::Primitives(dplane.triangles)),
-                                        gfx::Material(vmath::Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
-            dplane_node->transform.position = vmath::Vector3(0.0, -2.0f, 2.0f);
 
             // set the camera to look at the box
             mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);

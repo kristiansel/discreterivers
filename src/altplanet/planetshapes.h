@@ -95,6 +95,7 @@ public:
      */
     virtual bool wrapV() const = 0;
 
+
     //////////////////////////////////////////////////
     // Functions that utilize the virtual functions //
     //////////////////////////////////////////////////
@@ -127,6 +128,12 @@ public:
     {
         SurfaceLine surface_line = shapeFunction(point);
         return (vmath::lengthSqr(point - surface_line.zeroHeightPt));
+    }
+
+    inline float getDim() const
+    {
+        SurfaceLine surface_line = shapeFunction(vmath::Vector3(1.0f, 2.0f, 3.0f)); // any point will do
+        return surface_line.refHeight;
     }
 };
 

@@ -54,7 +54,7 @@ private:
 
 public:
     CameraController(Ptr::WritePtr<gfx::Camera> camera_ptr, const vmath::Vector3 &up_dir = vmath::Vector3(0.0f, 1.0f, 0.0f),
-                     float speed = 0.1f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
+                     float speed = 1.0f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
         mCameraPtr(camera_ptr),
         mUpDir(up_dir),
         mSpeed(speed),

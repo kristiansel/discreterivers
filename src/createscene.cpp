@@ -32,9 +32,9 @@ Ptr::OwningPtr<MacroState> createPlanetData(PlanetShape planet_shape_selector, P
                                     planet_size_selector == PlanetSize::Medium ? 1 :
                                 /*planet_size_selector == PlanetSize::Large  ?*/ 2 ;
 
-    float planet_scale_factor  = planet_size_selector == PlanetSize::Small  ?     400.0f : // gives a side length of approx 50 m
-                                 planet_size_selector == PlanetSize::Medium ?     800.0f :
-                                /*planet_size_selector == PlanetSize::Large  ?*/ 1600.0f ;
+    float planet_scale_factor  = planet_size_selector == PlanetSize::Small  ?     1200.0f : // gives a side length of approx 50 m
+                                 planet_size_selector == PlanetSize::Medium ?     2400.0f :
+                                /*planet_size_selector == PlanetSize::Large  ?*/  4800.0f ;
 
 //    float planet_scale_factor  = planet_size_selector == PlanetSize::Small  ?     1.0f :
 //                                 planet_size_selector == PlanetSize::Medium ?     1.0f :
@@ -265,7 +265,7 @@ void createScene(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<MacroState> s
         gfx::Geometry geometry = gfx::Geometry(alt_planet_vertices, primitives);
 
         vmath::Vector4 color(0.1f, 0.26f, 0.60f, 1.0f);
-        float z_offset = +0.005;
+        float z_offset = +0.0005;
         gfx::Material material = gfx::Material(color, z_offset);
 
         return planet_scene_node->addSceneObject(geometry, material);
@@ -426,7 +426,7 @@ void createMapNodeWithOffset(gfx::SceneNodeHandle scene_root_hdl, Ptr::ReadPtr<M
         gfx::Geometry geometry = gfx::Geometry(map_climate_verts, primitives);
 
         vmath::Vector4 color(0.1f, 0.26f, 0.60f, 1.0f);
-        float z_offset = +0.005;
+        float z_offset = +0.0005;
         gfx::Material material = gfx::Material(color, z_offset);
 
         return map_scene_node->addSceneObject(geometry, material);

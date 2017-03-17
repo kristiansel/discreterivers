@@ -66,7 +66,11 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  90.0f,
-                 [](){ events::Immediate::broadcast(events::CharCreateEvent()); }/*,
+                 [](){
+                     // set the origin...
+                     //events::Immediate::broadcast(events::ChooseOrigin(/*people*/))
+                     events::Immediate::broadcast(events::CharCreateEvent());
+                 }/*,
                  [state_handle]()  // is active
                  {
                      // wat

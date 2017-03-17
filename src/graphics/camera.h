@@ -28,6 +28,9 @@ public:
         mProjectionMatrix = vmath::Matrix4::orthographic( -mAspect*mHalfHeight, mAspect*mHalfHeight,
                                                           -mHalfHeight, mHalfHeight, mZNear, mZFar );
     }
+
+    inline float getZNear() const { return mZNear; }
+    inline float getZFar() const { return mZFar; }
 };
 
 class PerspectiveProjection
@@ -48,6 +51,9 @@ public:
         mAspect = aspect;
         mProjectionMatrix = vmath::Matrix4::perspective(mFieldOfView, mAspect, mZNear, mZFar);
     }
+
+    inline float getZNear() const { return mZNear; }
+    inline float getZFar() const { return mZFar; }
 };
 
 
@@ -65,6 +71,9 @@ struct Camera
     inline void updateAspect(float aspect_ratio);
 
     inline vmath::Matrix4 getProjectionMatrix() const;
+
+    inline float getZNear() const;
+    inline float getZFar() const;
 
     Transform mTransform;
     Projection mProjection;
@@ -107,6 +116,40 @@ inline vmath::Matrix4 Camera::getProjectionMatrix() const
     case (Projection::is_a<PerspectiveProjection>::value):
         {
             return mProjection.get_const<PerspectiveProjection>().getProjectionMatrix();
+        }
+        break;
+    }
+}
+
+inline float Camera::getZNear() const
+{
+    switch (mProjection.get_type())
+    {
+    case (Projection::is_a<OrthographicProjection>::value):
+        {
+            return mProjection.get_const<OrthographicProjection>().getZNear();
+        }
+        break;
+    case (Projection::is_a<PerspectiveProjection>::value):
+        {
+            return mProjection.get_const<PerspectiveProjection>().getZNear();
+        }
+        break;
+    }
+}
+
+inline float Camera::getZFar() const
+{
+    switch (mProjection.get_type())
+    {
+    case (Projection::is_a<OrthographicProjection>::value):
+        {
+            return mProjection.get_const<OrthographicProjection>().getZFar();
+        }
+        break;
+    case (Projection::is_a<PerspectiveProjection>::value):
+        {
+            return mProjection.get_const<PerspectiveProjection>().getZFar();
         }
         break;
     }
