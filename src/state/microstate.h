@@ -3,6 +3,9 @@
 
 #include "actor.h"
 #include "../common/freelistset.h"
+#include "microstatecreationinfo.h"
+
+namespace state {
 
 class MicroState
 {
@@ -19,5 +22,7 @@ class MicroState
 public:
     MicroState();
 };
+
+}
 
 #endif // MICROSTATE_H

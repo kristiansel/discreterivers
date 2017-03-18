@@ -98,7 +98,7 @@ struct GenerateWorldEvent
 
 struct FinishGenerateWorldEvent
 {
-    Ptr::ReadPtr<MacroState> scene_data;
+    Ptr::ReadPtr<state::MacroState> scene_data;
 };
 
 struct UIScaleFactorUpdate {

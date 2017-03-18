@@ -56,7 +56,7 @@ public:
     OpenGLRenderer(int w, int h, float scale_factor);
 
     // methods
-    void draw(const Camera &camera, const gui::GUINode &gui_root) const;
+    void draw(const Camera &camera, const gui::GUINode &gui_root, const SceneNode &scene_root) const;
     void preDrawUpdate();
 
     // mutators
@@ -64,7 +64,7 @@ public:
     void resize(int w, int h);
 
     // getters
-    inline SceneNode &getSceneRoot() { return mSceneRoot; }
+    //inline SceneNode &getSceneRoot() { return mSceneRoot; }
     inline int getWidth() const { return mWidth; }
     inline int getHeight() const { return mHeight; }
 
@@ -82,8 +82,6 @@ private:
 
     // Main scene shader stuff
     Shader mMainShader;
-
-    SceneNode mSceneRoot;
 
     // GUI shader stuff
     gui::GUIShader mGUIShader;

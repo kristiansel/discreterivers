@@ -6,7 +6,7 @@
 
 #include "../altplanet/watersystem.h"
 
-//namespace state {
+namespace state {
 
 //namespace macro {
 
@@ -34,6 +34,6 @@ public:
 
 //}
 
-//}
+}
 
 #endif // MACROSTATE_H

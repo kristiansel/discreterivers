@@ -7,19 +7,18 @@
 namespace state {
 
 GameState::GameState() :
-    mMacroStatePtr(nullptr),
-    mMicroStatePtr(nullptr)
+    mMacroStatePtr(nullptr)
 {
     // register event callbacks
     events::Immediate::add_callback<events::GenerateWorldEvent>(
         [this] (const events::GenerateWorldEvent &evt) {
             sys::Async::addJob(
                 // The asynchronous operation
-                        [evt]()->Ptr::OwningPtr<MacroState> {
+                        [evt]()->Ptr::OwningPtr<state::MacroState> {
                             return createPlanetData(evt.planet_shape, evt.planet_size, evt.planet_seed);
                         },
                 // Process the result on return
-                        [this](Ptr::OwningPtr<MacroState> &scene_data)->void{
+                        [this](Ptr::OwningPtr<state::MacroState> &scene_data)->void{
                             // move the pointer into world object
                             std::cout << "STATE moving IN world ptr" << std::endl;
                             this->mMacroStatePtr = std::move(scene_data);
@@ -31,11 +30,16 @@ GameState::GameState() :
     );
 
     // register event callbacks
-    events::Immediate::add_callback<events::StartGameEvent>(
+    /*events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
             this->mMicroStatePtr = Ptr::OwningPtr<MicroState> ( new MicroState() );
         }
-    );
+    );*/
+}
+
+void GameState::createMicroState(const MicroStateCreationInfo &micro_state_creation_info)
+{
+    //
 }
 
 }

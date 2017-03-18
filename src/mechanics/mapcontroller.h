@@ -87,13 +87,13 @@ public:
     {
         mTurnSignals[0] = turn_signals[0];
         mTurnSignals[1] = turn_signals[1];
-        update(); // immediate update
+        //update(); // immediate update
     }
 
     inline void sendScrollSignal(const ScrollSignal &scroll_signal)
     {
         mScrollSignal = scroll_signal;
-        update(); // immediate update
+        //update(); // immediate update
     }
 
     /*inline void sendEvent(Event event)

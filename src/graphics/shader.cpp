@@ -69,6 +69,7 @@ Shader::Shader()
     "  vec4 texel = texture(tex, tex_coords);"
     "  frag_color = vec4(texel.rgb * total_light, 1.0);"
     "  gl_FragDepth = log2(flogz) * f_coef * 0.5;"
+    //"  frag_color = vec4(gl_FragDepth, 0.0, 0.0, 1.0);"
     "}";
 
     std::cout << "compiling shaders" << std::endl;

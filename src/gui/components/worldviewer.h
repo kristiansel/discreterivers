@@ -92,7 +92,7 @@ inline gfx::gui::GUINodeHandle createWorldViewer( gfx::gui::GUINodeHandle &paren
 
     events::Immediate::add_callback<events::FinishGenerateWorldEvent>(
         [world_node, loading_msg_node, state_handle, scene_element] (const events::FinishGenerateWorldEvent &evt) {
-            Ptr::ReadPtr<MacroState> scene_data = evt.scene_data;
+            Ptr::ReadPtr<state::MacroState> scene_data = evt.scene_data;
 
             // add stuff to scene
             float cam_view_distance;

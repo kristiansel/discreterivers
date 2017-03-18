@@ -123,7 +123,7 @@ inline void OpenGLRenderer::drawSceneRecursive(const SceneNode &scene_node, cons
 }
 
 
-void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) const
+void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root, const SceneNode &scene_root) const
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -134,7 +134,7 @@ void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root) co
     // wind direction
     // all that stuff that can be shared by shader programs...
 
-    drawScene(camera, mSceneRoot);
+    drawScene(camera, scene_root);
 
     //std::cout << "pre draw gui" << std::endl;
     drawGUI(gui_root);

@@ -7,6 +7,8 @@
 #include "../common/procedural/boxgeometry.h"
 #include "../common/procedural/planegeometry.h"
 
+#include "../state/microstatecreationinfo.h"
+
 namespace engine {
 
 Engine::Engine(int w, int h, float scale_factor) :
@@ -192,16 +194,16 @@ void Engine::registerEngineCallbacks()
     events::Immediate::add_callback<events::NewGameEvent>(
         [this] (const events::NewGameEvent &evt) {
             // should just have to nuke the game state...?
-            mRenderer.getSceneRoot().clearAll();
+            mGFXSceneRoot.clearAll();
     });
 
     // load the world into the graphical scene when starting a new game
     events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
-            Ptr::ReadPtr<MacroState> scene_data = mGameState.readMacroState();
+            Ptr::ReadPtr<state::MacroState> scene_data = mGameState.readMacroState();
 
             // add stuff to scene
-            gfx::SceneNodeHandle world_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle world_node = mGFXSceneRoot.addSceneNode();
             float cam_view_distance;
             createScene(world_node, scene_data, cam_view_distance);
 
@@ -213,17 +215,29 @@ void Engine::registerEngineCallbacks()
             }
             vmath::Vector3 land_point = scene_data->alt_planet_points[i_point];
 
-            // go 15 meters above that point
+            // go a bit above that point
             vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(land_point));
             vmath::Vector3 point_above = land_point + 2.0f * local_up;
 
+            unsigned int player_actor_id = 1;
+            state::MicroStateCreationInfo micro_state_creation_info{
+                scene_data, // macro state ptr
+                point_above, // anchor_pos
+                {
+                    { player_actor_id, point_above, vmath::Quat() },
+                   /* other actors */
+                }
+            };
+
+            mGameState.createMicroState(micro_state_creation_info);
+
             // use that point as basis for our 'MicroScene'
-            gfx::SceneNodeHandle micro_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle micro_node = mGFXSceneRoot.addSceneNode();
             micro_node->transform.position = point_above;
 
             // set the sun light to be on this side of the planet
             vmath::Vector3 sun_pos = land_point + 50000.0f * local_up;
-            gfx::SceneNodeHandle sun_node = mRenderer.getSceneRoot().addSceneNode();
+            gfx::SceneNodeHandle sun_node = mGFXSceneRoot.addSceneNode();
             sun_node->addLight(vmath::Vector4(sun_pos[0], sun_pos[1], sun_pos[2], 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
 
             DEBUG_LOG("local_up: " << local_up[0] << ", " << local_up[1] << ", " << local_up[2]);
@@ -242,6 +256,7 @@ void Engine::registerEngineCallbacks()
             // set the camera to look at the box
             mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);
             mCameraController.setUpDir(local_up);
+
 
             // end func
     });

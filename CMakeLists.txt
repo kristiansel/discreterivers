@@ -51,6 +51,7 @@ include_directories(
     ${GL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
     ${FREETYPE_INCLUDE_DIRS}
+    ${BULLET_INCLUDE_DIRS}
 )
 
 # Create compilation database (for code completion tools)
@@ -65,6 +66,7 @@ target_link_libraries(${PROJECT_NAME}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${FREETYPE_LIBRARIES}
+    ${BULLET_LIBRARIES}
     # assimp
     # BulletDynamics BulletCollision LinearMath
 )

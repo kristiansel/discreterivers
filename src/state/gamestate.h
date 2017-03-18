@@ -5,6 +5,7 @@
 #include "../common/pointer.h"
 #include "macrostate.h"
 #include "microstate.h"
+#include "graphicsstatemanager.h"
 
 namespace state {
 
@@ -17,12 +18,17 @@ class GameState
     //std::list<MicroState> mServingMicroStatePtrs;
 
     // zero or one mirror micro-state
-    Ptr::OwningPtr<MicroState> mMicroStatePtr;
+    // Ptr::OwningPtr<MicroState> mMicroStatePtr;
+
+    // subsystems here directly
+    GraphicsStateManager mGraphicsStateManager;
 
 public:
     GameState();
 
     Ptr::ReadPtr<MacroState> readMacroState() { return mMacroStatePtr.getReadPtr(); }
+
+    void createMicroState(const MicroStateCreationInfo &micro_state_creation_info);
 };
 
 }

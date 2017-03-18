@@ -2,8 +2,11 @@
 #define MICROSTATECREATIONINFO_H
 
 #include <vector>
-
+#include "macrostate.h"
+#include "../common/pointer.h"
 #include "../common/gfx_primitives.h"
+
+namespace state {
 
 struct ActorCreationInfo
 {
@@ -17,8 +20,11 @@ struct ActorCreationInfo
 
 struct MicroStateCreationInfo
 {
+    Ptr::ReadPtr<MacroState> macro_state_ptr;
     vmath::Vector3 anchor_pos;
     std::vector<ActorCreationInfo> actors;
 };
+
+}
 
 #endif // MICROSTATECREATIONINFO_H

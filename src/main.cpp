@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         bool resizing_this_frame = false;
 
         // pre-event work
-        engine.prepareFrame();
+        // engine.prepareFrame();
 
         // handle continuous events
         SDL_PumpEvents();

@@ -8,8 +8,8 @@
 #include "../events/queuedevents.h"
 #include "../state/gamestate.h"
 #include "../mechanics/cameracontroller.h"
-
 #include "mousestate.h"
+#include "physicssubsystem.h"
 
 // organize window/input handling under system..?
 
@@ -24,11 +24,17 @@ class Engine
     gfx::OpenGLRenderer mRenderer;              // must be initialized before GUI!
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
-    // to be moved
+    // to be moved into graphics state manager
     gfx::Camera             mCamera;              // init order important!
-    //gfx::SceneNode          mGFXSceneRoot;       // main game scene
+    gfx::SceneNode          mGFXSceneRoot;       // main game scene
+
+    // to be moved into mechanics state manager
     mech::CameraController  mCameraController;   // must be init after camera
 
+    // physics
+    PhysicsSubsystem mPhysicsSubsystem;
+
+    // what is this used for, why does it not reside in GUI?
     bool mGUICapturedMouse;
     MouseState mMouseState; // should be in some sort of input handler...
 
@@ -41,7 +47,7 @@ public:
     Engine(int w, int h, float scale_factor);
 
     // mutators
-    inline void prepareFrame();
+    //inline void prepareFrame();
     void update();
     inline void resize(int w, int h);
     inline void draw();
@@ -63,10 +69,10 @@ private:
 };
 
 // inline function definitions
-void Engine::prepareFrame()
-{
-    mCameraController.clearSignals();
-}
+//void Engine::prepareFrame()
+//{
+//    //mCameraController.clearSignals(); // should this be baked in at the end of controller update?
+//}
 
 inline void Engine::resize(int w, int h)
 {
@@ -76,7 +82,7 @@ inline void Engine::resize(int w, int h)
 
 inline void Engine::draw()
 {
-    mRenderer.draw(mCamera, mGUI.getGUIRoot());
+    mRenderer.draw(mCamera, mGUI.getGUIRoot(), mGFXSceneRoot);
 }
 
 
