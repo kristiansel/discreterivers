@@ -28,9 +28,10 @@ public:
         GLint mv;
         GLint p;
         GLint z_offset;
-        GLint z_near;
-        GLint z_far;
-        GLint C;
+        //GLint z_near;
+        //GLint z_far;
+        //GLint C;
+        GLint f_coef;
         GLint tex;
         GLint color;
         GLint num_lights;
@@ -185,10 +186,9 @@ inline void Shader::drawLights(const Camera &camera) const
 
 inline void Shader::setCamUniforms(const Camera &camera) const
 {
-    glUniform1f(mUniforms.z_near, camera.getZNear());
-    glUniform1f(mUniforms.z_far, camera.getZFar());
-    float C = 0.01f;
-    glUniform1f(mUniforms.C, C);
+    float z_far = camera.getZFar();
+    float Fcoef = 2.0f / std::log2f(z_far + 1.0f);
+    glUniform1f(mUniforms.f_coef, Fcoef);
 }
 
 

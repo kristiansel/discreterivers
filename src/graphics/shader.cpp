@@ -16,13 +16,13 @@ Shader::Shader()
     "out vec3 normal;"
     "out vec2 tex_coords;"
 
+    "out float flogz;"
+
     "uniform mat4 mv;"
     "uniform mat4 p;"
-    "uniform float z_offset;"
 
-    "uniform float z_near = 1.0;"
-    "uniform float z_far = 5000.0;"
-    "uniform float C = 0.01;"
+    "uniform float z_offset;"
+    "uniform float f_coef;"
 
     "void main() {"
     "  tex_coords = vertex_tex_coords;"
@@ -31,8 +31,8 @@ Shader::Shader()
     "  vec4 n4 = mv * vec4(vertex_normal.xyz, 0.0);"
     "  normal = normalize(n4.xyz);"
     "  gl_Position = p * (position + vec4(0, 0, z_offset, 0));"
-    "  float w = gl_Position.w;"
-    "  gl_Position.z = (2.0*log(C*w + 1) / log(C*z_far + 1) - 1) * w;"
+    "  gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * f_coef - 1.0;"
+    "  flogz = 1.0 + gl_Position.w; "
     "}";
 
     const char * fragment_shader_src =
@@ -42,6 +42,8 @@ Shader::Shader()
     "in vec3 normal;"
     "in vec2 tex_coords;"
 
+    "in float flogz;"
+
     "out vec4 frag_color;"
 
     "uniform sampler2D tex;"
@@ -49,6 +51,8 @@ Shader::Shader()
     "uniform int  num_lights = 0;"
     "uniform vec4 light_position_array[10];"
     "uniform vec4 light_color_array[10];"
+
+    "uniform float f_coef;"
 
     "uniform vec3 ambient = vec3(0.05, 0.05, 0.05);"
 
@@ -64,6 +68,7 @@ Shader::Shader()
     "  "
     "  vec4 texel = texture(tex, tex_coords);"
     "  frag_color = vec4(texel.rgb * total_light, 1.0);"
+    "  gl_FragDepth = log2(flogz) * f_coef * 0.5;"
     "}";
 
     std::cout << "compiling shaders" << std::endl;
@@ -75,9 +80,7 @@ Shader::Shader()
     mUniforms.mv = glGetUniformLocation(mShaderProgramID, "mv") ;
     mUniforms.p = glGetUniformLocation(mShaderProgramID, "p") ;
     mUniforms.z_offset = glGetUniformLocation(mShaderProgramID, "z_offset") ;
-    mUniforms.z_near = glGetUniformLocation(mShaderProgramID, "z_near") ;
-    mUniforms.z_far = glGetUniformLocation(mShaderProgramID, "z_far") ;
-    mUniforms.C = glGetUniformLocation(mShaderProgramID, "C") ;
+    mUniforms.f_coef = glGetUniformLocation(mShaderProgramID, "f_coef");
     mUniforms.tex = glGetUniformLocation(mShaderProgramID, "tex") ;
     mUniforms.color = glGetUniformLocation(mShaderProgramID, "color") ;
     mUniforms.num_lights = glGetUniformLocation(mShaderProgramID, "num_lights") ;
