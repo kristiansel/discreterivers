@@ -8,8 +8,9 @@
 #include "../events/queuedevents.h"
 #include "../state/gamestate.h"
 #include "../mechanics/cameracontroller.h"
+#include "../physics/physicsmanager.h"
 #include "mousestate.h"
-#include "physicssubsystem.h"
+#include "gfxscenemanager.h"
 
 // organize window/input handling under system..?
 
@@ -25,14 +26,13 @@ class Engine
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
     // to be moved into graphics state manager
-    gfx::Camera             mCamera;              // init order important!
-    gfx::SceneNode          mGFXSceneRoot;       // main game scene
+    struct GFXSceneManager mGFXSceneManager;
 
     // to be moved into mechanics state manager
     mech::CameraController  mCameraController;   // must be init after camera
 
     // physics
-    PhysicsSubsystem mPhysicsSubsystem;
+    PhysicsManager mPhysicsManager;
 
     // what is this used for, why does it not reside in GUI?
     bool mGUICapturedMouse;
@@ -48,7 +48,7 @@ public:
 
     // mutators
     //inline void prepareFrame();
-    void update();
+    void update(float delta_time_sec);
     inline void resize(int w, int h);
     inline void draw();
 
@@ -82,7 +82,7 @@ inline void Engine::resize(int w, int h)
 
 inline void Engine::draw()
 {
-    mRenderer.draw(mCamera, mGUI.getGUIRoot(), mGFXSceneRoot);
+    mRenderer.draw(mGFXSceneManager.mCamera, mGUI.getGUIRoot(), mGFXSceneManager.mGFXSceneRoot);
 }
 
 

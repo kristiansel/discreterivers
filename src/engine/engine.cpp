@@ -2,11 +2,7 @@
 
 #include "../createscene.h"
 #include "../common/mathext.h"
-#include "../common/macro/macrodebuglog.h"
-
-#include "../common/procedural/boxgeometry.h"
-#include "../common/procedural/planegeometry.h"
-
+#include "../common/macro/debuglog.h"
 #include "../state/microstatecreationinfo.h"
 
 namespace engine {
@@ -17,8 +13,9 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    mCamera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
-    mCameraController(&mCamera),
+    mGFXSceneManager{gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
+                     gfx::SceneNode()},
+    mCameraController(&mGFXSceneManager.mCamera),
     mGUICapturedMouse(false)
 
 {
@@ -30,7 +27,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     registerEngineCallbacks();
 
     // to be moved
-    mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
+    mGFXSceneManager.mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
 }
 
 
@@ -171,10 +168,13 @@ void Engine::handleMouseEvent(const SDL_Event &event)
     }
 }
 
-void Engine::update()
+void Engine::update(float delta_time_sec)
 {
     // update mechanics
     mCameraController.update();
+
+    // update physics
+    mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
 
     // update render jobs
 
@@ -194,7 +194,7 @@ void Engine::registerEngineCallbacks()
     events::Immediate::add_callback<events::NewGameEvent>(
         [this] (const events::NewGameEvent &evt) {
             // should just have to nuke the game state...?
-            mGFXSceneRoot.clearAll();
+            mGFXSceneManager.mGFXSceneRoot.clearAll();
     });
 
     // load the world into the graphical scene when starting a new game
@@ -202,10 +202,6 @@ void Engine::registerEngineCallbacks()
         [this] (const events::StartGameEvent &evt) {
             Ptr::ReadPtr<state::MacroState> scene_data = mGameState.readMacroState();
 
-            // add stuff to scene
-            gfx::SceneNodeHandle world_node = mGFXSceneRoot.addSceneNode();
-            float cam_view_distance;
-            createScene(world_node, scene_data, cam_view_distance);
 
             // find a point on land...
             int i_point = rand()%scene_data->alt_planet_points.size();
@@ -220,7 +216,7 @@ void Engine::registerEngineCallbacks()
             vmath::Vector3 point_above = land_point + 2.0f * local_up;
 
             unsigned int player_actor_id = 1;
-            state::MicroStateCreationInfo micro_state_creation_info{
+            state::MicroStateCreationInfo scene_creation_info = {
                 scene_data, // macro state ptr
                 point_above, // anchor_pos
                 {
@@ -229,32 +225,9 @@ void Engine::registerEngineCallbacks()
                 }
             };
 
-            mGameState.createMicroState(micro_state_creation_info);
+            events::Immediate::broadcast(events::CreateSceneEvent{&scene_creation_info});
 
-            // use that point as basis for our 'MicroScene'
-            gfx::SceneNodeHandle micro_node = mGFXSceneRoot.addSceneNode();
-            micro_node->transform.position = point_above;
-
-            // set the sun light to be on this side of the planet
-            vmath::Vector3 sun_pos = land_point + 50000.0f * local_up;
-            gfx::SceneNodeHandle sun_node = mGFXSceneRoot.addSceneNode();
-            sun_node->addLight(vmath::Vector4(sun_pos[0], sun_pos[1], sun_pos[2], 1.0f), vmath::Vector4(0.85f, 0.85f, 0.85f, 1.0f));
-
-            DEBUG_LOG("local_up: " << local_up[0] << ", " << local_up[1] << ", " << local_up[2]);
-            DEBUG_LOG("point_above: " << point_above[0] << ", " << point_above[1] << ", " << point_above[2]);
-
-            // add a box geometry..
-            Procedural::Geometry box = Procedural::boxPlanes(1.0f, 1.0f, 1.0f);
-            gfx::SceneNodeHandle player_node = micro_node->addSceneNode();
-            player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
-                                                      gfx::Primitives(box.triangles)),
-                                        gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
-            vmath::Vector3 box_relative_pos = vmath::Vector3(0.0, 0.0, -6.0f);
-            player_node->transform.position = box_relative_pos;
-
-
-            // set the camera to look at the box
-            mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);
+            // should go in the mechanics create scene event...
             mCameraController.setUpDir(local_up);
 
 

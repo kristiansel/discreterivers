@@ -205,6 +205,8 @@ int main(int argc, char *argv[])
     float filter_weight = 0.03f;
     engine::FPSCounter fps_counter(filter_weight);
 
+    float delta_time_sec = 0.166666666666666f;
+
     //=================================//
     //         Main loop               //
     //=================================//
@@ -263,7 +265,7 @@ int main(int argc, char *argv[])
         //std::cout << "got past input handling" << std::endl;
 
         // update based on events
-        engine.update();
+        engine.update(delta_time_sec);
 
 
         //std::cout << "got past engine update" << std::endl;

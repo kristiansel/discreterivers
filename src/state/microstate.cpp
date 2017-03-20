@@ -1,7 +1,7 @@
 #include "microstate.h"
 
 #include "../common/gfx_primitives.h"
-#include "../common/macro/macrodebuglog.h"
+#include "../common/macro/debuglog.h"
 
 namespace state
 {

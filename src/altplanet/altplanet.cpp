@@ -3,7 +3,7 @@
 #include "incrtriangulate.hpp"
 #include "../common/macro/macrodebugassert.h"
 #include "../common/macro/macroprofile.h"
-#include "../common/macro/macrodebuglog.h"
+#include "../common/macro/debuglog.h"
 #include "../common/procedural/noise3d.h"
 #include "../common/mathext.h"
 #include "../common/stdext.h"

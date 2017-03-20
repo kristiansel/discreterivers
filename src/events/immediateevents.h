@@ -4,6 +4,7 @@
 #include <list>
 #include <functional>
 #include "../state/macrostate.h"
+#include "../state/microstatecreationinfo.h"
 #include "../common/pointer.h"
 
 namespace events {
@@ -105,6 +106,11 @@ struct UIScaleFactorUpdate {
     enum class ScaleFactor { Small, Medium, Large };
 
     ScaleFactor size;
+};
+
+struct CreateSceneEvent
+{
+    Ptr::ReadPtr<state::MicroStateCreationInfo> scene_creation_info;
 };
 
 
