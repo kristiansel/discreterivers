@@ -30,6 +30,8 @@
 
 #include "graphics/guirender/textelement/shxtest/textshadermat.h"
 
+#include "common/collision/spatialindex3d.h"
+
 namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
@@ -191,6 +193,8 @@ int main(int argc, char *argv[])
 
     gfx::gui::TextElementShader te_shdr;
     te_shdr.kjashda();
+
+    SpatialIndex3d spatial_index3d;
 
     // finish test ====================================================================================================================
 

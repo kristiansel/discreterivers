@@ -25,7 +25,7 @@ inline vmath::Vector3 getMidpoint(const vmath::Vector3 &p1,
     //
     // problem with this approach: Triangles will end up crossing over each other...
 
-    out = out + (p2-p1)*0.125f*frand(-1, 1); // this is good enough for now
+    //out = out + (p2-p1)*0.125f*frand(-1, 1); // this is good enough for now
 
     return out;
 }

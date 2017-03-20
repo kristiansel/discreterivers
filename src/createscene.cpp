@@ -3,6 +3,7 @@
 #include "altplanet/altplanet.h"
 #include "altplanet/subivide.h"
 #include "altplanet/watersystem.h"
+#include "altplanet/jitterpoints.h"
 #include "altplanet/climate/irradiance.h"
 #include "altplanet/climate/humidity.h"
 #include "altplanet/climate/climate.h"
@@ -59,11 +60,12 @@ Ptr::OwningPtr<state::MacroState> createPlanetData(PlanetShape planet_shape_sele
         // subdivide
         AltPlanet::subdivideOnce(alt_planet_geometry.points, alt_planet_geometry.triangles);
 
+        // jitter the points around a bit...
+        AltPlanet::jitterPoints(alt_planet_geometry.points, alt_planet_geometry.triangles);
+
         // reproject points
         AltPlanet::reproject(alt_planet_geometry.points, planet_shape);
 
-        // jitter the points around a bit...
-        // AltPlanet::jitterPoints(alt_planet_geometry.points);
     }
 
     AltPlanet::perturbHeightNoise3D(alt_planet_geometry.points, planet_shape);

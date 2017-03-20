@@ -66,12 +66,6 @@ private:
     /*struct point_tag{};
     typedef ID<point_tag, int, -1> point_index;*/
 
-    struct AdjacencyInfo {
-        std::vector<std::vector<tri_index>> &pointTriAdjacency;
-        std::vector<std::vector<point_index>> &pointPointAdjacency;
-    };
-
-
 
     struct GenOceanResult {
         WaterGeometry::Ocean ocean;
