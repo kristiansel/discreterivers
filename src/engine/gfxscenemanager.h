@@ -1,6 +1,7 @@
 #ifndef GFXSCENEMANAGER_H
 #define GFXSCENEMANAGER_H
 
+#include "phystransformcontainer.h"
 #include "../createscene.h"
 #include "../graphics/camera.h"
 #include "../graphics/scenenode.h"
@@ -9,14 +10,17 @@
 #include "../common/procedural/boxgeometry.h"
 #include "../common/procedural/planegeometry.h"
 
-
-
 struct GFXSceneManager
 {
     inline GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scene_node);
 
     gfx::Camera                 mCamera;              // init order important!
     gfx::SceneNode              mGFXSceneRoot;       // main game scene
+
+    PhysTransformContainer      mPhysTransforms;
+
+    inline void updateGraphicsTransforms();
+    inline PhysTransformContainer * getPhysTransformsPtr() { return &mPhysTransforms; }
 };
 
 inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scene_node) :
@@ -36,10 +40,6 @@ inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scen
             float cam_view_distance;
             createScene(world_node, scene_data, cam_view_distance);
 
-            // use that point as basis for our 'MicroScene'
-            gfx::SceneNodeHandle micro_node = mGFXSceneRoot.addSceneNode();
-            micro_node->transform.position = point_above;
-
             // set the sun light to be on this side of the planet
             vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(point_above));
             vmath::Vector3 sun_pos = point_above + 50000.0f * local_up;
@@ -51,16 +51,28 @@ inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scen
 
             // add a box geometry..
             Procedural::Geometry box = Procedural::boxPlanes(1.0f, 1.0f, 1.0f);
-            gfx::SceneNodeHandle player_node = micro_node->addSceneNode();
+            gfx::SceneNodeHandle player_node = mGFXSceneRoot.addSceneNode();
             player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
                                                       gfx::Primitives(box.triangles)),
                                         gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
             vmath::Vector3 box_relative_pos = vmath::Vector3(0.0, 0.0, -6.0f);
-            player_node->transform.position = box_relative_pos;
+            vmath::Vector3 player_start_pos = point_above + box_relative_pos;
+            vmath::Quat    player_start_rot = vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f);
+            player_node->transform.position = player_start_pos;
+            player_node->transform.rotation = player_start_rot;
+
+            PhysTransformNode *pt_node = mPhysTransforms.create(PhysTransform{player_start_pos, player_start_rot, player_node});
 
             // set the camera to look at the box
             mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);
+    });
+}
 
+inline void GFXSceneManager::updateGraphicsTransforms()
+{
+    mPhysTransforms.for_all([](PhysTransform &pt){
+        pt.scene_node_hdl->transform.position = pt.pos;
+        pt.scene_node_hdl->transform.rotation = pt.rot;
     });
 }
 

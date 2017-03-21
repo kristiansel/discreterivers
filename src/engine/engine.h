@@ -11,6 +11,7 @@
 #include "../physics/physicsmanager.h"
 #include "mousestate.h"
 #include "gfxscenemanager.h"
+#include "phystransformcontainer.h"
 
 // organize window/input handling under system..?
 
@@ -26,10 +27,13 @@ class Engine
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
     // to be moved into graphics state manager
-    struct GFXSceneManager mGFXSceneManager;
+    GFXSceneManager mGFXSceneManager;
 
     // to be moved into mechanics state manager
     mech::CameraController  mCameraController;   // must be init after camera
+
+    // intermediary between physics and graphics
+    PhysTransformContainer mPhysTransforms;
 
     // physics
     PhysicsManager mPhysicsManager;

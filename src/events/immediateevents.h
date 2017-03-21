@@ -81,6 +81,9 @@ struct CharCreateEvent {};
 
 struct StartGameEvent {};
 
+// should perhaps use end game event to unload things...
+// struct EndGameEvent {};
+
 struct FPSUpdateEvent
 {
     float fps;

@@ -16,6 +16,7 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGFXSceneManager{gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
                      gfx::SceneNode()},
     mCameraController(&mGFXSceneManager.mCamera),
+    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(mGFXSceneManager.getPhysTransformsPtr())),
     mGUICapturedMouse(false)
 
 {
@@ -177,7 +178,7 @@ void Engine::update(float delta_time_sec)
     mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
 
     // update render jobs
-
+    mGFXSceneManager.updateGraphicsTransforms();
 }
 
 void Engine::updateUIScaleFactor(float scale_factor)
@@ -213,11 +214,12 @@ void Engine::registerEngineCallbacks()
 
             // go a bit above that point
             vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(land_point));
-            vmath::Vector3 point_above = land_point + 2.0f * local_up;
+            vmath::Vector3 point_above = land_point + 15.0f * local_up;
 
             unsigned int player_actor_id = 1;
             state::MicroStateCreationInfo scene_creation_info = {
                 scene_data, // macro state ptr
+                land_point, // land position
                 point_above, // anchor_pos
                 {
                     { player_actor_id, point_above, vmath::Quat() },

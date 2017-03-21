@@ -1,14 +1,18 @@
 #ifndef PHYSICSMANAGER_H
 #define PHYSICSMANAGER_H
 
-#include "../common/pointer.h"
 #include "physicssimulation.h"
+#include "../common/pointer.h"
+#include "../engine/phystransformcontainer.h"
 
 class PhysicsManager
 {
     Ptr::OwningPtr<PhysicsSimulation> mPhysicsSimPtr;
+    Ptr::WritePtr<PhysTransformContainer> mPhysTransformsPtr;
+
+    PhysicsManager() = delete;
 public:
-    PhysicsManager();
+    PhysicsManager(Ptr::WritePtr<PhysTransformContainer> phys_transforms_ptr);
 
     inline void stepPhysicsSimulation(float delta_time_sec);
 };

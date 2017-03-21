@@ -21,6 +21,7 @@ struct ActorCreationInfo
 struct MicroStateCreationInfo
 {
     Ptr::ReadPtr<MacroState> macro_state_ptr;
+    vmath::Vector3 land_pos;
     vmath::Vector3 anchor_pos;
     std::vector<ActorCreationInfo> actors;
 };

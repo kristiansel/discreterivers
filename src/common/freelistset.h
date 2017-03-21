@@ -24,11 +24,12 @@ class freelist_set_node
 
     void destroy() { reinterpret_cast<T*>(&data_)->~T(); }
 
-    T &get() { return reinterpret_cast<T&>(data_); }
-    const T &get_const() { return reinterpret_cast<const T&>(data_); }
-
     data_type data_;
     freelist_set_node* next_free_;
+
+public:
+    T &get() { return reinterpret_cast<T&>(data_); }
+    const T &get_const() { return reinterpret_cast<const T&>(data_); }
 };
 
 // chunked free list array
@@ -77,12 +78,32 @@ public:
         }
     }
 
+    node* get_by_offset(std::size_t offset)
+    {
+        node* out = &(entry_chunk_.nodes_[offset]);
+        DEBUG_ASSERT(is_active(out));
+        return out;
+    }
+
     template<typename F>
     void for_all(F f)
     {
         for (std::size_t i=0; i<max_count_; i++)
         {
             node &n = entry_chunk_.nodes_[i];
+            if (is_active(&n))
+            {
+                f(n.get());
+            }
+        }
+    }
+
+    template<typename F>
+    void for_all_const(F f) const
+    {
+        for (std::size_t i=0; i<max_count_; i++)
+        {
+            const node &n = entry_chunk_.nodes_[i];
             if (is_active(&n))
             {
                 f(n.get());

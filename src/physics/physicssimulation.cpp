@@ -1,5 +1,7 @@
 #include "physicssimulation.h"
 
+#include "extmotionstate.h"
+#include "testmotionstate.h"
 #include "../common/macro/debuglog.h"
 
 PhysicsSimulation::PhysicsSimulation()
@@ -24,6 +26,7 @@ PhysicsSimulation::PhysicsSimulation()
 
     // Set gravity (have to be a little bit accurate :)
     mDynamicsWorld->setGravity(btVector3(0.0f,-9.81f, 0.0f));
+    // change this later...
 
     // ghost collision callback
     mGhostPairCallback = new btGhostPairCallback(); // needed for hit-testing "non-physics" shapes
@@ -34,6 +37,118 @@ PhysicsSimulation::PhysicsSimulation()
 
     // attach debug draw
     // dynamicsWorld->setDebugDrawer(debugDraw);
+}
+
+void PhysicsSimulation::setGravity(const vmath::Vector3 &g)
+{
+    mDynamicsWorld->setGravity(btVector3(g.getX(), g.getY(), g.getZ()));
+}
+
+void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, PhysTransformNode *phys_tranf_node)
+{
+    // could use a pool allocator for all these 'new's
+    btCollisionShape* col_shape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // set as input later...
+    mCollisionShapes.push_back(col_shape);
+
+    // Create Dynamic Objects
+    btTransform start_transform( btQuaternion(rot.getX(), rot.getY(), rot.getZ(), rot.getW()),
+                                    btVector3(pos.getX(), pos.getY(), pos.getZ()));
+
+    btScalar	mass(10.f); // change for input later...
+
+    //rigidbody is dynamic if and only if mass is non zero, otherwise static
+    bool is_dynamic = (mass != 0.f);
+
+    btVector3 local_inertia(0,0,0);
+    if (is_dynamic)
+    {
+        col_shape->calculateLocalInertia(mass, local_inertia);
+    }
+
+    //btDefaultMotionState* motion_state = new btDefaultMotionState(start_transform);
+    btMotionState* motion_state = new ExtMotionState(start_transform, phys_tranf_node);
+
+    DEBUG_LOG("ADDING RIGIDBODY");
+
+    btRigidBody::btRigidBodyConstructionInfo rb_info(mass, motion_state, col_shape, local_inertia);
+    rb_info.m_restitution = btScalar(0.33f); // wtf are these...
+    rb_info.m_friction = btScalar(0.4f);     // set later..
+
+    btRigidBody* body = new btRigidBody(rb_info);
+    body->activate(); // try to force activate so that it doesn't just hang in the air...
+
+    mDynamicsWorld->addRigidBody(body);
+}
+
+
+void PhysicsSimulation::addStaticBodyMesh(const vmath::Vector3 &pos, const vmath::Quat &rot,
+                                          const std::vector<vmath::Vector3> &points, const std::vector<gfx::Triangle> &triangles)
+{
+    // could use a pool allocator for all these 'new's
+    // LIFETIME: Points and triangles need to live longer than this collision-shape!!!
+    // aiai... bullet is either not const-correct or wanting to reorganize my triangles...
+    // therefore make a copy for the physics simulation to play with...
+    mStaticMeshData.push_back(btTriangleMesh());
+    btTriangleMesh * triangle_mesh = &(mStaticMeshData.back());
+    for (int i=0; i<triangles.size(); i++)
+    {
+        const vmath::Vector3 &p0 = points[triangles[i][0]];
+        const vmath::Vector3 &p1 = points[triangles[i][1]];
+        const vmath::Vector3 &p2 = points[triangles[i][2]];
+        triangle_mesh->addTriangle(btVector3(p0.getX(), p0.getY(), p0.getZ()),
+                                   btVector3(p1.getX(), p1.getY(), p1.getZ()),
+                                   btVector3(p2.getX(), p2.getY(), p2.getZ()));
+    }
+
+    // why the fuark does this not work...
+
+    btBvhTriangleMeshShape* col_shape = new btBvhTriangleMeshShape(triangle_mesh, true);
+    col_shape->buildOptimizedBvh();
+    //btConvexTriangleMeshShape * col_shape = new btConvexTriangleMeshShape (triangle_mesh);
+    mCollisionShapes.push_back(col_shape);
+
+    btTransform transform( btQuaternion(rot.getX(), rot.getY(), rot.getZ(), rot.getW()),
+                              btVector3(pos.getX(), pos.getY(), pos.getZ()));
+
+    btScalar	mass(0.f); // zero mass = static...
+    btVector3   local_inertia(0.0f, 0.0f, 0.0f);
+
+    btMotionState* motion_state = new TestMotionState(transform);
+
+    DEBUG_LOG("ADDING STATIC BODY");
+
+    btRigidBody::btRigidBodyConstructionInfo rb_info(mass, motion_state, col_shape, local_inertia);
+    rb_info.m_restitution = btScalar(0.33f); // wtf are these...
+    rb_info.m_friction = btScalar(0.4f);     // set later..
+
+    btRigidBody* body = new btRigidBody(rb_info);
+
+    mDynamicsWorld->addRigidBody(body);
+}
+
+void PhysicsSimulation::addStaticBodyPlane(const vmath::Vector3 &pos, const vmath::Quat &rot,
+                                           const vmath::Vector3 &normal)
+{
+    btStaticPlaneShape *col_shape = new btStaticPlaneShape(btVector3(normal.getX(), normal.getY(), normal.getZ()), 0.0f);
+    mCollisionShapes.push_back(col_shape);
+
+    btTransform transform( btQuaternion(rot.getX(), rot.getY(), rot.getZ(), rot.getW()),
+                              btVector3(pos.getX(), pos.getY(), pos.getZ()));
+
+    btScalar	mass(0.f); // zero mass = static...
+    btVector3   local_inertia(0.0f, 0.0f, 0.0f);
+
+    btMotionState* motion_state = new TestMotionState(transform);
+
+    DEBUG_LOG("ADDING STATIC PLANE");
+
+    btRigidBody::btRigidBodyConstructionInfo rb_info(mass, motion_state, col_shape, local_inertia);
+    rb_info.m_restitution = btScalar(0.33f); // wtf are these...
+    rb_info.m_friction = btScalar(0.4f);     // set later..
+
+    btRigidBody* body = new btRigidBody(rb_info);
+
+    mDynamicsWorld->addRigidBody(body);
 }
 
 
@@ -166,7 +281,8 @@ PhysicsSimulation::~PhysicsSimulation()
 
     delete mCollisionDispatcher;
 
-    delete mCollisionConfiguration;
+    // this does not need delete?
+    //delete mCollisionConfiguration;
 
     mCollisionShapes.clear();
 }
