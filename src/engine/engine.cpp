@@ -13,10 +13,11 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGUI(w, h, scale_factor),
 
     // to be moved
-    mGFXSceneManager{gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
-                     gfx::SceneNode()},
-    mCameraController(&mGFXSceneManager.mCamera),
-    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(mGFXSceneManager.getPhysTransformsPtr())),
+    mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
+                     gfx::SceneNode(),
+                     Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
+    mMechanicsManager(&mGFXSceneManager.mCamera),
+    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
     mGUICapturedMouse(false)
 
 {
@@ -38,31 +39,31 @@ void Engine::handleKeyboardState(const Uint8 *keyboard_state)
     // or is that taken care of by the optimizer anyway?
     if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
-        mCameraController.sendSignal(mech::CameraController::SpeedUp);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::SpeedUp);
     }
     if (keyboard_state[SDL_SCANCODE_W])
     {
-        mCameraController.sendSignal(mech::CameraController::Forward);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Forward);
     }
     if (keyboard_state[SDL_SCANCODE_S])
     {
-        mCameraController.sendSignal(mech::CameraController::Backward);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Backward);
     }
     if (keyboard_state[SDL_SCANCODE_A])
     {
-        mCameraController.sendSignal(mech::CameraController::Left);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Left);
     }
     if (keyboard_state[SDL_SCANCODE_D])
     {
-        mCameraController.sendSignal(mech::CameraController::Right);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Right);
     }
     if (keyboard_state[SDL_SCANCODE_X])
     {
-        mCameraController.sendSignal(mech::CameraController::Down);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Down);
     }
     if (keyboard_state[SDL_SCANCODE_Z])
     {
-        mCameraController.sendSignal(mech::CameraController::Up);
+        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Up);
     }
 }
 
@@ -152,7 +153,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
                 float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                 float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
 
-                mCameraController.sendTurnSignals({mouse_angle_x, mouse_angle_y});
+                mMechanicsManager.getActiveController()->sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
 
             mGUI.handleMouseMoved(event.motion.x, event.motion.y, mouse_delta_x, mouse_delta_y);
@@ -172,7 +173,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
 void Engine::update(float delta_time_sec)
 {
     // update mechanics
-    mCameraController.update();
+    mMechanicsManager.update();
 
     // update physics
     mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
@@ -229,8 +230,10 @@ void Engine::registerEngineCallbacks()
 
             events::Immediate::broadcast(events::CreateSceneEvent{&scene_creation_info});
 
-            // should go in the mechanics create scene event...
-            mCameraController.setUpDir(local_up);
+            //mMechanicsManager.wireControlsToCamera(mGFXSceneManager.getCamera());
+
+            // now everything is created...
+            // wire up some connections?
 
 
             // end func

@@ -32,10 +32,14 @@
 
 #include "common/collision/spatialindex3d.h"
 
+#include "physics/euler/euler.h"
+
 namespace vmath = Vectormath::Aos;
 
 int main(int argc, char *argv[])
 {
+
+
     //= o o o =========================//
     //         SDL2 Window code        //
     //=================================//
@@ -195,6 +199,8 @@ int main(int argc, char *argv[])
     te_shdr.kjashda();
 
     SpatialIndex3d spatial_index3d;
+
+    Euler::testAll();
 
     // finish test ====================================================================================================================
 

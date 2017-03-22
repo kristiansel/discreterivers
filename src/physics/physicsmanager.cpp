@@ -3,8 +3,8 @@
 #include "../events/immediateevents.h"
 #include "../common/macro/debuglog.h"
 
-PhysicsManager::PhysicsManager(Ptr::WritePtr<PhysTransformContainer> phys_transforms_ptr) :
-    mPhysTransformsPtr(phys_transforms_ptr),
+PhysicsManager::PhysicsManager(Ptr::WritePtr<PhysTransformContainer> actor_transforms_ptr) :
+    mActorTransformsPtr(actor_transforms_ptr),
     mPhysicsSimPtr(nullptr)
 {
     // register a bunch of callbacks
@@ -30,7 +30,7 @@ PhysicsManager::PhysicsManager(Ptr::WritePtr<PhysTransformContainer> phys_transf
             for (int i = 0; i<evt.scene_creation_info->actors.size(); i++)
             {
                 const state::ActorCreationInfo &actor = evt.scene_creation_info->actors[i];
-                mPhysicsSimPtr->addDynamicBody(actor.pos, actor.rot, mPhysTransformsPtr->get_by_offset(i));
+                mPhysicsSimPtr->addDynamicBody(actor.pos, actor.rot, mActorTransformsPtr->get_by_offset(i));
             }
 
 

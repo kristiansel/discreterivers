@@ -8,11 +8,11 @@
 class PhysicsManager
 {
     Ptr::OwningPtr<PhysicsSimulation> mPhysicsSimPtr;
-    Ptr::WritePtr<PhysTransformContainer> mPhysTransformsPtr;
+    Ptr::WritePtr<PhysTransformContainer> mActorTransformsPtr;
 
     PhysicsManager() = delete;
 public:
-    PhysicsManager(Ptr::WritePtr<PhysTransformContainer> phys_transforms_ptr);
+    PhysicsManager(Ptr::WritePtr<PhysTransformContainer> actor_transforms_ptr);
 
     inline void stepPhysicsSimulation(float delta_time_sec);
 };

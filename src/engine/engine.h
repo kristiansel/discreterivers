@@ -7,7 +7,7 @@
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 #include "../state/gamestate.h"
-#include "../mechanics/cameracontroller.h"
+#include "../mechanics/mechanicsmanager.h"
 #include "../physics/physicsmanager.h"
 #include "mousestate.h"
 #include "gfxscenemanager.h"
@@ -29,11 +29,12 @@ class Engine
     // to be moved into graphics state manager
     GFXSceneManager mGFXSceneManager;
 
-    // to be moved into mechanics state manager
-    mech::CameraController  mCameraController;   // must be init after camera
+    // intermediary between physics, control and graphics
+    PhysTransformContainer mActorTransforms;
+    PhysTransformContainer mKinematicTransforms; // camera etc, not physics controlled
 
-    // intermediary between physics and graphics
-    PhysTransformContainer mPhysTransforms;
+    // to be moved into mechanics state manager
+    MechanicsManager mMechanicsManager;
 
     // physics
     PhysicsManager mPhysicsManager;

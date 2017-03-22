@@ -12,19 +12,26 @@
 
 struct GFXSceneManager
 {
-    inline GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scene_node);
+    inline GFXSceneManager(gfx::Camera &&cam,
+                           gfx::SceneNode &&scene_node,
+                           Ptr::WritePtr<PhysTransformContainer> actor_transforms_ptr);
 
     gfx::Camera                 mCamera;              // init order important!
     gfx::SceneNode              mGFXSceneRoot;       // main game scene
 
-    PhysTransformContainer      mPhysTransforms;
+    //PhysTransformContainer      mPhysTransforms;
+    Ptr::WritePtr<PhysTransformContainer> mActorTransformsPtr;
 
     inline void updateGraphicsTransforms();
-    inline PhysTransformContainer * getPhysTransformsPtr() { return &mPhysTransforms; }
+    //inline PhysTransformContainer * getActorTransformsPtr() { return &mPhysTransforms; }
 };
 
-inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scene_node) :
-    mCamera(std::move(cam)), mGFXSceneRoot(std::move(scene_node))
+inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam,
+                                        gfx::SceneNode &&scene_node,
+                                        Ptr::WritePtr<PhysTransformContainer> actor_transforms_ptr) :
+    mCamera(std::move(cam)),
+    mGFXSceneRoot(std::move(scene_node)),
+    mActorTransformsPtr(actor_transforms_ptr)
 {
     //ctor
 
@@ -55,22 +62,24 @@ inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam, gfx::SceneNode &&scen
             player_node->addSceneObject(gfx::Geometry(gfx::Vertices(box.points, box.normals),
                                                       gfx::Primitives(box.triangles)),
                                         gfx::Material(vmath::Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
-            vmath::Vector3 box_relative_pos = vmath::Vector3(0.0, 0.0, -6.0f);
-            vmath::Vector3 player_start_pos = point_above + box_relative_pos;
+
+            vmath::Vector3 side_dir = vmath::cross(local_up, vmath::Vector3(0.0, 0.0, -1.0f));
+
+            vmath::Vector3 player_start_pos = point_above + side_dir * 1.0f;
             vmath::Quat    player_start_rot = vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f);
             player_node->transform.position = player_start_pos;
             player_node->transform.rotation = player_start_rot;
 
-            PhysTransformNode *pt_node = mPhysTransforms.create(PhysTransform{player_start_pos, player_start_rot, player_node});
+            PhysTransformNode *pt_node = mActorTransformsPtr->create(PhysTransform{player_start_pos, player_start_rot, player_node});
 
             // set the camera to look at the box
-            mCamera.mTransform.lookAt(point_above, point_above + box_relative_pos, local_up);
+            mCamera.mTransform.lookAt(point_above, player_start_pos, local_up);
     });
 }
 
 inline void GFXSceneManager::updateGraphicsTransforms()
 {
-    mPhysTransforms.for_all([](PhysTransform &pt){
+    mActorTransformsPtr->for_all([](PhysTransform &pt){
         pt.scene_node_hdl->transform.position = pt.pos;
         pt.scene_node_hdl->transform.rotation = pt.rot;
     });

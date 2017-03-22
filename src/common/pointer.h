@@ -35,6 +35,11 @@ class ReadPtr
 public:
     ReadPtr(const T *ptr) : p_(ptr) { DEBUG_ASSERT(ptr!=nullptr); }
 
+    // auto cast
+    //operator const T *() { return p_; }
+    //inline ReadPtr& operator=(ReadPtr const& o) { p_ = o.p_; return *this; }
+
+
     const T*     operator->() const { return p_; }
 
     bool operator==(const ReadPtr &o) const { return p_ == o.p_; }

@@ -116,7 +116,6 @@ struct CreateSceneEvent
     Ptr::ReadPtr<state::MicroStateCreationInfo> scene_creation_info;
 };
 
-
 } // namespace events
 
 
