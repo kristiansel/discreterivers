@@ -4,11 +4,14 @@
 #include "physicssimulation.h"
 #include "../common/pointer.h"
 #include "../engine/phystransformcontainer.h"
+#include "eulerphysicssim.h"
 
 class PhysicsManager
 {
     Ptr::OwningPtr<PhysicsSimulation> mPhysicsSimPtr;
     Ptr::WritePtr<PhysTransformContainer> mActorTransformsPtr;
+
+    //Ptr::OwningPtr<Euler::PhysicsSim> mEulerPhysicsSimPtr;
 
     PhysicsManager() = delete;
 public:

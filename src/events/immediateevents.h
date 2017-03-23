@@ -11,6 +11,10 @@ namespace events {
 
 namespace Immediate {
 
+
+template<typename EventType>
+using CallbackRef = typename std::list<std::function<void(EventType)>>::iterator;
+
 template<typename EventType>
 class Dispatcher
 {
@@ -24,16 +28,23 @@ private:
     Dispatcher() {} // singleton type
     std::list<std::function<void(EventType)>> mCallbacks;
 
+public:
     static Dispatcher &get()
     {
         static Dispatcher sDispatcher;
         return sDispatcher;
     }
 
-    void addCallback(std::function<void(EventType)> &&callback)
+    CallbackRef<EventType> addCallback(std::function<void(EventType)> &&callback)
     {
         std::cout << "adding callback" << std::endl;
         mCallbacks.emplace_back(std::move(callback));
+        return (--(mCallbacks.end()));
+    }
+
+    void removeCallback(const CallbackRef<EventType> &callback_ref)
+    {
+        mCallbacks.erase(callback_ref);
     }
 
     // Should not need this.
@@ -55,9 +66,15 @@ void broadcast(const EventType &evt)
 }
 
 template<typename EventType>
-void add_callback(std::function<void(EventType)> &&callback)
+CallbackRef<EventType> add_callback(std::function<void(EventType)> &&callback)
 {
-    Dispatcher<EventType>::get().addCallback(std::move(callback));
+    return Dispatcher<EventType>::get().addCallback(std::move(callback));
+}
+
+template<typename EventType>
+void remove_callback(const CallbackRef<EventType> &callback_ref)
+{
+    Dispatcher<EventType>::get().removeCallback(callback_ref);
 }
 
 } // namespace Immediate
@@ -79,10 +96,11 @@ struct ChooseOriginEvent {};
 
 struct CharCreateEvent {};
 
+// event fired after character creation menu!
 struct StartGameEvent {};
 
-// should perhaps use end game event to unload things...
-// struct EndGameEvent {};
+// event fired when game is quit (to main menu)
+struct EndGameEvent {};
 
 struct FPSUpdateEvent
 {

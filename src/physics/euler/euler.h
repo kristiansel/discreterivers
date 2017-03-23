@@ -1,6 +1,8 @@
 #ifndef EULER_H
 #define EULER_H
 
+#include <array>
+
 #define _VECTORMATH_DEBUG
 #include "../../dep/vecmath/vectormath_aos.h"
 namespace vmath = Vectormath::Aos;
@@ -42,10 +44,11 @@ struct AABB
 
 struct OBB
 {
-    vmath::Vector3 lower;
-    vmath::Vector3 upper;
-    vmath::Quat orientation;
+    vmath::Vector3 half_extents;
+    vmath::Vector3 translation;
+    vmath::Matrix3 rot_mat;
 };
+
 
 // save degenerate cases for later
 // point point, point line, point plane, line line
@@ -111,14 +114,74 @@ bool inline intersectSphereAABB(const Sphere &s, const AABB &ab)
     return dmin <= r2;
 }
 
+// too hard..
+/*
+
+inline void getOBBTransformedPts(const OBB &ob, std::array<vmath::Vector3, 8> &pts)
+{
+    for (int i = 0; i<2; i++)
+        for (int j = 0; j<2; j++)
+            for (int k = 0; k<2; k++)
+                pts[i+2*j+4*k] = ob.translation +
+                        ob.rot_mat * vmath::Vector3((2*i-1)*ob.half_extents[0],
+                                                    (2*j-1)*ob.half_extents[1],
+                                                    (2*k-1)*ob.half_extents[2]);
+}
+
 bool inline intersectAABBvOBB(const AABB &ab, const OBB &ob)
 {
-    // ai-ai... needs some though (or some projection...)
+    std::array<vmath::Vector3, 8> ob_pts;
+    getOBBTransformedPts(ob, ob_pts);
+    for (int i=0; i<3; i++)
+    {
+        for (int j = 0; j<8; j++)
+        {
+            bool inside = ob_pts[j][i] > ab.upper[i];
+        }
+    }
+}*/
+
+} // basicshape
+
+namespace Dynamics {
+
+class RigidBody
+{
+// physical properties
+    float inverse_mass;
+
+// first order...
+    vmath::Vector3 position;
+    vmath::Quat rotation;
+
+// second order...
+    vmath::Vector3 velocity;
+
+// third order...
+    vmath::Vector3 force;
+
+    RigidBody() = delete;
+public:
+    RigidBody(const vmath::Vector3 &pos, const vmath::Quat &rot, float mass) :
+        position(pos), rotation(rot), inverse_mass(1.0f/mass), velocity(0.0f), force(0.0f) {}
+
+    void setVelocity(const vmath::Vector3 &vel) { velocity = vel; }
+    void applyForce(const vmath::Vector3 &f) { force = force + f; }
+    void clearForce() { force = vmath::Vector3(0.0f, 0.0f, 0.0f); }
+
+    void integrateRigidBody(float time_step)
+    {
+        // forward euler for the win...
+        velocity = velocity + time_step * force * inverse_mass;
+        position = position + time_step * velocity;
+    }
+};
+
+
+
+
 }
 
-
-
-}
 
 }
 

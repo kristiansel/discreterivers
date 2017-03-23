@@ -11,59 +11,68 @@ Engine::Engine(int w, int h, float scale_factor) :
     mGameState(),
     mRenderer(w, h, scale_factor),
     mGUI(w, h, scale_factor),
+    mWidth(w), mHeight(h),
 
     // to be moved
-    mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
+    /*mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
                      gfx::SceneNode(),
                      Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
     mMechanicsManager(&mGFXSceneManager.mCamera),
-    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
+    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),*/
+    mClientStatePtr(nullptr),
     mGUICapturedMouse(false)
 
 {
     gui::createGUI(mGUI);
 
-    // make sure to resize everything
-    // mGUI.resize(w, h);
-
     registerEngineCallbacks();
+}
 
-    // to be moved
-    mGFXSceneManager.mCamera.mTransform.position = vmath::Vector3(0.0, 0.0, 10.0);
+Engine::ClientState::ClientState(int w, int h) :
+mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
+                 gfx::SceneNode(),
+                 Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
+mMechanicsManager(&mGFXSceneManager.mCamera),
+mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms))
+{
+    // ctor...
 }
 
 
 void Engine::handleKeyboardState(const Uint8 *keyboard_state)
 {
-    // is there any point in trying to eliminate the branches here?
-    // or is that taken care of by the optimizer anyway?
-    if (keyboard_state[SDL_SCANCODE_LSHIFT])
+    if (mClientStatePtr)
     {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::SpeedUp);
-    }
-    if (keyboard_state[SDL_SCANCODE_W])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Forward);
-    }
-    if (keyboard_state[SDL_SCANCODE_S])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Backward);
-    }
-    if (keyboard_state[SDL_SCANCODE_A])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Left);
-    }
-    if (keyboard_state[SDL_SCANCODE_D])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Right);
-    }
-    if (keyboard_state[SDL_SCANCODE_X])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Down);
-    }
-    if (keyboard_state[SDL_SCANCODE_Z])
-    {
-        mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Up);
+        // is there any point in trying to eliminate the branches here?
+        // or is that taken care of by the optimizer anyway?
+        if (keyboard_state[SDL_SCANCODE_LSHIFT])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::SpeedUp);
+        }
+        if (keyboard_state[SDL_SCANCODE_W])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Forward);
+        }
+        if (keyboard_state[SDL_SCANCODE_S])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Backward);
+        }
+        if (keyboard_state[SDL_SCANCODE_A])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Left);
+        }
+        if (keyboard_state[SDL_SCANCODE_D])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Right);
+        }
+        if (keyboard_state[SDL_SCANCODE_X])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Down);
+        }
+        if (keyboard_state[SDL_SCANCODE_Z])
+        {
+            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Up);
+        }
     }
 }
 
@@ -148,12 +157,14 @@ void Engine::handleMouseEvent(const SDL_Event &event)
         case SDL_MOUSEMOTION: {
             int32_t mouse_delta_x = mMouseState.prev_mouse_x - event.motion.x;
             int32_t mouse_delta_y = mMouseState.prev_mouse_y - event.motion.y;
-            if ((mMouseState.lmb_down || mMouseState.rmb_down) && !mGUICapturedMouse) {
+            if ((mMouseState.lmb_down || mMouseState.rmb_down) &&
+                !mGUICapturedMouse && bool(mClientStatePtr))
+            {
 
                 float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                 float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
 
-                mMechanicsManager.getActiveController()->sendTurnSignals({mouse_angle_x, mouse_angle_y});
+                mClientStatePtr->mMechanicsManager.getActiveController()->sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
 
             mGUI.handleMouseMoved(event.motion.x, event.motion.y, mouse_delta_x, mouse_delta_y);
@@ -172,14 +183,17 @@ void Engine::handleMouseEvent(const SDL_Event &event)
 
 void Engine::update(float delta_time_sec)
 {
-    // update mechanics
-    mMechanicsManager.update();
+    if (mClientStatePtr)
+    {
+        // update mechanics
+        mClientStatePtr->mMechanicsManager.update();
 
-    // update physics
-    mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
+        // update physics
+        mClientStatePtr->mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
 
-    // update render jobs
-    mGFXSceneManager.updateGraphicsTransforms();
+        // update render jobs
+        mClientStatePtr->mGFXSceneManager.updateGraphicsTransforms();
+    }
 }
 
 void Engine::updateUIScaleFactor(float scale_factor)
@@ -192,18 +206,38 @@ void Engine::registerEngineCallbacks()
 {
     DEBUG_LOG( "registering engine callbacks" );
 
-    // clear all on start new game...
+        events::Immediate::add_callback<events::EndGameEvent>(
+            [this] (const events::EndGameEvent &evt) {
+                // nuke client state
+                delete mClientStatePtr;
+                mClientStatePtr = nullptr;
+        });
+
+        events::Immediate::add_callback<events::StartGameEvent>(
+            [this] (const events::StartGameEvent &evt) {
+                // create new client state
+                // mClientStatePtr = new ClientState(mWidth, mHeight);
+        });
+
+
+//    // clear all on start new game...
     events::Immediate::add_callback<events::NewGameEvent>(
         [this] (const events::NewGameEvent &evt) {
-            // should just have to nuke the game state...?
-            mGFXSceneManager.mGFXSceneRoot.clearAll();
+            // first quit the old game
+            events::Immediate::broadcast(events::EndGameEvent());
     });
+
+
+    // TODO: Refactor this from using events so extensively, to just be a bunch of stuff that happens in ClientState constructor...
 
     // load the world into the graphical scene when starting a new game
     events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
-            Ptr::ReadPtr<state::MacroState> scene_data = mGameState.readMacroState();
+            // client state should be already added by callback above..... hope...
+            // or not..
+            mClientStatePtr = new ClientState(mWidth, mHeight);
 
+            Ptr::ReadPtr<state::MacroState> scene_data = mGameState.readMacroState();
 
             // find a point on land...
             int i_point = rand()%scene_data->alt_planet_points.size();
@@ -215,7 +249,7 @@ void Engine::registerEngineCallbacks()
 
             // go a bit above that point
             vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(land_point));
-            vmath::Vector3 point_above = land_point + 15.0f * local_up;
+            vmath::Vector3 point_above = land_point + 4.0f * local_up;
 
             unsigned int player_actor_id = 1;
             state::MicroStateCreationInfo scene_creation_info = {

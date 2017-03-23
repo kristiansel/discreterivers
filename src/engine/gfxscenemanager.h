@@ -65,7 +65,7 @@ inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam,
 
             vmath::Vector3 side_dir = vmath::cross(local_up, vmath::Vector3(0.0, 0.0, -1.0f));
 
-            vmath::Vector3 player_start_pos = point_above + side_dir * 1.0f;
+            vmath::Vector3 player_start_pos = point_above + side_dir * 15.0f;
             vmath::Quat    player_start_rot = vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f);
             player_node->transform.position = player_start_pos;
             player_node->transform.rotation = player_start_rot;
@@ -74,6 +74,11 @@ inline GFXSceneManager::GFXSceneManager(gfx::Camera &&cam,
 
             // set the camera to look at the box
             mCamera.mTransform.lookAt(point_above, player_start_pos, local_up);
+
+            DEBUG_LOG("in graphics create scene...");
+            vmath::print(player_start_pos);
+            DEBUG_LOG("cam pos...");
+            vmath::print(point_above);
     });
 }
 

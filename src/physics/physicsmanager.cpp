@@ -5,15 +5,19 @@
 
 PhysicsManager::PhysicsManager(Ptr::WritePtr<PhysTransformContainer> actor_transforms_ptr) :
     mActorTransformsPtr(actor_transforms_ptr),
-    mPhysicsSimPtr(nullptr)
+    mPhysicsSimPtr(nullptr)//,
+    //mEulerPhysicsSimPtr(nullptr)
 {
     // register a bunch of callbacks
-    events::Immediate::add_callback<events::StartGameEvent>(
+    /*events::Immediate::add_callback<events::StartGameEvent>(
         [this] (const events::StartGameEvent &evt) {
 
             mPhysicsSimPtr = Ptr::OwningPtr<PhysicsSimulation>(new PhysicsSimulation());
 
-    });
+    });*/
+
+    // this constructor is first called on start game event...
+    mPhysicsSimPtr = Ptr::OwningPtr<PhysicsSimulation>(new PhysicsSimulation());
 
     events::Immediate::add_callback<events::CreateSceneEvent>(
         [this] (const events::CreateSceneEvent &evt) {
@@ -40,5 +44,7 @@ PhysicsManager::PhysicsManager(Ptr::WritePtr<PhysTransformContainer> actor_trans
 
             mPhysicsSimPtr->addStaticBodyPlane(evt.scene_creation_info->land_pos, vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
                                                vmath::normalize(grad_dir));
+
+
     });
 }

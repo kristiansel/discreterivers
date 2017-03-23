@@ -26,22 +26,32 @@ class Engine
     gfx::OpenGLRenderer mRenderer;              // must be initialized before GUI!
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
-    // to be moved into graphics state manager
-    GFXSceneManager mGFXSceneManager;
+    struct ClientState
+    {
+        ClientState(int w, int h);
+        // to be moved into graphics state manager
+        GFXSceneManager mGFXSceneManager;
 
-    // intermediary between physics, control and graphics
-    PhysTransformContainer mActorTransforms;
-    PhysTransformContainer mKinematicTransforms; // camera etc, not physics controlled
+        // intermediary between physics, control and graphics
+        PhysTransformContainer mActorTransforms;
+        PhysTransformContainer mKinematicTransforms; // camera etc, not physics controlled
 
-    // to be moved into mechanics state manager
-    MechanicsManager mMechanicsManager;
+        // to be moved into mechanics state manager
+        MechanicsManager mMechanicsManager;
 
-    // physics
-    PhysicsManager mPhysicsManager;
+        // physics
+        PhysicsManager mPhysicsManager;
+    };
+
+    ClientState * mClientStatePtr;
 
     // what is this used for, why does it not reside in GUI?
     bool mGUICapturedMouse;
     MouseState mMouseState; // should be in some sort of input handler...
+
+    // wtf is this here for...
+    int mWidth;
+    int mHeight;
 
     // immovable, non-copyable, non-default-constructible
     Engine() = delete;
@@ -73,21 +83,26 @@ private:
 
 };
 
-// inline function definitions
-//void Engine::prepareFrame()
-//{
-//    //mCameraController.clearSignals(); // should this be baked in at the end of controller update?
-//}
-
 inline void Engine::resize(int w, int h)
 {
     mRenderer.resize(w, h);
     mGUI.resize(w, h);
+    mWidth = w;
+    mHeight = h;
 }
 
 inline void Engine::draw()
 {
-    mRenderer.draw(mGFXSceneManager.mCamera, mGUI.getGUIRoot(), mGFXSceneManager.mGFXSceneRoot);
+    if (mClientStatePtr)
+    {
+        mRenderer.draw(mClientStatePtr->mGFXSceneManager.mCamera,
+                       mGUI.getGUIRoot(),
+                       mClientStatePtr->mGFXSceneManager.mGFXSceneRoot);
+    }
+    else
+    {
+        mRenderer.drawGUIOnly(mGUI.getGUIRoot());
+    }
 }
 
 

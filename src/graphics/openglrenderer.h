@@ -57,6 +57,7 @@ public:
 
     // methods
     void draw(const Camera &camera, const gui::GUINode &gui_root, const SceneNode &scene_root) const;
+    void drawGUIOnly(const gui::GUINode &gui_root) const;
     void preDrawUpdate();
 
     // mutators

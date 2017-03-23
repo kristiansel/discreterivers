@@ -141,6 +141,11 @@ void OpenGLRenderer::draw(const Camera &camera, const gui::GUINode &gui_root, co
     //std::cout << "post draw gui" << std::endl;
 }
 
+void OpenGLRenderer::drawGUIOnly(const gui::GUINode &gui_root) const
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawGUI(gui_root);
+}
 
 inline void OpenGLRenderer::drawGUI(const gui::GUINode &gui_root) const
 {
