@@ -47,7 +47,7 @@ bool GUI::handleMouseButtonDown(int32_t x, int32_t y, gfx::gui::MouseButton butt
 
     if (mActiveNode) mActiveNode->handleEvent(gfx::gui::FocusGainedEvent());
 
-    return (mouse_down_node != nullptr);
+    return (mouse_down_node != gfx::gui::GUINodePtr(nullptr));
 }
 
 void GUI::handleMouseButtonUp(int32_t x, int32_t y, gfx::gui::MouseButton button)
@@ -55,7 +55,7 @@ void GUI::handleMouseButtonUp(int32_t x, int32_t y, gfx::gui::MouseButton button
     if (mMouseCapturedNode) mMouseCapturedNode->handleEvent(gfx::gui::MouseButtonUpEvent{button, x, y});
 
     // reset the captured node
-    mMouseCapturedNode = nullptr;
+    mMouseCapturedNode = gfx::gui::GUINodePtr(nullptr);
 }
 
 void GUI::handleMouseMoved(int32_t x, int32_t y, int32_t x_mov, int32_t y_mov)
@@ -89,8 +89,8 @@ void GUI::processHoverStacks()
     bool discrepancy = false;
     for (int i = 0; i<std::max(mNextHoverStack.size(), mPrevHoverStack.size()); i++)
     {
-        gfx::gui::GUINodePtr next = i<mNextHoverStack.size() ? mNextHoverStack[i] : nullptr;
-        gfx::gui::GUINodePtr prev = i<mPrevHoverStack.size() ? mPrevHoverStack[i] : nullptr;
+        gfx::gui::GUINodePtr next = i<mNextHoverStack.size() ? mNextHoverStack[i] : gfx::gui::GUINodePtr(nullptr);
+        gfx::gui::GUINodePtr prev = i<mPrevHoverStack.size() ? mPrevHoverStack[i] : gfx::gui::GUINodePtr(nullptr);
         discrepancy = next != prev;
         if (discrepancy)
         {
@@ -105,8 +105,11 @@ void GUI::processHoverStacks()
 void GUI::handleMouseWheelScroll(int32_t y)
 {
     // send event to deepest hovered.
-    gfx::gui::GUINodePtr &deepest_hovered = mPrevHoverStack.back();
-    if (deepest_hovered) deepest_hovered->handleEvent(gfx::gui::MouseWheelScrollEvent{y});
+    if (mPrevHoverStack.size() > 0)
+    {
+        gfx::gui::GUINodePtr &deepest_hovered = mPrevHoverStack.back();
+        if (deepest_hovered) deepest_hovered->handleEvent(gfx::gui::MouseWheelScrollEvent{y});
+    }
 }
 
 void GUI::handleKeyPressEvent(SDL_Keycode k)

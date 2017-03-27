@@ -80,7 +80,7 @@ void createChooseOriginMenu(GUI &gui, GUINode &choose_origin_menu_root)
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  180.0f,
-                 [](){ events::Immediate::broadcast(events::NewGameEvent()); });
+                 [](){ events::Immediate::broadcast(events::NewGameEvent(/* clear_state = */ false)); });
 
     // update the state
     choose_origin_bg_node->forceStateUpdate();

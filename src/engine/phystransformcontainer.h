@@ -4,7 +4,7 @@
 #include "../common/freelistset.h"
 #include "../common/gfx_primitives.h"
 #include "../graphics/scenenode.h"
-
+#include "../appconstraints.h"
 
 struct PhysTransform
 {
@@ -13,7 +13,7 @@ struct PhysTransform
     gfx::SceneNodeHandle scene_node_hdl;
 };
 
-using PhysTransformContainer = stdext::freelist_set<PhysTransform, 1000>;
+using PhysTransformContainer = stdext::freelist_set<PhysTransform, appconstraints::n_actors_max>;
 using PhysTransformNode = typename PhysTransformContainer::node;
 
 

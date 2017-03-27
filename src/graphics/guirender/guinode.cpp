@@ -36,8 +36,8 @@ GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs
         float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
 
         //GUINodePtr deepest_intersected = mGUIFlags.checkAny(flag_mask) ? nullptr : this;
-        GUINodePtr deepest_intersected = this;
-        hovered.push_back(this);
+        GUINodePtr deepest_intersected = GUINodePtr(this);
+        hovered.push_back(GUINodePtr(this));
         for (auto &child : mChildren)
         {
             GUINodePtr child_intersected = child.getDeepestHovered(x_rel, y_rel, this_w_abs, this_h_abs, hovered);
@@ -48,7 +48,7 @@ GUINodePtr GUINode::getDeepestHovered(float x, float y, float w_abs, float h_abs
     }
     else
     {
-        return nullptr;
+        return GUINodePtr(nullptr);
     }
 }
 
@@ -66,7 +66,7 @@ inline GUINodePtr GUINode::getDeepestIntersectingNode(float x, float y, float w_
         float this_w_abs = mGUITransform.getSize().x.getRelative(w_abs) * w_abs;
         float this_h_abs = mGUITransform.getSize().y.getRelative(h_abs) * h_abs;
 
-        GUINodePtr deepest_intersected = mGUIFlags.checkAny(flag_mask) ? nullptr : this;
+        GUINodePtr deepest_intersected = mGUIFlags.checkAny(flag_mask) ? GUINodePtr(nullptr) : GUINodePtr(this);
         for (auto &child : mChildren)
         {
             GUINodePtr child_intersected = child.getDeepestIntersectingNode(x_rel, y_rel, this_w_abs, this_h_abs, flag_mask);
@@ -77,7 +77,7 @@ inline GUINodePtr GUINode::getDeepestIntersectingNode(float x, float y, float w_
     }
     else
     {
-        return nullptr;
+        return GUINodePtr(nullptr);
     }
 }
 

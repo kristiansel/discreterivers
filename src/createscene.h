@@ -4,7 +4,7 @@
 #include "graphics/openglrenderer.h"
 #include "events/immediateevents.h"
 #include "state/macrostate.h"
-#include "common/stdext.h"
+//#include "common/stdext.h"
 #include "common/pointer.h"
 
 using PlanetShape = events::GenerateWorldEvent::PlanetShape;

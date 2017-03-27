@@ -24,7 +24,8 @@ private:
     vmath::Vector3  mUpDir;
 
 public:
-    CameraController(Ptr::WritePtr<gfx::Camera> camera_ptr = nullptr, const vmath::Vector3 &up_dir = vmath::Vector3(0.0f, 1.0f, 0.0f),
+    CameraController(Ptr::WritePtr<gfx::Camera> camera_ptr = Ptr::WritePtr<gfx::Camera>(nullptr),
+                     const vmath::Vector3 &up_dir = vmath::Vector3(0.0f, 1.0f, 0.0f),
                      float speed = 1.0f, float mouse_turn_speed = 2.0f) :  // ieeeee! raw pointer... :(
         mCameraPtr(camera_ptr),
         mUpDir(up_dir),
@@ -42,11 +43,11 @@ public:
 
     void setUpDir(const vmath::Vector3 &up_dir) { mUpDir = up_dir; }
 
-    inline void update();
+    inline void update(float delta_time_sec);
 };
 
 // inline methods
-inline void CameraController::update()
+inline void CameraController::update(float delta_time_sec)
 {
     float speed = mSpeed;
     if (mSignalFlags.checkFlag(Signal::SpeedUp))

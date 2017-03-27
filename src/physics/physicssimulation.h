@@ -1,10 +1,17 @@
 #ifndef PHYSICSSIMULATION_H
 #define PHYSICSSIMULATION_H
 
+#include <list>
+
 #include "../common/gfx_primitives.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
-#include "../engine/phystransformcontainer.h"
+#include "../common/freelistset.h"
+#include "../appconstraints.h"
+#include "../common/pointer.h"
+
+using RigidBodyPool = stdext::freelist_set<btRigidBody, appconstraints::n_actors_max>;
+using RigidBodyPoolHandle = typename RigidBodyPool::node*;
 
 class PhysicsSimulation
 {
@@ -20,12 +27,18 @@ class PhysicsSimulation
     // static data without quitting
     std::list<btTriangleMesh> mStaticMeshData;
 
+    Ptr::WritePtr<RigidBodyPool> mActorRigidBodiesPtr;
+    Ptr::WritePtr<RigidBodyPool> mStaticRigidBodiesPtr;
+
 public:
-    PhysicsSimulation();
+    PhysicsSimulation(Ptr::WritePtr<RigidBodyPool> actor_rigid_bodies_ptr,
+                      Ptr::WritePtr<RigidBodyPool> static_rigid_bodies_ptr);
     ~PhysicsSimulation();
 
+    enum class Shape { Box, Sphere };
+
     void setGravity(const vmath::Vector3 &g);
-    void addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, PhysTransformNode * phys_tranf_node);
+    void addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, Shape shape);
     void addStaticBodyMesh(const vmath::Vector3 &pos, const vmath::Quat &rot,
                            const std::vector<vmath::Vector3> &points, const std::vector<gfx::Triangle> &triangles);
 

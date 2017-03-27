@@ -2,6 +2,7 @@
 #define EULER_H
 
 #include <array>
+#include <limits>
 
 #define _VECTORMATH_DEBUG
 #include "../../dep/vecmath/vectormath_aos.h"
@@ -95,6 +96,7 @@ bool inline intersectAABBvAABB(const AABB &ab0, const AABB &ab1)
     return true;
 }
 
+// wow this is some minkowski difference, GJK shit... :O
 float inline distanceVec3AABB(const vmath::Vector3 &p, const AABB &ab)
 {
     float dmin = 0.0f;
@@ -106,13 +108,70 @@ float inline distanceVec3AABB(const vmath::Vector3 &p, const AABB &ab)
     return dmin;
 }
 
-// the below does not work for box corner vs sphere...
 bool inline intersectSphereAABB(const Sphere &s, const AABB &ab)
 {
     float r2 = s.radius * s.radius;
     float dmin = distanceVec3AABB(s.center, ab);
     return dmin <= r2;
 }
+
+// separating axis theorem implementation
+
+// need algo to partition points on line
+// static...
+
+float inline minmax(float &min, float &max, const float * const p, unsigned int n)
+{
+    min = std::numeric_limits<float>::max();
+    max = std::numeric_limits<float>::lowest();
+
+    for (unsigned int i = 0; i<n; i++)
+    {
+        min = p[i] < min ? p[i] : min;
+        max = p[i] > max ? p[i] : max;
+    }
+}
+
+bool inline separate(const float* const p0, unsigned int n0,
+                     const float* const p1, unsigned int n1) // how should the args to this go?
+{
+    // find max and min..
+    float min0, max0, min1, max1;
+    minmax(min0, max0, p0, n0);
+    minmax(min1, max1, p1, n1);
+
+    // are they separate?
+    return (max1 < min0) || (max0 < min1);
+}
+
+// assume that p2 has allocated to n, use Vector3 in lack of Vector2... ugly as hell..
+// assume that tan0, tan1 are normalized and orthogonal!
+void inline project3to2(const vmath::Vector3 &basis0, // plane tangent 0, define plane through origin
+                        const vmath::Vector3 &basis1, // plane tangent 1
+                        vmath::Vector3 * const p2,
+                        const vmath::Vector3 * const p3, std::size_t n)
+{
+    for (int i = 0; i<n; i++)
+         p2[i] = vmath::Vector3(vmath::dot(basis0, p3[i]), vmath::dot(basis1, p3[i]), 0.0f);
+}
+
+float inline dot2(const vmath::Vector3 &a, const vmath::Vector3 &b) { return a[0]*b[0]+a[1]*b[1]; }
+
+// assume that p2 has allocated to n, use Vector3 in lack of Vector2... ugly as hell..
+// assume n2 is normalized
+void inline project2to1(const vmath::Vector3 &basis0, // line direction, defined through origin
+                        float * const p1,
+                        const vmath::Vector3 * const p2, std::size_t n)
+{
+    for (int i = 0; i<n; i++)
+        p1[i] = dot2(basis0, p2[i]);
+}
+
+//void intersectConvexTriMeshes()
+
+
+
+// dynamic...
 
 // too hard..
 /*

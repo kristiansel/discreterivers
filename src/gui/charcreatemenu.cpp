@@ -8,8 +8,9 @@
 #include "gui.h"
 #include "guistyling.h"
 #include "components/createbutton.h"
-#include "components/mapviewer.h"
+#include "components/textinput.h"
 #include "../events/immediateevents.h"
+
 namespace gui {
 
 using namespace gfx::gui;
@@ -17,6 +18,10 @@ using namespace gfx::gui;
 struct CharCreateMenuState : public GUIStateBase
 {
     //CharCreateMenuState();
+    std::string character_name;
+
+    CharCreateMenuState() :
+        character_name("Name") {}
 };
 
 void createCharCreateMenu(GUI &gui, GUINode &char_create_menu_root)
@@ -53,6 +58,37 @@ void createCharCreateMenu(GUI &gui, GUINode &char_create_menu_root)
                        VertPos(0.0f, Units::Absolute, VertAnchor::Top)}, {0.15f, 0.10f} ));
 
     title_node->addElement( TextElement( "New game - Customize Character", heading_font));
+
+    // content:
+    // Seed
+    GUINodeHandle name_node = char_create_bg_node->addGUINode(
+        GUITransform({HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+                      VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                     {SizeSpec(150.0f, Units::Absolute),
+                      SizeSpec(60.0f, Units::Absolute)} ));
+
+    name_node->addElement( TextElement( "Character name", font));
+    textInput(name_node, font, GUITransform(
+        {HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
+         VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+
+        {SizeSpec(300.0f, Units::Absolute),
+         SizeSpec(30.0f, Units::Absolute)} ),
+        [state_handle] (const std::string &s)   // on text input update
+        {
+            GUIStateWriter<CharCreateMenuState> sw = state_handle.getStateWriter();
+            sw->character_name = s;
+            /*try { sw->planet_seed = std::stoi(s); }
+            catch (...) { sw->planet_seed = NewGameMenuState::planet_seed_default; }*/
+        },
+        [state_handle] ()                       // on state update
+        {
+            GUIStateReader<CharCreateMenuState> sr = state_handle.getStateReader();
+            return sr->character_name;
+        },
+        "0", // default value text
+        24 // max number of characters
+        ); // no filter
 
     createButton(char_create_bg_node, "Next", font,
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),

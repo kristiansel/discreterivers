@@ -21,7 +21,7 @@ class ThirdPersonCameraController
 public:
     ThirdPersonCameraController(float cam_dist,
                                 Ptr::ReadPtr<PhysTransform> phys_transform_ptr,
-                                Ptr::WritePtr<gfx::Camera> cam_ptr = nullptr) :
+                                Ptr::WritePtr<gfx::Camera> cam_ptr = Ptr::WritePtr<gfx::Camera>(nullptr)) :
         mPhysTransformPtr(phys_transform_ptr),
         mCameraPtr(cam_ptr),
         mCamDist(cam_dist) {}

@@ -3,23 +3,18 @@
 #include "../createscene.h"
 #include "../common/mathext.h"
 #include "../common/macro/debuglog.h"
-#include "../state/microstatecreationinfo.h"
+#include "../state/scenecreationinfo.h"
 
 namespace engine {
 
 Engine::Engine(int w, int h, float scale_factor) :
-    mGameState(),
     mRenderer(w, h, scale_factor),
     mGUI(w, h, scale_factor),
     mWidth(w), mHeight(h),
 
-    // to be moved
-    /*mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
-                     gfx::SceneNode(),
-                     Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
-    mMechanicsManager(&mGFXSceneManager.mCamera),
-    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),*/
     mClientStatePtr(nullptr),
+    mNewGameInfoPtr(nullptr),
+
     mGUICapturedMouse(false)
 
 {
@@ -28,16 +23,10 @@ Engine::Engine(int w, int h, float scale_factor) :
     registerEngineCallbacks();
 }
 
-Engine::ClientState::ClientState(int w, int h) :
-mGFXSceneManager(gfx::Camera(gfx::PerspectiveProjection((float)(w)/(float)(h), DR_M_PI_4, 0.0f, 1000000.0f)),
-                 gfx::SceneNode(),
-                 Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
-mMechanicsManager(&mGFXSceneManager.mCamera),
-mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms))
+Engine::~Engine()
 {
-    // ctor...
+    //delete mClientStatePtr; // not necessary with owning pointer...
 }
-
 
 void Engine::handleKeyboardState(const Uint8 *keyboard_state)
 {
@@ -47,31 +36,31 @@ void Engine::handleKeyboardState(const Uint8 *keyboard_state)
         // or is that taken care of by the optimizer anyway?
         if (keyboard_state[SDL_SCANCODE_LSHIFT])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::SpeedUp);
+            mClientStatePtr->sendControlSignal(mech::CameraController::SpeedUp);
         }
         if (keyboard_state[SDL_SCANCODE_W])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Forward);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Forward);
         }
         if (keyboard_state[SDL_SCANCODE_S])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Backward);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Backward);
         }
         if (keyboard_state[SDL_SCANCODE_A])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Left);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Left);
         }
         if (keyboard_state[SDL_SCANCODE_D])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Right);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Right);
         }
         if (keyboard_state[SDL_SCANCODE_X])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Down);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Down);
         }
         if (keyboard_state[SDL_SCANCODE_Z])
         {
-            mClientStatePtr->mMechanicsManager.getActiveController()->sendSignal(mech::CameraController::Up);
+            mClientStatePtr->sendControlSignal(mech::CameraController::Up);
         }
     }
 }
@@ -164,7 +153,7 @@ void Engine::handleMouseEvent(const SDL_Event &event)
                 float mouse_angle_x = static_cast<float>(mouse_delta_x)*0.0062832f; // 2π/1000?
                 float mouse_angle_y = static_cast<float>(mouse_delta_y)*0.0062832f;
 
-                mClientStatePtr->mMechanicsManager.getActiveController()->sendTurnSignals({mouse_angle_x, mouse_angle_y});
+                mClientStatePtr->sendTurnSignals({mouse_angle_x, mouse_angle_y});
             }
 
             mGUI.handleMouseMoved(event.motion.x, event.motion.y, mouse_delta_x, mouse_delta_y);
@@ -185,14 +174,7 @@ void Engine::update(float delta_time_sec)
 {
     if (mClientStatePtr)
     {
-        // update mechanics
-        mClientStatePtr->mMechanicsManager.update();
-
-        // update physics
-        mClientStatePtr->mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
-
-        // update render jobs
-        mClientStatePtr->mGFXSceneManager.updateGraphicsTransforms();
+        mClientStatePtr->update(delta_time_sec);
     }
 }
 
@@ -206,25 +188,28 @@ void Engine::registerEngineCallbacks()
 {
     DEBUG_LOG( "registering engine callbacks" );
 
-        events::Immediate::add_callback<events::EndGameEvent>(
-            [this] (const events::EndGameEvent &evt) {
-                // nuke client state
-                delete mClientStatePtr;
-                mClientStatePtr = nullptr;
-        });
-
-        events::Immediate::add_callback<events::StartGameEvent>(
-            [this] (const events::StartGameEvent &evt) {
-                // create new client state
-                // mClientStatePtr = new ClientState(mWidth, mHeight);
-        });
-
+    events::Immediate::add_callback<events::EndGameEvent>(
+        [this] (const events::EndGameEvent &evt) {
+            // nuke client state
+            /*delete mClientStatePtr;
+            mClientStatePtr = nullptr;*/
+            mClientStatePtr = Ptr::OwningPtr<ClientState>(nullptr);
+    });
 
 //    // clear all on start new game...
     events::Immediate::add_callback<events::NewGameEvent>(
         [this] (const events::NewGameEvent &evt) {
             // first quit the old game
             events::Immediate::broadcast(events::EndGameEvent());
+
+            // initialize the new game info object
+            mNewGameInfoPtr = Ptr::OwningPtr<NewGameInfo>(new NewGameInfo());
+    });
+
+    events::Immediate::add_callback<events::CancelNewGameEvent>(
+        [this] (const events::CancelNewGameEvent &evt) {
+            // initialize the new game info object
+            mNewGameInfoPtr = Ptr::OwningPtr<NewGameInfo>(nullptr); // is this even necessary? It gets recreated anyway...
     });
 
 
@@ -235,9 +220,11 @@ void Engine::registerEngineCallbacks()
         [this] (const events::StartGameEvent &evt) {
             // client state should be already added by callback above..... hope...
             // or not..
-            mClientStatePtr = new ClientState(mWidth, mHeight);
+            // here shold move from new game into the client thigly
 
-            Ptr::ReadPtr<state::MacroState> scene_data = mGameState.readMacroState();
+            // consume new game info ptr...
+
+            Ptr::OwningPtr<state::MacroState> scene_data = mNewGameInfoPtr->moveMacroState();
 
             // find a point on land...
             int i_point = rand()%scene_data->alt_planet_points.size();
@@ -251,24 +238,26 @@ void Engine::registerEngineCallbacks()
             vmath::Vector3 local_up = vmath::normalize(scene_data->planet_base_shape->getGradDir(land_point));
             vmath::Vector3 point_above = land_point + 4.0f * local_up;
 
-            unsigned int player_actor_id = 1;
-            state::MicroStateCreationInfo scene_creation_info = {
-                scene_data, // macro state ptr
-                land_point, // land position
-                point_above, // anchor_pos
-                {
-                    { player_actor_id, point_above, vmath::Quat() },
-                   /* other actors */
-                }
-            };
+            state::SceneCreationInfo scene_creation_info(std::move(scene_data), land_point, point_above);
+            scene_creation_info.aspect_ratio = (float)(mWidth)/(float)(mHeight);
+            scene_creation_info.actors.push_back({ point_above,
+                                                   vmath::Quat(),
+                                                   { state::Actor::Spec::Type::TestIco },
+                                                   state::Actor::Control::Player } );
 
-            events::Immediate::broadcast(events::CreateSceneEvent{&scene_creation_info});
+            // test actors
+            vmath::Vector3 side_unit = vmath::cross(local_up, vmath::Vector3(0.0, 1.0, 0.0));
+            scene_creation_info.actors.push_back({ point_above +  8.0f*side_unit,
+                                                   vmath::Quat(),
+                                                   { state::Actor::Spec::Type::TestBox },
+                                                   state::Actor::Control::AI } );
+            scene_creation_info.actors.push_back({ point_above + 16.0f*side_unit,
+                                                   vmath::Quat(),
+                                                   { state::Actor::Spec::Type::TestIco },
+                                                   state::Actor::Control::AI} );
 
-            //mMechanicsManager.wireControlsToCamera(mGFXSceneManager.getCamera());
-
-            // now everything is created...
-            // wire up some connections?
-
+            // consume scene_creation_info
+            mClientStatePtr = Ptr::OwningPtr<ClientState>(new ClientState(scene_creation_info));
 
             // end func
     });

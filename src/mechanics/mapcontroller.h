@@ -67,7 +67,7 @@ public:
 
     inline void clearControlled()
     {
-        mCameraPtr = nullptr;
+        mCameraPtr = Ptr::WritePtr<gfx::Camera>(nullptr);
     }
 
     // mutators

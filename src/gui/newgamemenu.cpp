@@ -61,11 +61,24 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
     GUIStateHandle<NewGameMenuState> state_handle = newgame_bg_node->setState(NewGameMenuState());
 
     events::Immediate::add_callback<events::NewGameEvent>(
-        [newgame_bg_node] (const events::NewGameEvent &evt) { newgame_bg_node->show(); }
+        [newgame_bg_node] (const events::NewGameEvent &evt) {
+            newgame_bg_node->show();
+            if (evt.clear_state)
+            {
+                newgame_bg_node->setState(NewGameMenuState());
+                newgame_bg_node->forceStateUpdate();
+            }
+        }
     );
 
     events::Immediate::add_callback<events::ToggleMainMenuEvent>(
         [newgame_bg_node] (const events::ToggleMainMenuEvent &evt) { newgame_bg_node->hide(); }
+    );
+
+    events::Immediate::add_callback<events::CancelNewGameEvent>(
+        [newgame_bg_node] (const events::CancelNewGameEvent &evt) {
+            events::Immediate::broadcast(events::ToggleMainMenuEvent());
+        }
     );
 
     events::Immediate::add_callback<events::ChooseOriginEvent>(
@@ -121,7 +134,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
             GUIStateReader<NewGameMenuState> sr = state_handle.getStateReader();
             return std::to_string(sr->planet_seed);
         },
-        "0", // default value text
+        "0", // default value text (gets overridden by default state)
         12, // max number of characters
         [](int32_t c){ return c>47 && c<58; }); // only accept numeric
 
@@ -275,7 +288,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                  HorzPos(30.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
                  VertPos(30.0f, Units::Absolute, VertAnchor::Bottom, VertFrom::Bottom),
                  180.0f,
-                 [](){ events::Immediate::broadcast(events::ToggleMainMenuEvent()); });
+                 [](){ events::Immediate::broadcast(events::CancelNewGameEvent()); });
 
     // update the state
     newgame_bg_node->forceStateUpdate();

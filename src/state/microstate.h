@@ -3,13 +3,14 @@
 
 #include "actor.h"
 #include "../common/freelistset.h"
-#include "microstatecreationinfo.h"
+#include "scenecreationinfo.h"
+#include "../appconstraints.h"
 
 namespace state {
 
 class MicroState
 {
-    using ActorCollection = stdext::freelist_set<Actor, 1000>; // 1000 actors max...
+    using ActorCollection = stdext::freelist_set<Actor, appconstraints::n_actors_max>; // 1000 actors max...
     using ActorHandle     = ActorCollection::node*;
 
     // character controller...

@@ -43,7 +43,7 @@ public:
     InputController() { clearSignals(); }
     virtual ~InputController() {}
 
-    virtual void update() = 0; // update something based on the received signals
+    virtual void update(float delta_time_sec) = 0; // update something based on the received signals
 
     inline void sendSignal(Signal signal)
     {

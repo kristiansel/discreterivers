@@ -2,20 +2,16 @@
 #define EXTMOTIONSTATE_H
 
 #include "btBulletDynamicsCommon.h"
-#include "../graphics/scenenode.h"
 #include "../common/macro/debuglog.h"
-#include "../engine/phystransformcontainer.h"
 
 class ExtMotionState : public btMotionState
 {
 protected:
-    PhysTransformNode* mPhysTransfNodePtr;
     btTransform mInitialPosition;
 
 public:
-    ExtMotionState(const btTransform &initialPosition, PhysTransformNode* phys_transf_node_ptr)
+    ExtMotionState(const btTransform &initialPosition)
     {
-        mPhysTransfNodePtr = phys_transf_node_ptr;
         mInitialPosition = initialPosition;
     }
 
@@ -32,15 +28,8 @@ public:
 
     virtual void setWorldTransform(const btTransform &worldTrans)
     {
-        /*if(mSceneNode == nullptr)
-            return; // silently return before we set a node
-        */
-        btQuaternion rot = worldTrans.getRotation();
-        mPhysTransfNodePtr->get().rot = vmath::Quat(rot.x(), rot.y(), rot.z(), rot.w());
-
-        btVector3 pos = worldTrans.getOrigin();
-        mPhysTransfNodePtr->get().pos = vmath::Vector3(pos.x(), pos.y(), pos.z());
-
+        //btQuaternion rot = worldTrans.getRotation();
+        //btVector3 pos = worldTrans.getOrigin();
         //DEBUG_LOG("MOTIONSTATE SET");
         //vmath::print(mPhysTransfNodePtr->get().pos);
     }

@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
     if (cursor) SDL_FreeCursor(cursor);
     if (cursor_surface) SDL_FreeSurface(cursor_surface);
 
-    SDL_GL_DeleteContext(mainGLContext);
+    SDL_GL_DeleteContext(mainGLContext); // how does this not get freed according to Valgrind?
     SDL_DestroyWindow(mainWindow);
     SDL_Quit();
 

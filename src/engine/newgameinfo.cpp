@@ -1,16 +1,13 @@
-#include "gamestate.h"
+#include "newgameinfo.h"
 
-#include "../events/immediateevents.h"
 #include "../system/async.h"
 #include "../createscene.h"
 
-namespace state {
-
-GameState::GameState() :
+NewGameInfo::NewGameInfo() :
     mMacroStatePtr(nullptr)
 {
-    // register event callbacks
-    events::Immediate::add_callback<events::GenerateWorldEvent>(
+    // register callbacks
+    mGenerateWorldCallbackRef = events::Immediate::add_callback<events::GenerateWorldEvent>(
         [this] (const events::GenerateWorldEvent &evt) {
             sys::Async::addJob(
                 // The asynchronous operation
@@ -29,17 +26,21 @@ GameState::GameState() :
         }
     );
 
-    // register event callbacks
-    /*events::Immediate::add_callback<events::StartGameEvent>(
-        [this] (const events::StartGameEvent &evt) {
-            this->mMicroStatePtr = Ptr::OwningPtr<MicroState> ( new MicroState() );
-        }
-    );*/
+    // set defaults
 }
 
-void GameState::createMicroState(const MicroStateCreationInfo &micro_state_creation_info)
+NewGameInfo::~NewGameInfo()
 {
-    //
+    // unregister callbacks
+    events::Immediate::remove_callback<events::GenerateWorldEvent>(mGenerateWorldCallbackRef);
 }
 
+Ptr::OwningPtr<state::MacroState>&& NewGameInfo::moveMacroState()
+{
+    return std::move(mMacroStatePtr);
+}
+
+Ptr::ReadPtr<state::MacroState>     NewGameInfo::readMacroState()
+{
+    return mMacroStatePtr.getReadPtr();
 }

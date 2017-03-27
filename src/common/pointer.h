@@ -12,13 +12,15 @@ class WritePtr
 
     WritePtr() = delete;
 public:
-    WritePtr(T *ptr) : p_(ptr) {}
+    explicit WritePtr(T *ptr) : p_(ptr) {}
 
     //T&                                 operator*(){return *m_ptr;}
     //const T&                           operator*()const{return *m_ptr;}
     // etc...
     T*           operator->()       { return p_; }
     const T*     operator->() const { return p_; }
+
+    T& getRef() { return *p_; }
 
     bool operator==(const WritePtr &o) const { return p_ == o.p_; }
     bool operator!=(const WritePtr &o) const { return p_ != o.p_; }
@@ -33,7 +35,7 @@ class ReadPtr
 
     ReadPtr() = delete;
 public:
-    ReadPtr(const T *ptr) : p_(ptr) { DEBUG_ASSERT(ptr!=nullptr); }
+    explicit ReadPtr(const T *ptr) : p_(ptr) { DEBUG_ASSERT(ptr!=nullptr); }
 
     // auto cast
     //operator const T *() { return p_; }
@@ -57,13 +59,13 @@ class OwningPtr
     OwningPtr& operator=(OwningPtr const& other) = delete;
 
 public:
-    OwningPtr(T *ptr) : p_(ptr) {}
+    explicit OwningPtr(T *ptr) : p_(ptr) {}
     OwningPtr(OwningPtr&& o) : p_(o.p_) { o.p_ = nullptr; }
     ~OwningPtr() { delete p_;}
 
     OwningPtr& operator=(OwningPtr&& o) { delete p_; p_=o.p_; o.p_=nullptr; }
 
-    ReadPtr<T> getReadPtr() { return ReadPtr<T>(p_); }
+    ReadPtr<T> getReadPtr() const { return ReadPtr<T>(p_); }
 
     // move assign
 

@@ -30,6 +30,10 @@ public:
     const AltPlanet::Shape::BaseShape * planet_base_shape;
 
     ~MacroState() { delete planet_base_shape; }
+
+
+    vmath::Vector3 getLocalUp(const vmath::Vector3 &point) const
+    { return vmath::normalize(planet_base_shape->getGradDir(point)); }
 };
 
 //}

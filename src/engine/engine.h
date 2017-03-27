@@ -6,12 +6,9 @@
 #include "../graphics/openglrenderer.h"
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
-#include "../state/gamestate.h"
-#include "../mechanics/mechanicsmanager.h"
-#include "../physics/physicsmanager.h"
 #include "mousestate.h"
-#include "gfxscenemanager.h"
-#include "phystransformcontainer.h"
+#include "newgameinfo.h"
+#include "clientstate.h"
 
 // organize window/input handling under system..?
 
@@ -22,28 +19,14 @@ namespace engine {
 class Engine
 {
     // big members
-    state::GameState    mGameState;
+    //state::GameState    mGameState;
     gfx::OpenGLRenderer mRenderer;              // must be initialized before GUI!
     gui::GUI            mGUI;                   // needs valid opengl context and glew init
 
-    struct ClientState
-    {
-        ClientState(int w, int h);
-        // to be moved into graphics state manager
-        GFXSceneManager mGFXSceneManager;
+    Ptr::OwningPtr<ClientState> mClientStatePtr;
 
-        // intermediary between physics, control and graphics
-        PhysTransformContainer mActorTransforms;
-        PhysTransformContainer mKinematicTransforms; // camera etc, not physics controlled
-
-        // to be moved into mechanics state manager
-        MechanicsManager mMechanicsManager;
-
-        // physics
-        PhysicsManager mPhysicsManager;
-    };
-
-    ClientState * mClientStatePtr;
+    // new game info ptr?
+    Ptr::OwningPtr<NewGameInfo> mNewGameInfoPtr;
 
     // what is this used for, why does it not reside in GUI?
     bool mGUICapturedMouse;
@@ -53,13 +36,9 @@ class Engine
     int mWidth;
     int mHeight;
 
-    // immovable, non-copyable, non-default-constructible
-    Engine() = delete;
-    Engine(Engine &&e) = delete;
-    Engine(const Engine &e) = delete;
-
 public:
     Engine(int w, int h, float scale_factor);
+    ~Engine();
 
     // mutators
     //inline void prepareFrame();
@@ -81,6 +60,12 @@ private:
     // helper methods...
     void registerEngineCallbacks();
 
+    // immovable, non-copyable, non-default-constructible
+    Engine() = delete;
+    Engine(Engine &&e) = delete;
+    Engine(const Engine &e) = delete;
+
+
 };
 
 inline void Engine::resize(int w, int h)
@@ -95,9 +80,13 @@ inline void Engine::draw()
 {
     if (mClientStatePtr)
     {
-        mRenderer.draw(mClientStatePtr->mGFXSceneManager.mCamera,
+        /*mRenderer.draw(mClientStatePtr->mGFXSceneManager.mCamera,
                        mGUI.getGUIRoot(),
-                       mClientStatePtr->mGFXSceneManager.mGFXSceneRoot);
+                       mClientStatePtr->mGFXSceneManager.mGFXSceneRoot);*/
+
+        mRenderer.draw(mClientStatePtr->getActiveCamera(),
+                       mGUI.getGUIRoot(),
+                       mClientStatePtr->getGFXSceneRoot());
     }
     else
     {

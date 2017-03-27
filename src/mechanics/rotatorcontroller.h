@@ -63,7 +63,7 @@ public:
 
     inline void clearControlledNode()
     {
-        mSceneNodePtr = nullptr;
+        mSceneNodePtr = Ptr::WritePtr<gfx::SceneNode>(nullptr);
     }
 
     // mutators

@@ -4,7 +4,10 @@
 #include "testmotionstate.h"
 #include "../common/macro/debuglog.h"
 
-PhysicsSimulation::PhysicsSimulation()
+PhysicsSimulation::PhysicsSimulation(Ptr::WritePtr<RigidBodyPool> actor_rigid_bodies_ptr,
+                                     Ptr::WritePtr<RigidBodyPool> static_rigid_bodies_ptr) :
+    mActorRigidBodiesPtr(actor_rigid_bodies_ptr),
+    mStaticRigidBodiesPtr(static_rigid_bodies_ptr)
 {
     DEBUG_LOG("Creating physics simulation")
 
@@ -44,17 +47,21 @@ void PhysicsSimulation::setGravity(const vmath::Vector3 &g)
     mDynamicsWorld->setGravity(btVector3(g.getX(), g.getY(), g.getZ()));
 }
 
-void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, PhysTransformNode *phys_tranf_node)
+void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, Shape shape)
 {
     // could use a pool allocator for all these 'new's
-    btCollisionShape* col_shape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // set as input later...
+    // btCollisionShape* col_shape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // set as input later...
+    btCollisionShape* col_shape = shape == Shape::Box ?
+                                    (btCollisionShape*)(new btBoxShape(btVector3(1.0f, 1.0f, 1.0f))) :
+                                    (btCollisionShape*)(new btSphereShape(1.0f));
+
     mCollisionShapes.push_back(col_shape);
 
     // Create Dynamic Objects
     btTransform start_transform( btQuaternion(rot.getX(), rot.getY(), rot.getZ(), rot.getW()),
                                     btVector3(pos.getX(), pos.getY(), pos.getZ()));
 
-    btScalar	mass(10.f); // change for input later...
+    btScalar	mass(70.f); // change for input later... // 70 kg?
 
     //rigidbody is dynamic if and only if mass is non zero, otherwise static
     bool is_dynamic = (mass != 0.f);
@@ -65,8 +72,7 @@ void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Q
         col_shape->calculateLocalInertia(mass, local_inertia);
     }
 
-    //btDefaultMotionState* motion_state = new btDefaultMotionState(start_transform);
-    btMotionState* motion_state = new ExtMotionState(start_transform, phys_tranf_node);
+    btMotionState* motion_state = new ExtMotionState(start_transform);
 
     DEBUG_LOG("ADDING RIGIDBODY");
 
@@ -74,10 +80,17 @@ void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Q
     rb_info.m_restitution = btScalar(0.33f); // wtf are these...
     rb_info.m_friction = btScalar(0.4f);     // set later..
 
-    btRigidBody* body = new btRigidBody(rb_info);
+    RigidBodyPoolHandle rb_handle = mActorRigidBodiesPtr->create(rb_info);
+    btRigidBody* body = rb_handle->get_ptr();
+    //btRigidBody* body = new btRigidBody(rb_info);
     body->activate(); // try to force activate so that it doesn't just hang in the air...
 
     mDynamicsWorld->addRigidBody(body);
+
+    body->setSleepingThresholds(0.2f, 0.25f);
+
+    // give it some starting velocity to not hang in the air...
+    body->applyCentralForce(btVector3(0.1, 0.1, 0.1));
 }
 
 
@@ -121,7 +134,8 @@ void PhysicsSimulation::addStaticBodyMesh(const vmath::Vector3 &pos, const vmath
     rb_info.m_restitution = btScalar(0.33f); // wtf are these...
     rb_info.m_friction = btScalar(0.4f);     // set later..
 
-    btRigidBody* body = new btRigidBody(rb_info);
+    RigidBodyPoolHandle rb_handle = mStaticRigidBodiesPtr->create(rb_info);
+    btRigidBody* body = rb_handle->get_ptr();
 
     mDynamicsWorld->addRigidBody(body);
 }
@@ -146,7 +160,8 @@ void PhysicsSimulation::addStaticBodyPlane(const vmath::Vector3 &pos, const vmat
     rb_info.m_restitution = btScalar(0.33f); // wtf are these...
     rb_info.m_friction = btScalar(0.4f);     // set later..
 
-    btRigidBody* body = new btRigidBody(rb_info);
+    RigidBodyPoolHandle rb_handle = mStaticRigidBodiesPtr->create(rb_info);
+    btRigidBody* body = rb_handle->get_ptr();
 
     mDynamicsWorld->addRigidBody(body);
 }
@@ -258,7 +273,7 @@ PhysicsSimulation::~PhysicsSimulation()
             delete body->getMotionState();
         }
         mDynamicsWorld->removeCollisionObject( obj );
-        delete obj;
+        //delete obj; // gets cleared up by owner of RigidBodyPools
     }
 
     //delete collision shapes
@@ -281,8 +296,8 @@ PhysicsSimulation::~PhysicsSimulation()
 
     delete mCollisionDispatcher;
 
-    // this does not need delete?
-    //delete mCollisionConfiguration;
+    // this does not need delete? -- it does
+    delete mCollisionConfiguration;
 
     mCollisionShapes.clear();
 }

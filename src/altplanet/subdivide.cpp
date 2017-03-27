@@ -160,8 +160,6 @@ void subdivideGeometry(  std::vector<vmath::Vector3> &points,
 
         // Use a cache to keep points resulting from subidiving a shared edge
         IntpairIntMapType midpoints_cache;
-        //int num_cache_points_max = getNumPointsAtSubdivisionLevel(k) - getNumPointsAtSubdivisionLevel(k-1);
-        //midpoints_cache.reserve( num_cache_points_max );
 
         // for progress tracking
         std::cout << "[" << std::string(10, ' ') << "]";

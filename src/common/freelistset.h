@@ -30,6 +30,9 @@ class freelist_set_node
 public:
     T &get() { return reinterpret_cast<T&>(data_); }
     const T &get_const() { return reinterpret_cast<const T&>(data_); }
+
+    T *get_ptr() { return reinterpret_cast<T*>(&data_); }
+    const T *get_ptr_const() { return reinterpret_cast<const T*>(&data_); }
 };
 
 // chunked free list array
@@ -98,6 +101,7 @@ public:
         }
     }
 
+
     template<typename F>
     void for_all_const(F f) const
     {
@@ -140,7 +144,28 @@ private:
     std::size_t max_count_;
     node entry_node_;
 
+    template<typename A, typename B, typename F, std::size_t NA, std::size_t NB>
+    friend void freelist_set_zip(freelist_set<A, NA> &fls_a, freelist_set<B, NB> &fls_b, F f);
+
 };
+
+
+template<typename A, typename B, typename F, std::size_t NA, std::size_t NB>
+void freelist_set_zip(freelist_set<A, NA> &fls_a, freelist_set<B, NB> &fls_b, F f)
+{
+    for (std::size_t i=0; i<std::min(fls_a.max_count_, fls_b.max_count_); i++)
+    {
+        freelist_set_node<A> &na = fls_a.entry_chunk_.nodes_[i];
+        if (fls_a.is_active(&na))
+        {
+            freelist_set_node<B> &nb = fls_b.entry_chunk_.nodes_[i];
+
+            DEBUG_ASSERT(fls_b.is_active(&nb));
+
+            f(na.get(), nb.get());
+        }
+    }
+}
 
 }
 
