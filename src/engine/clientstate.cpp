@@ -14,3 +14,26 @@ ClientState::ClientState(state::SceneCreationInfo &new_game_info) :
     mMechanicsManager.initScene(new_game_info.land_pos, mMacroStatePtr.getReadPtr(), new_game_info.actors);
 
 }
+
+
+void ClientState::update(float delta_time_sec)
+{
+    // update mechanics
+    mMechanicsManager.update(delta_time_sec);
+
+    // update physics
+    mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
+
+    // update gravity
+    mPhysicsManager.updateDynamicsGravity(mMacroStatePtr->planet_base_shape);
+
+    // update render jobs
+    mActorTransforms.for_all([](PhysTransform &pt){
+        pt.scene_node_hdl->transform.position = pt.pos;
+        pt.scene_node_hdl->transform.rotation = pt.rot;
+    });
+
+    // update graphics camera
+    vmath::Quat player_orientation = mMechanicsManager.getPlayerTargetOrientation();
+    mGFXSceneManager.updateCamera(player_orientation, mMacroStatePtr->getLocalUp(getActiveCamera().mTransform.position));
+}

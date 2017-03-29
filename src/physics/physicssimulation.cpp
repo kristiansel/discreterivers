@@ -47,13 +47,45 @@ void PhysicsSimulation::setGravity(const vmath::Vector3 &g)
     mDynamicsWorld->setGravity(btVector3(g.getX(), g.getY(), g.getZ()));
 }
 
+btCollisionShape * PhysicsSimulation::createMeshShape(const std::vector<vmath::Vector4> &pts, const std::vector<gfx::Triangle> &tris)
+{
+    mStaticMeshData.push_back(btTriangleMesh());
+    btTriangleMesh * triangle_mesh = &(mStaticMeshData.back());
+    for (int i=0; i<tris.size(); i++)
+    {
+        const vmath::Vector4 &p0 = pts[tris[i][0]];
+        const vmath::Vector4 &p1 = pts[tris[i][1]];
+        const vmath::Vector4 &p2 = pts[tris[i][2]];
+        triangle_mesh->addTriangle(btVector4(p0.getX(), p0.getY(), p0.getZ(), 1.0f),
+                                   btVector4(p1.getX(), p1.getY(), p1.getZ(), 1.0f),
+                                   btVector4(p2.getX(), p2.getY(), p2.getZ(), 1.0f));
+    }
+
+    // why the fuark does this not work...
+
+    btBvhTriangleMeshShape* col_shape = new btBvhTriangleMeshShape(triangle_mesh, true);
+    col_shape->buildOptimizedBvh();
+
+    return col_shape;
+}
+
 void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Quat &rot, Shape shape)
 {
     // could use a pool allocator for all these 'new's
     // btCollisionShape* col_shape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // set as input later...
-    btCollisionShape* col_shape = shape == Shape::Box ?
-                                    (btCollisionShape*)(new btBoxShape(btVector3(1.0f, 1.0f, 1.0f))) :
-                                    (btCollisionShape*)(new btSphereShape(1.0f));
+    btCollisionShape* col_shape = nullptr;
+    if (shape == Shape::Box)
+    {
+        col_shape = (btCollisionShape*)(new btBoxShape(btVector3(1.0f, 1.0f, 1.0f)));
+
+        //Procedural::Geometry box_geom = Procedural::boxPlanes(1.0f, 1.0f, 1.0f);
+        //col_shape = createMeshShape(box_geom.points, box_geom.triangles);
+    }
+    else
+    {
+        col_shape = (btCollisionShape*)(new btSphereShape(2.0f));
+    }
+
 
     mCollisionShapes.push_back(col_shape);
 
@@ -79,6 +111,9 @@ void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Q
     btRigidBody::btRigidBodyConstructionInfo rb_info(mass, motion_state, col_shape, local_inertia);
     rb_info.m_restitution = btScalar(0.33f); // wtf are these...
     rb_info.m_friction = btScalar(0.4f);     // set later..
+    //rb_info.m_rollingFriction = btScalar(0.4f);
+    DEBUG_LOG("rb_info.m_rollingFriction: " << rb_info.m_rollingFriction);
+
 
     RigidBodyPoolHandle rb_handle = mActorRigidBodiesPtr->create(rb_info);
     btRigidBody* body = rb_handle->get_ptr();
@@ -90,7 +125,7 @@ void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Q
     body->setSleepingThresholds(0.2f, 0.25f);
 
     // give it some starting velocity to not hang in the air...
-    body->applyCentralForce(btVector3(0.1, 0.1, 0.1));
+    //body->applyCentralForce(btVector3(0.1, 0.1, 0.1));
 }
 
 

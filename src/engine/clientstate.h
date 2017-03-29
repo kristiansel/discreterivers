@@ -29,6 +29,8 @@ class ClientState
 public:
     ClientState(state::SceneCreationInfo &new_game_info);
 
+    void update(float delta_time_sec);
+
     Ptr::ReadPtr<state::MacroState> readMacroState() { return mMacroStatePtr.getReadPtr(); } // is this even necessary?
 
     const gfx::Camera inline &getActiveCamera() const { return mGFXSceneManager.getActiveCamera(); }
@@ -37,22 +39,7 @@ public:
     void inline sendControlSignal(mech::InputController::Signal s) { mMechanicsManager.getActiveController()->sendSignal(s); }
     void inline sendTurnSignals(mech::InputController::TurnSignals ts) { mMechanicsManager.getActiveController()->sendTurnSignals(ts); }
 
-    void inline update(float delta_time_sec);
 };
 
-void inline ClientState::update(float delta_time_sec)
-{
-    // update mechanics
-    mMechanicsManager.update(delta_time_sec);
-
-    // update physics
-    mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
-
-    // update render jobs
-    mActorTransforms.for_all([](PhysTransform &pt){
-        pt.scene_node_hdl->transform.position = pt.pos;
-        pt.scene_node_hdl->transform.rotation = pt.rot;
-    });
-}
 
 #endif // CLIENTSTATE_H

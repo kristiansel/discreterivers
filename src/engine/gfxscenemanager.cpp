@@ -42,8 +42,28 @@ void GFXSceneManager::initScene(const vmath::Vector3 &point_above,
 
         if (actor.control == state::Actor::Control::Player)
         {
-            vmath::Vector3 side_offset = 16.0f*vmath::cross(local_up, vmath::Vector3(1.0, 0.0, 0.0));
-            mCamera.mTransform.lookAt(actor.pos+side_offset, actor.pos, local_up);
+            vmath::Vector3 back_offset = 16.0f*vmath::cross(local_up, vmath::Vector3(1.0, 0.0, 0.0));
+            mCameraNodePtr->transform.lookAt(actor.pos+back_offset, actor.pos, local_up);
+            mCamera.mTransform = mCameraNodePtr->transform;
+            //mCamera.mTransform.lookAt(actor.pos+side_offset, actor.pos, local_up);
+
+            mPlayerNodePtr = Ptr::WritePtr<gfx::SceneNode>(&(*actor_node));
         }
+    }
+}
+
+
+void GFXSceneManager::updateCamera(const vmath::Quat &player_orientation, const vmath::Vector3 &up)
+{
+    if (mPlayerNodePtr)
+    {
+        const vmath::Quat &po = player_orientation;
+        //DEBUG_LOG("player_orientation: " << po[0] << ", "<< po[1] << ", "<< po[2] << ", " << po[3])
+        const gfx::Transform &player_transf = mPlayerNodePtr->transform;
+        vmath::Matrix3 rot(player_orientation);
+        vmath::Vector3 offset = 16.0f*rot*vmath::Vector3(0.0f, -1.0f, 1.0f);
+
+        mCameraNodePtr->transform.lookAt(player_transf.position+offset, player_transf.position, up);
+        mCamera.mTransform = mCameraNodePtr->transform;
     }
 }

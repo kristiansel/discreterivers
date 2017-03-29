@@ -26,11 +26,11 @@ void PhysicsManager::initScene(const vmath::Vector3 &land_point,
 
 
     // add static collision object for world
-    /*mPhysicsSim.addStaticBodyMesh(vmath::Vector3(0.0f, 0.0f, 0.0f), vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
-                                      macro_state_.alt_lake_points, macro_state_.alt_lake_triangles);*/
+    mPhysicsSim.addStaticBodyMesh(vmath::Vector3(0.0f, 0.0f, 0.0f), vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
+                                      macro_state_ptr->alt_planet_points, macro_state_ptr->alt_planet_triangles);
 
-    mPhysicsSim.addStaticBodyPlane(land_point, vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
-                                       vmath::normalize(grad_dir));
+   /* mPhysicsSim.addStaticBodyPlane(land_point, vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
+                                       vmath::normalize(grad_dir));*/
 
     // add rigidbody for actors
     for (int i = 0; i<actors.size(); i++)
@@ -44,4 +44,13 @@ void PhysicsManager::initScene(const vmath::Vector3 &land_point,
     }
 
 
+}
+
+void PhysicsManager::updateDynamicsGravity(const AltPlanet::Shape::BaseShape *planet_shape)
+{
+    mActorRigidBodies.for_all([&](btRigidBody &rb){
+        btVector3 rb_pos = rb.getWorldTransform().getOrigin();
+        vmath::Vector3 gravity = -sGravityMagnitude * vmath::normalize(planet_shape->getGradDir((vmath::Vector3&)(rb_pos)));
+        rb.setGravity((btVector3&)(gravity));
+    });
 }

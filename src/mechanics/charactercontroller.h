@@ -6,23 +6,23 @@
 #include "../common/gfx_primitives.h"
 #include "../physics/rigidbody.h"
 #include "../common/macro/debuglog.h"
+#include "../common/flags.h"
 
 namespace mech {
 
-struct PIDController
+struct PIController
 {
-    float p;
-    float i;
-    float acc;
+    float p, i, set, acc;
 
-    float setpoint;
+    PIController(float p, float i, float set) :
+        p(p), i(i), set(set), acc(0.0f) { /* ctor */ }
 
-    float eval_update(float measured, float delta_time_sec)
+    float evalUpdate(float m, float dt)
     {
-        float diff = measured - setpoint;
-        acc = acc + diff * delta_time_sec;
-
-        return p * diff + i * acc;
+        float diff = m - set;
+        float out = p * diff + i * acc;
+        acc = acc + diff * dt;
+        return out;
     }
 };
 
@@ -37,8 +37,8 @@ class CharacterController : public InputController
     vmath::Quat mActualOrientation;
     float       mMouseTurnSpeed;
 
-    PIDController mForwardPID;
-    PIDController mSidePID;
+    PIController mForwardCtrl;
+    PIController mSideCtrl;
 
 public:
     CharacterController(Ptr::WritePtr<RigidBody> rigid_body_ptr = Ptr::WritePtr<RigidBody>(nullptr),
@@ -48,8 +48,8 @@ public:
         mTargetOrientation(start_orientation),
         mActualOrientation(start_orientation),
         mMouseTurnSpeed(mouse_turn_speed),
-        mForwardPID{-120.0f, 0.0f, 0.0f, 0.0f},
-        mSidePID{-120.0f, 0.0f, 0.0f, 0.0f}
+        mForwardCtrl(-600.0f, 2.0f, 0.0f),
+        mSideCtrl(-600.0f, 2.0f, 0.0f)
         // many more to come
     {
         // clearSignals(); // done by base...
@@ -62,6 +62,9 @@ public:
     }
 
     void update(float delta_time_sec);
+
+    // read
+    inline vmath::Quat getTargetOrientation() { return mTargetOrientation; }
 };
 
 inline void CharacterController::update(float delta_time_sec)
@@ -86,17 +89,22 @@ inline void CharacterController::update(float delta_time_sec)
 
         DEBUG_LOG("set speed forward and right " << speed_forw_set << ", " << speed_side_set);
 
+        if (speed_forw_set > 0.01f || speed_side_set > 0.01f)
+        {
+            mRigidBodyPtr->activate(true);
+        }
+
         btVector3 v = mRigidBodyPtr->getLinearVelocity();
         float vel_forw = vmath::dot({v[0], v[1], v[2]}, forward);
         float vel_right = vmath::dot({v[0], v[1], v[2]}, right);
 
         DEBUG_LOG("vel_forw and vel_right: " << vel_forw << ", " << vel_right);
 
-        mForwardPID.setpoint = speed_forw_set;
-        float forw_contr_force = mForwardPID.eval_update(vel_forw, delta_time_sec);
+        mForwardCtrl.set = speed_forw_set;
+        float forw_contr_force = mForwardCtrl.evalUpdate(vel_forw, delta_time_sec);
 
-        mSidePID.setpoint = speed_side_set;
-        float side_contr_force = mSidePID.eval_update(vel_right, delta_time_sec);
+        mSideCtrl.set = speed_side_set;
+        float side_contr_force = mSideCtrl.evalUpdate(vel_right, delta_time_sec);
 
         DEBUG_LOG("forw and side forces: " << forw_contr_force << ", " << side_contr_force);
 
@@ -109,10 +117,15 @@ inline void CharacterController::update(float delta_time_sec)
             mRigidBodyPtr->applyCentralForce(20.0f*(const btVector3 &)(forward));
         }*/
 
-        mActualOrientation =
+        mTargetOrientation =
                 vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[0], up ) *
                 vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[1], right) *
-                mActualOrientation;
+                mTargetOrientation;
+
+        // change this after a while...
+        mActualOrientation = mTargetOrientation;
+
+        //DEBUG_LOG("turn signals: " << mTurnSignals[0] << ", " << mTurnSignals[1]);
     }
 
     clearSignals();

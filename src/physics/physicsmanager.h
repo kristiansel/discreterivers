@@ -31,7 +31,11 @@ public:
                    Ptr::ReadPtr<state::MacroState> scene_data,
                    const std::vector<state::Actor> &actors);
 
+    void updateDynamicsGravity(const AltPlanet::Shape::BaseShape *planet_shape);
+
     Ptr::WritePtr<RigidBodyPool> getActorRigidBodyPoolWPtr() { return Ptr::WritePtr<RigidBodyPool>(&mActorRigidBodies); }
+
+    static float constexpr sGravityMagnitude = 9.81f;
 };
 
 inline void PhysicsManager::stepPhysicsSimulation(float delta_time_sec)

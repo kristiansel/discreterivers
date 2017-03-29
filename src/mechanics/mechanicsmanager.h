@@ -34,6 +34,8 @@ public:
                    Ptr::ReadPtr<state::MacroState> scene_data,
                    const std::vector<state::Actor> &actors);
 
+    inline vmath::Quat getPlayerTargetOrientation();
+
 
     inline mech::InputController *getActiveController() { return mActiveInputCtrl; }
 };
@@ -41,6 +43,21 @@ public:
 void MechanicsManager::update(float delta_time_sec)
 {
     mActiveInputCtrl->update(delta_time_sec);
+}
+
+inline vmath::Quat MechanicsManager::getPlayerTargetOrientation()
+{
+    mech::CharacterController* player_controller = dynamic_cast<mech::CharacterController*>(mActiveInputCtrl);
+    if (player_controller)
+    {
+        return player_controller->getTargetOrientation();
+    }
+    else
+    {
+        DEBUG_LOG("ERROR: active controller is not a character controller");
+        DEBUG_ASSERT(false);
+        return vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f);
+    }
 }
 
 #endif // MECHANICSMANAGER_H

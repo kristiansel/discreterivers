@@ -10,6 +10,9 @@
 #include "../appconstraints.h"
 #include "../common/pointer.h"
 
+// to be removed
+#include "../common/procedural/planegeometry.h"
+
 using RigidBodyPool = stdext::freelist_set<btRigidBody, appconstraints::n_actors_max>;
 using RigidBodyPoolHandle = typename RigidBodyPool::node*;
 
@@ -46,6 +49,8 @@ public:
                             const vmath::Vector3 &normal);
 
     inline void stepSimulation(float time_delta_sec);
+private:
+    btCollisionShape * createMeshShape(const std::vector<vmath::Vector4> &pts, const std::vector<gfx::Triangle> &tris);
 };
 
 inline void PhysicsSimulation::stepSimulation(float time_delta_sec)
