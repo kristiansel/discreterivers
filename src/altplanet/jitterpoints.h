@@ -38,7 +38,8 @@ void jitterPoints(std::vector<vmath::Vector3> &points,
         DEBUG_ASSERT(i_closest >= 0 && i_closest<points.size());
 
         vmath::Vector3 smallest_vec = points[i_closest]-points[i];
-        float jitter_len = MathExt::frand(0.0f, 0.5f*vmath::length(smallest_vec));
+        //float jitter_len = MathExt::frand(0.0f, 0.5f*vmath::length(smallest_vec));
+        float jitter_len = 0.3f*vmath::length(smallest_vec);
 
         float rand_angle = MathExt::frand(0.0f, 2.0*DR_M_PI);
 

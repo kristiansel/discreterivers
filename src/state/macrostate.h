@@ -5,6 +5,7 @@
 #include "../altplanet/planetshapes.h"
 
 #include "../altplanet/watersystem.h"
+#include "../altplanet/civ.h"
 
 namespace state {
 
@@ -12,6 +13,7 @@ namespace state {
 
 class MacroState {
 public:
+    // data
     std::vector<vmath::Vector3> alt_planet_points;
     std::vector<gfx::Triangle> alt_planet_triangles;
 
@@ -29,6 +31,9 @@ public:
 
     const AltPlanet::Shape::BaseShape * planet_base_shape;
 
+    std::vector<AltPlanet::Civ::Resource> resource_locations;
+
+    // methods
     ~MacroState() { delete planet_base_shape; }
 
 

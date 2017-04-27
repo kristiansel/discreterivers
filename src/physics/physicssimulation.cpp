@@ -86,7 +86,6 @@ void PhysicsSimulation::addDynamicBody(const vmath::Vector3 &pos, const vmath::Q
         col_shape = (btCollisionShape*)(new btSphereShape(2.0f));
     }
 
-
     mCollisionShapes.push_back(col_shape);
 
     // Create Dynamic Objects

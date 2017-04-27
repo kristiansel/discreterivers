@@ -6,6 +6,8 @@
 #include "thirdpersoncameracontroller.h"
 #include "../state/scenecreationinfo.h"
 #include "../physics/physicssimulation.h"
+#include "../common/freelistset.h"
+#include "../appconstraints.h"
 
 class MechanicsManager
 {
@@ -13,12 +15,11 @@ class MechanicsManager
     mech::InputController *mActiveInputCtrl;
     //mech::ThirdPersonCameraController   mThirdPersonCameraController;
 
-    /*struct MechanicsState
-    {
-        mech::CameraController mCameraController;
-    };
+    using ControllerPool = stdext::freelist_set<mech::CharacterController, appconstraints::n_actors_max>;
+    using ControllerPoolHandle = typename ControllerPool::node*;
 
-    Ptr::OwningPtr<MechanicsState> mMechanicsStatePtr;*/
+    ControllerPool mControllers;
+
     Ptr::WritePtr<RigidBodyPool> mActorRigidBodyPoolPtr;
 
 public:

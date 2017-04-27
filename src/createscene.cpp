@@ -7,6 +7,7 @@
 #include "altplanet/climate/irradiance.h"
 #include "altplanet/climate/humidity.h"
 #include "altplanet/climate/climate.h"
+#include "altplanet/civ.h"
 #include "common/macro/debuglog.h"
 
 Ptr::OwningPtr<state::MacroState> createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector, int planet_seed)
@@ -128,6 +129,10 @@ Ptr::OwningPtr<state::MacroState> createPlanetData(PlanetShape planet_shape_sele
     std::vector<gfx::TexCoords> alt_planet_texcoords = planet_shape.getUV(alt_planet_points);
     std::vector<gfx::TexCoords> clim_mat_texco = AltPlanet::Climate::getClimateCoords(alt_planet_irradiance, alt_planet_humidity);
 
+
+    // resources
+    std::vector<AltPlanet::Civ::Resource> resources = AltPlanet::Civ::distributeResources(alt_planet_geometry.points, water_geometry.landWaterTypes);
+
     return Ptr::OwningPtr<state::MacroState>(
         new state::MacroState{
             alt_planet_geometry.points,
@@ -145,7 +150,9 @@ Ptr::OwningPtr<state::MacroState> createPlanetData(PlanetShape planet_shape_sele
 
             water_geometry.landWaterTypes,
 
-            planet_shape_ptr
+            planet_shape_ptr,
+
+            resources
         }
     );
 }

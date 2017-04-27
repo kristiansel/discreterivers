@@ -55,8 +55,8 @@ private:
 
 inline void PhysicsSimulation::stepSimulation(float time_delta_sec)
 {
-    mDynamicsWorld->stepSimulation(time_delta_sec);
-    //mDynamicsWorld->stepSimulation(time_delta_sec, 3, 1.f/120.f);
+    //mDynamicsWorld->stepSimulation(time_delta_sec);
+    mDynamicsWorld->stepSimulation(time_delta_sec, 3, 1.f/120.f); // need to do substeps for stability...
 }
 
 

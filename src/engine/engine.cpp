@@ -100,6 +100,10 @@ void Engine::handleKeyPressEvents(SDL_Keycode k)
 //                                alt_planet_points_so->mGeometry = gfx::Geometry(vertices, primitives);
         break;
     }
+    case (SDLK_F1): { // Press F1 to detach camera...
+        mClientStatePtr->toggleDebugFreeCam();
+        break;
+    }
     case (SDLK_F11): {
         events::Deferred::emitEvent(events::Deferred::ToggleFullscreenEvent());
         break;

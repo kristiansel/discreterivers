@@ -17,28 +17,16 @@ void MechanicsManager::initScene(const vmath::Vector3 &point_above,
                                  const std::vector<state::Actor> &actors)
 
 {
-    vmath::Vector3 local_up = scene_data->getLocalUp(point_above);
-
-    /*mech::CameraController *cam_ctrl = dynamic_cast<mech::CameraController*>(mActiveInputCtrl);
-    if (cam_ctrl)
-    {
-        DEBUG_LOG("setting cam ctrler up direction");
-        cam_ctrl->setUpDir(local_up);
-    }
-    else
-    {
-        DEBUG_LOG("active input controller is not a camera controller");
-    }*/
-
     bool found_atleast_one_player = false;
     for (int i = 0; i<actors.size(); i++)
     {
+        auto arb = mActorRigidBodyPoolPtr->get_by_offset(i);
+        ControllerPoolHandle actor_ctrl = mControllers.create(Ptr::WritePtr<RigidBody>(arb->get_ptr()));
+
         const state::Actor &actor = actors[i];
         if (actor.control == state::Actor::Control::Player)
         {
-            delete mActiveInputCtrl;
-            auto arb = mActorRigidBodyPoolPtr->get_by_offset(i);
-            mActiveInputCtrl = new mech::CharacterController(Ptr::WritePtr<RigidBody>(arb->get_ptr()));
+            mActiveInputCtrl = actor_ctrl->get_ptr();
             found_atleast_one_player = true;
         }
     }
@@ -47,5 +35,5 @@ void MechanicsManager::initScene(const vmath::Vector3 &point_above,
 
 MechanicsManager::~MechanicsManager()
 {
-    delete mActiveInputCtrl;
+    //delete mActiveInputCtrl;
 }
