@@ -7,7 +7,7 @@
 #include "altplanet/climate/irradiance.h"
 #include "altplanet/climate/humidity.h"
 #include "altplanet/climate/climate.h"
-#include "altplanet/civ.h"
+#include "altplanet/civ/civ.h"
 #include "common/macro/debuglog.h"
 
 Ptr::OwningPtr<state::MacroState> createPlanetData(PlanetShape planet_shape_selector, PlanetSize planet_size_selector, int planet_seed)

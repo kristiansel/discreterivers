@@ -5,7 +5,7 @@
 #include "../altplanet/planetshapes.h"
 
 #include "../altplanet/watersystem.h"
-#include "../altplanet/civ.h"
+#include "../altplanet/civ/civ.h"
 
 namespace state {
 
