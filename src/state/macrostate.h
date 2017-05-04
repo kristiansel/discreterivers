@@ -33,6 +33,24 @@ public:
 
     std::vector<AltPlanet::Civ::Resource> resource_locations;
 
+    // save sparse  and dense data
+
+    /*struct Sparse {
+        struct {
+
+        } point_data;
+    } sparse;
+
+    struct Dense {
+        struct {
+            // irradiance and other things...
+        } point_data;
+
+        struct {
+            // stuff... and list of things contained within... moving things etc...
+        } tri_data;
+    } dense ;*/
+
     // methods
     ~MacroState() { delete planet_base_shape; }
 
