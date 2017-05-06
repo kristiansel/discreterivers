@@ -59,6 +59,8 @@ void GFXSceneManager::updateCamera(const vmath::Quat &player_orientation, const 
     {
         const vmath::Quat &po = player_orientation;
         //DEBUG_LOG("player_orientation: " << po[0] << ", "<< po[1] << ", "<< po[2] << ", " << po[3])
+        //DEBUG_LOG("player_orientation_sum: " << po[0] + po[1] + po[2] + po[3])
+
         const gfx::Transform &player_transf = mPlayerNodePtr->transform;
         vmath::Matrix3 rot(player_orientation);
         //vmath::Vector3 offset = 16.0f*rot*vmath::Vector3(0.0f, -1.0f, 1.0f);

@@ -87,11 +87,13 @@ inline void CharacterController::updateCharControllerOutputs(float delta_time_se
                                                              btRigidBody &rb)
 {
     // get some directions
-    vmath::Vector3 forward = vmath::Matrix3(contr.mActualOrientation) * vmath::Vector3(0.0f, 0.0f, -1.0f);    // should be unit
+    vmath::Vector3 forward = vmath::Matrix3(contr.mTargetOrientation) * vmath::Vector3(0.0f, 0.0f, -1.0f);    // should be unit
     btVector3 bt_gravity = contr.mRigidBodyPtr->getGravity();
     vmath::Vector3 gravity(bt_gravity.getX(), bt_gravity.getY(), bt_gravity.getZ());
     vmath::Vector3 up = -vmath::normalize(gravity);                                                     // should be unit
     vmath::Vector3 right = vmath::cross(forward, up);                                                   // does not need norm
+    // in principle does not need normalization, in practice, right depends on target orientation which can creep to non-norm
+    right = vmath::normalize(right);
 
     float speed_forw_set = 0.0f
                       + contr.mSignalFlags.checkFlag(Signal::Forward)   ?
