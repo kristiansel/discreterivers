@@ -40,7 +40,7 @@ public:
     void inline sendTurnSignals(mech::InputController::TurnSignals ts) { mMechanicsManager.getActiveController()->sendTurnSignals(ts); }
 
     // debug functionality
-    void inline toggleDebugFreeCam() { DEBUG_LOG("Toggling debug freecam"); }
+    void inline toggleDebugFreeCam() { mMechanicsManager.toggleDebugFreeCam(); }
 
 };
 

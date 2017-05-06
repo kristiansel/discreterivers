@@ -83,7 +83,7 @@ inline void CameraController::update(float delta_time_sec)
         }
 
         mCameraPtr->mTransform.rotation =
-                vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[0], mUpDir ) *
+                vmath::Quat::rotation(-mMouseTurnSpeed*mTurnSignals[0], mUpDir ) *
                 vmath::Quat::rotation(mMouseTurnSpeed*mTurnSignals[1], mCameraPtr->mTransform.getRightDir()) *
                 mCameraPtr->mTransform.rotation;
     }

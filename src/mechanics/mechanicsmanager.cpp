@@ -7,9 +7,15 @@ MechanicsManager::MechanicsManager(Ptr::WritePtr<gfx::Camera> camera_ptr,
                                    Ptr::WritePtr<RigidBodyPool> actor_rigid_body_pool_ptr) :
     //mActiveInputCtrl( new mech::CameraController(camera_ptr) ),
     mActiveInputCtrl( nullptr ),
-    mActorRigidBodyPoolPtr(actor_rigid_body_pool_ptr)
+    mActorRigidBodyPoolPtr(actor_rigid_body_pool_ptr),
+    mCameraController(camera_ptr)
 {
     // ctor
+}
+
+MechanicsManager::~MechanicsManager()
+{
+    //delete mActiveInputCtrl;
 }
 
 void MechanicsManager::initScene(const vmath::Vector3 &point_above,
@@ -33,7 +39,20 @@ void MechanicsManager::initScene(const vmath::Vector3 &point_above,
     DEBUG_ASSERT(found_atleast_one_player);
 }
 
-MechanicsManager::~MechanicsManager()
+void MechanicsManager::toggleDebugFreeCam()
 {
-    //delete mActiveInputCtrl;
+    DEBUG_LOG("TOGGLING DEBUG FREECAM");
+
+    // if not freecam
+    mech::CharacterController *char_contr = dynamic_cast<mech::CharacterController*>(mActiveInputCtrl);
+    if (char_contr) // it is a character controller - not freecam
+    {
+        mPreviousInputCtrl = mActiveInputCtrl;
+        mActiveInputCtrl = &mCameraController;
+    }
+    else  // if freecam - switch to character controller
+    {
+        mActiveInputCtrl = mPreviousInputCtrl;
+        mPreviousInputCtrl = nullptr;
+    }
 }

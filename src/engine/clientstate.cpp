@@ -33,7 +33,11 @@ void ClientState::update(float delta_time_sec)
         pt.scene_node_hdl->transform.rotation = pt.rot;
     });
 
-    // update graphics camera
-    vmath::Quat player_orientation = mMechanicsManager.getPlayerTargetOrientation();
-    mGFXSceneManager.updateCamera(player_orientation, mMacroStatePtr->getLocalUp(getActiveCamera().mTransform.position));
+    // update graphics camera, this smells...
+    vmath::Quat player_orientation;
+    bool player_is_controlled = mMechanicsManager.getPlayerTargetOrientation(player_orientation);
+    if (player_is_controlled)
+    {
+        mGFXSceneManager.updateCamera(player_orientation, mMacroStatePtr->getLocalUp(getActiveCamera().mTransform.position));
+    }
 }
