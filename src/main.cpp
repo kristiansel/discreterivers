@@ -72,17 +72,6 @@ int main(int argc, char *argv[])
         }
         else
         {
-            // SDL_GetDisplayDPI is not supported by the old version of SDL that is in use..
-            /*float ddpi, hdpi, vdpi;
-            if(SDL_GetDisplayDPI(disp_index, &ddpi, &hdpi, &vdpi) != 0)
-            {
-                std::cerr << "Could not get display dpi for video display " << disp_index << ": " << SDL_GetError() << std::endl;
-                return 1;
-            }
-            else
-            {
-                maindisp_dpi = ddpi; // implicitly rounded
-            }*/
             maindisp_width = disp_mode.w;
             maindisp_height = disp_mode.h;
         }
@@ -94,6 +83,9 @@ int main(int argc, char *argv[])
     }
 
     float scale_factor = (float)(maindisp_height)/(float)(1024);
+#ifdef WIN32
+    scale_factor /= 2.0f;
+#endif
 
     int width = scale_factor * 1400;
     int height = scale_factor * 800;
