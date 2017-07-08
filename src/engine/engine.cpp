@@ -101,7 +101,11 @@ void Engine::handleKeyPressEvents(SDL_Keycode k)
         break;
     }
     case (SDLK_F1): { // Press F1 to detach camera...
-        mClientStatePtr->toggleDebugFreeCam();
+        if (mClientStatePtr) mClientStatePtr->toggleDebugFreeCam();
+        break;
+    }
+    case (SDLK_F3): { // Press F3 to pause the simulation...
+        if (mClientStatePtr) mClientStatePtr->toggleSimulationPaused();
         break;
     }
     case (SDLK_F11): {

@@ -51,9 +51,8 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
 
     GUINodeHandle newgame_bg_node = new_game_menu_root.addGUINode(
                 GUITransform({0.50f, 0.50f}, // position and anchor in middle
-
-                            {SizeSpec(60.0f, Units::Absolute, true),
-                             SizeSpec(60.0f, Units::Absolute, true)}));
+                             {SizeSpec(60.0f, Units::Absolute, true),
+                              SizeSpec(60.0f, Units::Absolute, true)}));
 
     newgame_bg_node->addElement( BackgroundElement( styling::colorGuiBase() ) );
     newgame_bg_node->hide();
@@ -116,6 +115,7 @@ void createNewGameMenu(GUI &gui, GUINode &new_game_menu_root)
                       SizeSpec(60.0f, Units::Absolute)} ));
 
     seed_node->addElement( TextElement( "World seed number", font));
+
     textInput(seed_node, font, GUITransform(
         {HorzPos(0.0f, Units::Absolute, HorzAnchor::Left, HorzFrom::Left),
          VertPos(30.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},

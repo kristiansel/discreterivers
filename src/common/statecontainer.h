@@ -6,7 +6,6 @@
 
 namespace State {
 
-
 class StateContainer;
 
 template<typename T>
@@ -83,7 +82,10 @@ class StateHandle
     StateHandle()                            = delete;
 
     StateHandle(StateT *state_ptr, StateContainer *state_container_ptr) :
-        mStatePtr(state_ptr), mStateContainerPtr(state_container_ptr) { DEBUG_ASSERT(state_container_ptr!=nullptr&&state_ptr!=nullptr); }
+        mStatePtr(state_ptr), mStateContainerPtr(state_container_ptr)
+    {
+        DEBUG_ASSERT(state_container_ptr!=nullptr&&state_ptr!=nullptr);
+    }
 
 public:
     // trivial move and copy (weak ref semantics)

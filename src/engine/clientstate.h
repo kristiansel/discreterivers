@@ -25,6 +25,9 @@ class ClientState
     // needs to be after physics!!
     MechanicsManager mMechanicsManager;
 
+    // Debug flags
+    bool mSimulationPaused;
+
 
 public:
     ClientState(state::SceneCreationInfo &new_game_info);
@@ -41,6 +44,10 @@ public:
 
     // debug functionality
     void inline toggleDebugFreeCam() { mMechanicsManager.toggleDebugFreeCam(); }
+    void inline toggleSimulationPaused() {
+        mSimulationPaused = !mSimulationPaused;
+        events::Immediate::broadcast(events::SimStatusUpdateEvent{mSimulationPaused});
+    }
 
 };
 

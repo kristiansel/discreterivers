@@ -41,6 +41,11 @@ struct FPSUpdateEvent
     float fps;
 };
 
+struct SimStatusUpdateEvent
+{
+   bool sim_paused;
+};
+
 struct GenerateWorldEvent
 {
     enum class PlanetShape {Sphere, Disk, Torus};

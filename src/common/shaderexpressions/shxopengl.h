@@ -348,9 +348,6 @@ static shader_program create_from_functions(
     return sp_out;
 }
 
-
-
-
 template<typename ShaderImpl, typename GeometryType, typename MaterialType, typename VarsInOut, typename ExtraUniforms>
 class shader;
 
@@ -372,11 +369,10 @@ public:
 
         out<expr<vec4_t>> fs_out = shader_impl.fragmentShader(varsinout, material, extraunis);
 
-
-
         //fragment_shader<IOTypes...> fs = make_fragment_shader(fs_out, vs_out.1-end?);
 
     }
+
 };
 
 

@@ -6,12 +6,16 @@ ClientState::ClientState(state::SceneCreationInfo &new_game_info) :
                     Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
    mMechanicsManager(Ptr::WritePtr<gfx::Camera>(&mGFXSceneManager.mCamera), mPhysicsManager.getActorRigidBodyPoolWPtr()),
-   mMacroStatePtr(std::move(new_game_info.macro_state_ptr))
+   mMacroStatePtr(std::move(new_game_info.macro_state_ptr)),
+   mSimulationPaused(false)
 {
     // ctor
     mGFXSceneManager.initScene(new_game_info.point_above, mMacroStatePtr.getReadPtr(), new_game_info.actors);
     mPhysicsManager.initScene(new_game_info.land_pos, mMacroStatePtr.getReadPtr(), new_game_info.actors);
     mMechanicsManager.initScene(new_game_info.land_pos, mMacroStatePtr.getReadPtr(), new_game_info.actors);
+
+    // notify subscribers
+    events::Immediate::broadcast(events::SimStatusUpdateEvent{mSimulationPaused});
 
 }
 
@@ -22,7 +26,8 @@ void ClientState::update(float delta_time_sec)
     mMechanicsManager.update(delta_time_sec);
 
     // update physics
-    mPhysicsManager.stepPhysicsSimulation(delta_time_sec);
+    float sim_delta_time = mSimulationPaused ? 0.0f : delta_time_sec;
+    mPhysicsManager.stepPhysicsSimulation(sim_delta_time);
 
     // update gravity
     mPhysicsManager.updateDynamicsGravity(mMacroStatePtr->planet_base_shape);

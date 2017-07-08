@@ -18,6 +18,8 @@ void createOptionsMenu(GUI &gui_obj, gfx::gui::GUINode &options_menu_root);
 
 void createProfilingPane(GUI &gui_obj, gfx::gui::GUINode &profiling_pane_root);
 
+void createDebugPane(GUI &gui_obj, gfx::gui::GUINode &debug_pane_root);
+
 void createChooseOriginMenu(GUI &gui_obj, gfx::gui::GUINode &choose_origin_menu_root);
 
 void createCharCreateMenu(GUI &gui_obj, gfx::gui::GUINode &char_create_menu_root);

@@ -77,18 +77,6 @@ void createMainMenu(GUI &gui, GUINode &main_menu_root)
         std::cout << "Clicked exit game!"     << std::endl;
     });
 
-    /*GUINodeHandle text_test_node = main_menu_root.addGUINode(
-        GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
-                       VertPos(60.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
-
-                      {SizeSpec(200.0f, Units::Absolute),
-                       SizeSpec(200.0f, Units::Absolute)} ));
-
-        text_test_node->addElement( BackgroundElement( gui::styling::colorGuiBase() ) );
-
-
-        text_test_node->addElement( TextElement( "This text is to test if it wraps", body_font));*/
-
     std::string text = "This text is to test if it wraps. My Essay about something or another, hope this is now longer than the container... somehow";
     GUINodeHandle text_test_node = textBox(main_menu_root, text, body_font,
             GUITransform( {HorzPos(30.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
