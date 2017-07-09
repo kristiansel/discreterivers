@@ -71,6 +71,7 @@ void MechanicsManager::update(float delta_time_sec)
 
     // notify subscribers... smell...
     events::Immediate::broadcast(events::PlayerUpdateEvent{getPlayerPosition()});
+
 }
 
 inline bool MechanicsManager::getPlayerTargetOrientation(vmath::Quat &player_orientation)

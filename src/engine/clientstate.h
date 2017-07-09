@@ -28,6 +28,8 @@ class ClientState
     // Debug flags
     bool mSimulationPaused;
 
+    long mFrame;
+
 
 public:
     ClientState(state::SceneCreationInfo &new_game_info);

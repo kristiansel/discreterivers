@@ -7,17 +7,26 @@
 #include "../events/immediateevents.h"
 #include "../events/queuedevents.h"
 
+// helper function to reduce decimals
+#include <sstream>
+std::string ftos(float f, int nd) {
+   std::ostringstream ostr;
+   int tens = std::stoi("1" + std::string(nd, '0'));
+   ostr << std::round(f*tens)/tens;
+   return ostr.str();
+}
+
 namespace gui {
 
 using namespace gfx::gui;
 
 void createDebugPane(GUI &gui, GUINode &debug_pane_root)
 {
-    const GUIFont &font = gui.getDefaultFont();
+    const GUIFont &font = gui.getBodyFont();
 
     GUINodeHandle sim_status_node = debug_pane_root.addGUINode(
         GUITransform( {HorzPos(200.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
-                       VertPos(220.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                       VertPos(215.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
                       {SizeSpec(100.0f,  Units::Absolute),
                        SizeSpec(15.0f,  Units::Absolute)}));
 
@@ -34,7 +43,7 @@ void createDebugPane(GUI &gui, GUINode &debug_pane_root)
 
     GUINodeHandle freecam_status_node = debug_pane_root.addGUINode(
         GUITransform( {HorzPos(200.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
-                       VertPos(240.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                       VertPos(230.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
                       {SizeSpec(100.0f,  Units::Absolute),
                        SizeSpec(15.0f,  Units::Absolute)}));
 
@@ -51,7 +60,7 @@ void createDebugPane(GUI &gui, GUINode &debug_pane_root)
 
     GUINodeHandle player_pos_node = debug_pane_root.addGUINode(
         GUITransform( {HorzPos(200.0f, Units::Absolute, HorzAnchor::Right, HorzFrom::Right),
-                       VertPos(260.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
+                       VertPos(245.0f, Units::Absolute, VertAnchor::Top, VertFrom::Top)},
                       {SizeSpec(100.0f,  Units::Absolute),
                        SizeSpec(15.0f,  Units::Absolute)}));
 
@@ -61,9 +70,9 @@ void createDebugPane(GUI &gui, GUINode &debug_pane_root)
     events::Immediate::add_callback<events::PlayerUpdateEvent>(
     [player_pos_text_element, &font] (const events::PlayerUpdateEvent &evt) {
         std::string player_pos_text = std::string("Player: ") +
-                                      std::to_string(evt.player_pos.getX())+std::string(", ")+
-                                      std::to_string(evt.player_pos.getY())+std::string(", ")+
-                                      std::to_string(evt.player_pos.getZ());
+                                      ftos(evt.player_pos.getX(), 2)+std::string(", ")+
+                                      ftos(evt.player_pos.getY(), 2)+std::string(", ")+
+                                      ftos(evt.player_pos.getZ(), 2);
         TextElement &text_element = player_pos_text_element->get<TextElement>();
         text_element.updateText(player_pos_text.c_str(), font, player_pos_text.size());
     });
