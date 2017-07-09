@@ -40,6 +40,8 @@ class CharacterController : public InputController
     PIController mForwardCtrl;
     PIController mSideCtrl;
 
+
+
 public:
     CharacterController(Ptr::WritePtr<RigidBody> rigid_body_ptr = Ptr::WritePtr<RigidBody>(nullptr),
                         const vmath::Quat &start_orientation = vmath::Quat(0.0f, 0.0f, 0.0f, 1.0f),
@@ -64,7 +66,8 @@ public:
     void update(float delta_time_sec);
 
     // read
-    inline vmath::Quat getTargetOrientation() { return mTargetOrientation; }
+    inline vmath::Quat getTargetOrientation() const { return mTargetOrientation; }
+    inline btRigidBody& getRigidBody() { return mRigidBodyPtr.getRef(); }
 
     // static
     static inline void updateCharControllerOutputs(float delta_time_sec,

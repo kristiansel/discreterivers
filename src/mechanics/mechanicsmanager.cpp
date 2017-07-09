@@ -7,6 +7,7 @@ MechanicsManager::MechanicsManager(Ptr::WritePtr<gfx::Camera> camera_ptr,
                                    Ptr::WritePtr<RigidBodyPool> actor_rigid_body_pool_ptr) :
     //mActiveInputCtrl( new mech::CameraController(camera_ptr) ),
     mActiveInputCtrl( nullptr ),
+    mPreviousInputCtrl( nullptr ),
     mActorRigidBodyPoolPtr(actor_rigid_body_pool_ptr),
     mCameraController(camera_ptr)
 {

@@ -21,6 +21,8 @@ public:
     const T*     operator->() const { return p_; }
 
     T& getRef() { return *p_; }
+    const T& getConstRef() const { return *p_; }
+    //ReadPtr<T> getReadPtr() const { return ReadPtr<T>(p_); }
 
     bool operator==(const WritePtr &o) const { return p_ == o.p_; }
     bool operator!=(const WritePtr &o) const { return p_ != o.p_; }

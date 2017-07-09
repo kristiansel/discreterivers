@@ -43,7 +43,10 @@ public:
     void inline sendTurnSignals(mech::InputController::TurnSignals ts) { mMechanicsManager.getActiveController()->sendTurnSignals(ts); }
 
     // debug functionality
-    void inline toggleDebugFreeCam() { mMechanicsManager.toggleDebugFreeCam(); }
+    void inline toggleDebugFreeCam() {
+        mMechanicsManager.toggleDebugFreeCam();
+        events::Immediate::broadcast(events::ToggleFreeCamEvent{mMechanicsManager.isFreeCam()});
+    }
     void inline toggleSimulationPaused() {
         mSimulationPaused = !mSimulationPaused;
         events::Immediate::broadcast(events::SimStatusUpdateEvent{mSimulationPaused});

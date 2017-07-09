@@ -8,6 +8,7 @@
 #include "../physics/physicssimulation.h"
 #include "../common/freelistset.h"
 #include "../appconstraints.h"
+#include "../events/immediateevents.h"
 
 class MechanicsManager
 {
@@ -45,6 +46,17 @@ public:
     // for debug purposes
     void toggleDebugFreeCam();
 
+    bool inline isFreeCam() { return mPreviousInputCtrl!=nullptr; }
+
+    vmath::Vector3 getPlayerPosition() const {
+        mech::CharacterController *player_char_contr = mPreviousInputCtrl!=nullptr ?
+                    (mech::CharacterController*)(mPreviousInputCtrl) :
+                    (mech::CharacterController*)(mActiveInputCtrl);
+        btRigidBody &player_rigid_body = player_char_contr->getRigidBody();
+        btTransform &transf = player_rigid_body.getWorldTransform();
+        btVector3 &pos = transf.getOrigin();
+        return vmath::Vector3(pos.x(), pos.y(), pos.z());
+    } // a very dodgy methods...
 };
 
 void MechanicsManager::update(float delta_time_sec)
@@ -57,6 +69,8 @@ void MechanicsManager::update(float delta_time_sec)
 
     mCameraController.update(delta_time_sec);
 
+    // notify subscribers... smell...
+    events::Immediate::broadcast(events::PlayerUpdateEvent{getPlayerPosition()});
 }
 
 inline bool MechanicsManager::getPlayerTargetOrientation(vmath::Quat &player_orientation)

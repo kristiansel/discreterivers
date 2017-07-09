@@ -46,6 +46,16 @@ struct SimStatusUpdateEvent
    bool sim_paused;
 };
 
+struct ToggleFreeCamEvent
+{
+   bool freecam;
+};
+
+struct PlayerUpdateEvent
+{
+    vmath::Vector3 player_pos;
+};
+
 struct GenerateWorldEvent
 {
     enum class PlanetShape {Sphere, Disk, Torus};

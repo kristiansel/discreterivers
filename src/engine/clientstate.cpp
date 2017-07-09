@@ -7,7 +7,7 @@ ClientState::ClientState(state::SceneCreationInfo &new_game_info) :
    mPhysicsManager(Ptr::WritePtr<PhysTransformContainer>(&mActorTransforms)),
    mMechanicsManager(Ptr::WritePtr<gfx::Camera>(&mGFXSceneManager.mCamera), mPhysicsManager.getActorRigidBodyPoolWPtr()),
    mMacroStatePtr(std::move(new_game_info.macro_state_ptr)),
-   mSimulationPaused(false)
+   mSimulationPaused(true)
 {
     // ctor
     mGFXSceneManager.initScene(new_game_info.point_above, mMacroStatePtr.getReadPtr(), new_game_info.actors);
@@ -16,6 +16,7 @@ ClientState::ClientState(state::SceneCreationInfo &new_game_info) :
 
     // notify subscribers
     events::Immediate::broadcast(events::SimStatusUpdateEvent{mSimulationPaused});
+    events::Immediate::broadcast(events::ToggleFreeCamEvent{mMechanicsManager.isFreeCam()});
 
 }
 
