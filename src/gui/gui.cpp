@@ -25,7 +25,7 @@ void createGUI(GUI &gui)
     createCharCreateMenu(gui, gui_root_node);
 
     // extra (goes in the bottom to be on top in the gui)
-    // createProfilingPane(gui, gui_root_node);
+    createProfilingPane(gui, gui_root_node);
     createDebugPane(gui, gui_root_node);
 }
 
